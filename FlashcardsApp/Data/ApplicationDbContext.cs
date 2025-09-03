@@ -24,14 +24,14 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<Group>(entity =>
         {
             entity.Property(g => g.GroupName)
-                .HasMaxLength(300).IsRequired();
+                .HasMaxLength(100).IsRequired();
         });
         
         // Настройка Card
         modelBuilder.Entity<Card>(entity =>
         {
             entity.Property(c => c.Question)
-                .HasMaxLength(100).IsRequired();
+                .HasMaxLength(300).IsRequired();
             entity.Property(c => c.Answer)
                 .HasMaxLength(2000).IsRequired();
         });
