@@ -24,7 +24,7 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<Group>(entity =>
         {
             entity.Property(g => g.GroupName)
-                .HasMaxLength(100).IsRequired();
+                .HasMaxLength(300).IsRequired();
         });
         
         // Настройка Card
@@ -35,6 +35,19 @@ public class ApplicationDbContext : DbContext
             entity.Property(c => c.Answer)
                 .HasMaxLength(2000).IsRequired();
         });
+        
+        // Настройка конфигураций связей Card->Group
+        modelBuilder.Entity<Card>()
+            .HasOne(c => c.Group) // У карты одна группа
+            .WithMany(g => g.Cards) // У группы много карт (там массив)
+            .HasForeignKey(c => c.GroupId); // Связь в Card 
+        
+        // Настройка конфигурация связей Card->CardRating
+        modelBuilder.Entity<Card>()
+            .HasMany(c => c.Ratings) // У карты много оценок (там массив)
+            .WithOne(r => r.Card) // У оценок, одна карта
+            .HasForeignKey(r => r.CardId); // Связь по свойству CardId
+        
         
         // Вызываем настройки базового DbContext (конвенции EF (приводит свойства классов в типы для БД, переименовывает и т.д.) + настройки Identity при добавлении)
         base.OnModelCreating(modelBuilder);
