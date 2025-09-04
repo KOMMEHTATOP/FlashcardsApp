@@ -11,5 +11,6 @@ public class Group
     public string GroupColor { get; set; } = GroupColors.Default;
     public DateTime CreatedAt { get; set; }
     
+    public User? User { get; set; }
     public List<Card>? Cards { get; set; } //Navigation property
 }
