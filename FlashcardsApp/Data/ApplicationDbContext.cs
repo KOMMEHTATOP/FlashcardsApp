@@ -35,6 +35,8 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
                 .HasMaxLength(100).IsRequired();
             entity.Property(g=>g.GroupColor)
                 .HasMaxLength(20);
+            
+            entity.HasIndex(g=> new {g.UserId, g.GroupName}).IsUnique();
         });
         
         // Настройка Card
@@ -44,6 +46,8 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
                 .HasMaxLength(300).IsRequired();
             entity.Property(c => c.Answer)
                 .HasMaxLength(2000).IsRequired();
+            
+            entity.HasIndex(c => new {c.UserId, c.Question}).IsUnique();
         });
         
         // Настройка конфигураций связей Card->Group
