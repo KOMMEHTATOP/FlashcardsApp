@@ -1,0 +1,124 @@
+using FlashcardsApp.Data;
+using FlashcardsApp.Mapping;
+using FlashcardsApp.Models;
+using FlashcardsApp.Models.DTOs;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
+
+namespace FlashcardsApp.Services;
+
+public class CardService
+{
+    private readonly UserManager<User> _userManager;
+    private ApplicationDbContext _context;
+
+    public CardService(UserManager<User> userManager, ApplicationDbContext context)
+    {
+        _userManager = userManager;
+        _context = context;
+    }
+
+    public async Task<ServiceResult<ResultCardDto>> GetCardAsync(Guid cardId, Guid userId)
+    {
+        var card = await _context.Cards
+            .AsNoTracking()
+            .FirstOrDefaultAsync(g => g.Id == cardId && g.UserId == userId);
+
+        if (card == null)
+        {
+            return ServiceResult<ResultCardDto>.Failure("Card not found or access denied");
+        }
+
+        return ServiceResult<ResultCardDto>.Success(card.ToDto());
+    }
+
+    public async Task<ServiceResult<IEnumerable<ResultCardDto>>> GetAllCardsAsync(Guid userId)
+    {
+        var cards = await _context.Cards
+            .AsNoTracking()
+            .Where(c => c.UserId == userId)
+            .OrderBy(c => c.CreatedAt)
+            .ToListAsync();
+        return ServiceResult<IEnumerable<ResultCardDto>>.Success(cards.Select(c => c.ToDto()));
+    }
+
+    public async Task<ServiceResult<ResultCardDto>> CreateCardAsync(Guid userId, Guid groupId, CreateCardDto dto)
+    {
+        var group = await _context.Groups.FirstOrDefaultAsync(g => g.Id == groupId && g.UserId == userId);
+
+        if (group == null)
+        {
+            return ServiceResult<ResultCardDto>.Failure("Group not found or access denied");
+        }
+
+        var result = new Card
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            GroupId = groupId,
+            Question = dto.Question,
+            Answer = dto.Answer,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        _context.Cards.Add(result);
+        await _context.SaveChangesAsync();
+        return ServiceResult<ResultCardDto>.Success(result.ToDto());
+    }
+
+    public async Task<ServiceResult<ResultCardDto>> UpdateCardAsync(Guid cardId, Guid groupId, Guid userId,
+        CreateCardDto dto)
+    {
+        var card =
+            await _context.Cards.FirstOrDefaultAsync(c => c.Id == cardId && c.GroupId == groupId && c.UserId == userId);
+
+        if (card == null)
+        {
+            return ServiceResult<ResultCardDto>.Failure("Card not found or access denied");
+        }
+
+        card.Question = dto.Question;
+        card.Answer = dto.Answer;
+        card.UpdatedAt = DateTime.UtcNow;
+
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex))
+        {
+            return ServiceResult<ResultCardDto>.Failure("You already have a card with this question");
+        }
+
+        return ServiceResult<ResultCardDto>.Success(card.ToDto());
+    }
+
+    public async Task<ServiceResult<bool>> DeleteCardAsync(Guid cardId, Guid userId)
+    {
+        var card = await _context.Cards.FirstOrDefaultAsync(c => c.Id == cardId && c.UserId == userId);
+
+        if (card == null)
+        {
+            return ServiceResult<bool>.Failure("Card not found or access denied");
+        }
+
+        _context.Cards.Remove(card);
+        await _context.SaveChangesAsync();
+
+        return ServiceResult<bool>.Success(true);
+    }
+
+    private bool IsUniqueConstraintViolation(DbUpdateException exception)
+    {
+        // InnerException будет именно PostgresException при нарушении ограничения
+        if (exception.InnerException is PostgresException postgresEx)
+        {
+            // 23505 = unique_violation
+            return postgresEx.SqlState == "23505";
+        }
+
+        return false;
+    }
+}

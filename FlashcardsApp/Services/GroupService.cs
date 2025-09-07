@@ -38,6 +38,18 @@ public class GroupService
         return ServiceResult<ResultGroupDto>.Success(group.ToDto());
     }
 
+    public async Task<ServiceResult<IEnumerable<ResultGroupDto>>> GetGroupsAsync(Guid userId)
+    {
+        var groups = await _context.Groups
+            .AsNoTracking()
+            .Where(g=>g.UserId ==  userId)
+            .OrderBy(g=>g.CreatedAt)
+            .ToListAsync();
+        
+        var groupDtos = groups.Select(g => g.ToDto());
+        return ServiceResult<IEnumerable<ResultGroupDto>>.Success(groupDtos);
+    }
+
     public async Task<ServiceResult<ResultGroupDto>> CreateNewGroupAsync(CreateGroupDto model, Guid userId)
     {
         var user = await _userManager.FindByIdAsync(userId.ToString());
@@ -72,14 +84,44 @@ public class GroupService
         return ServiceResult<ResultGroupDto>.Success(resultDto);
     }
 
-    private async Task<ServiceResult<User>> EnsureUserExists(Guid userId)
+    public async Task<ServiceResult<ResultGroupDto>> UpdateGroupAsync(Guid groupId, Guid userId, CreateGroupDto model)
     {
-        var user = await _userManager.FindByIdAsync(userId.ToString());
-        return user is not null
-            ? ServiceResult<User>.Success(user)
-            : ServiceResult<User>.Failure("User not found");
+        var group = await _context.Groups.FirstOrDefaultAsync(g => g.Id == groupId && g.UserId == userId);
+
+        if (group == null)
+        {
+            return ServiceResult<ResultGroupDto>.Failure("Group not found or access denied");
+        }
+
+        group.GroupName = model.Name;
+        group.GroupColor = model.Color;
+
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex))
+        {
+            return ServiceResult<ResultGroupDto>.Failure("You already have a group with this name");
+        }
+
+        return ServiceResult<ResultGroupDto>.Success(group.ToDto());
     }
-    
+
+    public async Task<ServiceResult<bool>> DeleteGroupAsync(Guid groupId, Guid userId)
+    {
+        var group = await _context.Groups.FirstOrDefaultAsync(g => g.Id == groupId && g.UserId == userId);
+
+        if (group == null)
+        {
+            return ServiceResult<bool>.Failure("Group not found or access denied");
+        }
+        
+        _context.Groups.Remove(group);
+        await _context.SaveChangesAsync();
+        return ServiceResult<bool>.Success(true);
+    }
+
     private bool IsUniqueConstraintViolation(DbUpdateException exception)
     {
         // InnerException будет именно PostgresException при нарушении ограничения
