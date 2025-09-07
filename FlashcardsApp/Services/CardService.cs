@@ -2,7 +2,6 @@ using FlashcardsApp.Data;
 using FlashcardsApp.Mapping;
 using FlashcardsApp.Models;
 using FlashcardsApp.Models.DTOs;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
@@ -10,12 +9,10 @@ namespace FlashcardsApp.Services;
 
 public class CardService
 {
-    private readonly UserManager<User> _userManager;
     private ApplicationDbContext _context;
 
-    public CardService(UserManager<User> userManager, ApplicationDbContext context)
+    public CardService(ApplicationDbContext context)
     {
-        _userManager = userManager;
         _context = context;
     }
 
@@ -68,8 +65,7 @@ public class CardService
         return ServiceResult<ResultCardDto>.Success(result.ToDto());
     }
 
-    public async Task<ServiceResult<ResultCardDto>> UpdateCardAsync(Guid cardId, Guid groupId, Guid userId,
-        CreateCardDto dto)
+    public async Task<ServiceResult<ResultCardDto>> UpdateCardAsync(Guid cardId, Guid groupId, Guid userId, CreateCardDto dto)
     {
         var card =
             await _context.Cards.FirstOrDefaultAsync(c => c.Id == cardId && c.GroupId == groupId && c.UserId == userId);
