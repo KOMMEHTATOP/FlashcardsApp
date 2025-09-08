@@ -8,7 +8,7 @@ namespace FlashcardsApp.Services;
 
 public class CardRatingService
 {
-    private ApplicationDbContext _context;
+    private readonly ApplicationDbContext _context;
 
     public CardRatingService(ApplicationDbContext context)
     {
@@ -45,6 +45,11 @@ public class CardRatingService
 
     public async Task<ServiceResult<ResultCardRating>> CreateCardRating(Guid cardId, Guid userId, CreateCardRatingDto dto)
     {
+        if (dto.Rating is < 1 or > 5)
+        {
+            return ServiceResult<ResultCardRating>.Failure("Rating must be between 1 and 5");
+        }
+        
         var card = await _context.Cards
             .FirstOrDefaultAsync(c => c.Id == cardId && c.UserId == userId);
 

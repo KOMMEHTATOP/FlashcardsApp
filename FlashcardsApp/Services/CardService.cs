@@ -9,7 +9,7 @@ namespace FlashcardsApp.Services;
 
 public class CardService
 {
-    private ApplicationDbContext _context;
+    private readonly ApplicationDbContext _context;
 
     public CardService(ApplicationDbContext context)
     {
@@ -65,10 +65,10 @@ public class CardService
         return ServiceResult<ResultCardDto>.Success(result.ToDto());
     }
 
-    public async Task<ServiceResult<ResultCardDto>> UpdateCardAsync(Guid cardId, Guid groupId, Guid userId, CreateCardDto dto)
+    public async Task<ServiceResult<ResultCardDto>> UpdateCardAsync(Guid cardId, Guid userId, CreateCardDto dto)
     {
-        var card =
-            await _context.Cards.FirstOrDefaultAsync(c => c.Id == cardId && c.GroupId == groupId && c.UserId == userId);
+        var card = await _context.Cards
+            .FirstOrDefaultAsync(c => c.Id == cardId && c.UserId == userId);
 
         if (card == null)
         {

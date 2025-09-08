@@ -11,7 +11,7 @@ namespace FlashcardsApp.Services;
 public class GroupService
 {
     private readonly UserManager<User> _userManager;
-    private ApplicationDbContext _context;
+    private readonly ApplicationDbContext _context;
 
     public GroupService(UserManager<User> userManager, ApplicationDbContext context)
     {

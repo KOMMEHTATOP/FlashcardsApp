@@ -2,6 +2,6 @@ namespace FlashcardsApp.Models.DTOs;
 
 public class CreateGroupDto
 {
-    public required string Name;
-    public required string Color;
+    public required string Name { get; set; }
+    public required string Color { get; set; }
 }
