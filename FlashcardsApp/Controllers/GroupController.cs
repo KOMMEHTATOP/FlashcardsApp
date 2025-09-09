@@ -85,7 +85,7 @@ namespace FlashcardsApp.Controllers
                 return BadRequest(updateResult.Errors);
             }
 
-            return NoContent();
+            return Ok(updateResult.Data);
         }
 
         [HttpDelete("{id:guid}")]

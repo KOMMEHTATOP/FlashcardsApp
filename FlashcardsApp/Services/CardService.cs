@@ -16,6 +16,38 @@ public class CardService
         _context = context;
     }
 
+    public async Task<ServiceResult<IEnumerable<ResultCardDto>>> GetAllCardsAsync(Guid userId)
+    {
+        var cards = await _context.Cards
+            .AsNoTracking()
+            .Where(c => c.UserId == userId)
+            .OrderBy(c => c.CreatedAt)
+            .ToListAsync();
+        return ServiceResult<IEnumerable<ResultCardDto>>.Success(cards.Select(c => c.ToDto()));
+    }
+
+    public async Task<ServiceResult<IEnumerable<ResultCardDto>>> GetCardsByGroupAsync(Guid groupId, Guid userId)
+    {
+        var cards = await _context.Cards
+            .AsNoTracking()
+            .Where(c => c.GroupId == groupId && c.UserId == userId)
+            .OrderBy(c => c.CreatedAt)
+            .ToListAsync();
+
+        if (!cards.Any())
+        {
+            var groupExists = await _context.Groups
+                .AnyAsync(g => g.Id == groupId && g.UserId == userId);
+
+            if (!groupExists)
+            {
+                return ServiceResult<IEnumerable<ResultCardDto>>.Failure("Group not found");
+            }
+        }
+        
+        return ServiceResult<IEnumerable<ResultCardDto>>.Success(cards.Select(c => c.ToDto()));
+    }
+
     public async Task<ServiceResult<ResultCardDto>> GetCardAsync(Guid cardId, Guid userId)
     {
         var card = await _context.Cards
@@ -30,15 +62,6 @@ public class CardService
         return ServiceResult<ResultCardDto>.Success(card.ToDto());
     }
 
-    public async Task<ServiceResult<IEnumerable<ResultCardDto>>> GetAllCardsAsync(Guid userId)
-    {
-        var cards = await _context.Cards
-            .AsNoTracking()
-            .Where(c => c.UserId == userId)
-            .OrderBy(c => c.CreatedAt)
-            .ToListAsync();
-        return ServiceResult<IEnumerable<ResultCardDto>>.Success(cards.Select(c => c.ToDto()));
-    }
 
     public async Task<ServiceResult<ResultCardDto>> CreateCardAsync(Guid userId, Guid groupId, CreateCardDto dto)
     {
