@@ -9,7 +9,7 @@ public static class CardMapper
     {
         return new ResultCardDto()
         {
-            CardId = model.Id,
+            CardId = model.CardId,
             GroupId = model.GroupId,
             Question = model.Question,
             Answer = model.Answer,

@@ -52,7 +52,7 @@ public class CardService
     {
         var card = await _context.Cards
             .AsNoTracking()
-            .FirstOrDefaultAsync(g => g.Id == cardId && g.UserId == userId);
+            .FirstOrDefaultAsync(g => g.CardId == cardId && g.UserId == userId);
 
         if (card == null)
         {
@@ -74,7 +74,7 @@ public class CardService
 
         var result = new Card
         {
-            Id = Guid.NewGuid(),
+            CardId = Guid.NewGuid(),
             UserId = userId,
             GroupId = groupId,
             Question = dto.Question,
@@ -91,7 +91,7 @@ public class CardService
     public async Task<ServiceResult<ResultCardDto>> UpdateCardAsync(Guid cardId, Guid userId, CreateCardDto dto)
     {
         var card = await _context.Cards
-            .FirstOrDefaultAsync(c => c.Id == cardId && c.UserId == userId);
+            .FirstOrDefaultAsync(c => c.CardId == cardId && c.UserId == userId);
 
         if (card == null)
         {
@@ -116,7 +116,7 @@ public class CardService
 
     public async Task<ServiceResult<bool>> DeleteCardAsync(Guid cardId, Guid userId)
     {
-        var card = await _context.Cards.FirstOrDefaultAsync(c => c.Id == cardId && c.UserId == userId);
+        var card = await _context.Cards.FirstOrDefaultAsync(c => c.CardId == cardId && c.UserId == userId);
 
         if (card == null)
         {

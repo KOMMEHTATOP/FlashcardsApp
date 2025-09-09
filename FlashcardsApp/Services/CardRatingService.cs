@@ -31,7 +31,7 @@ public class CardRatingService
         var card = await _context.Cards
             .AsNoTracking()
             .Include(c => c.Ratings)
-            .FirstOrDefaultAsync(c => c.Id == cardId && c.UserId == userId);
+            .FirstOrDefaultAsync(c => c.CardId == cardId && c.UserId == userId);
 
         if (card == null)
         {
@@ -51,7 +51,7 @@ public class CardRatingService
         }
         
         var card = await _context.Cards
-            .FirstOrDefaultAsync(c => c.Id == cardId && c.UserId == userId);
+            .FirstOrDefaultAsync(c => c.CardId == cardId && c.UserId == userId);
 
         if (card == null)
         {
