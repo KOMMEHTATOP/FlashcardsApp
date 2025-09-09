@@ -19,16 +19,11 @@ public class GroupService
         _context = context;
     }
 
-    public async Task<ServiceResult<ResultGroupDto>> GetGroupAsync(string groupName, Guid userId)
+    public async Task<ServiceResult<ResultGroupDto>> GetGroupByIdAsync(Guid groupId, Guid userId)
     {
-        if (string.IsNullOrWhiteSpace(groupName))
-        {
-            return ServiceResult<ResultGroupDto>.Failure("Empty group name");
-        }
-
         var group = await _context.Groups
             .AsNoTracking()
-            .FirstOrDefaultAsync(g => g.GroupName == groupName && g.UserId == userId);
+            .FirstOrDefaultAsync(g => g.Id == groupId && g.UserId == userId);
 
         if (group == null)
         {
@@ -37,7 +32,7 @@ public class GroupService
 
         return ServiceResult<ResultGroupDto>.Success(group.ToDto());
     }
-
+    
     public async Task<ServiceResult<IEnumerable<ResultGroupDto>>> GetGroupsAsync(Guid userId)
     {
         var groups = await _context.Groups
