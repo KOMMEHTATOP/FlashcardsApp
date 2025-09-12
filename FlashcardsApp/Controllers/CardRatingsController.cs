@@ -39,7 +39,7 @@ namespace FlashcardsApp.Controllers
         public async Task<IActionResult> CreateRating(Guid cardId, CreateCardRatingDto dto)
         {
             var user = GetCurrentUserId();
-            var result = await _cardRatingService.CreateCardRatingAsync(user, cardId, dto);
+            var result = await _cardRatingService.CreateCardRatingAsync(cardId, user, dto);
 
             if (!result.IsSuccess)
             {

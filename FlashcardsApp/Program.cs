@@ -64,6 +64,7 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 }); //регистрирует сервисы для работы с контроллерами MVC
 builder.Services.AddScoped<GroupService>();
 builder.Services.AddScoped<CardService>();
+builder.Services.AddScoped<CardRatingService>();
 
 var app = builder.Build();
 
