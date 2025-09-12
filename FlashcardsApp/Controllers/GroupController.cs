@@ -13,13 +13,11 @@ namespace FlashcardsApp.Controllers
     public class GroupController : ControllerBase
     {
         private readonly UserManager<User> _userManager;
-        private readonly SignInManager<User> _signInManager;
         private readonly GroupService _groupService;
 
-        public GroupController(UserManager<User> userManager, SignInManager<User> signInManager, GroupService groupService)
+        public GroupController(UserManager<User> userManager, GroupService groupService)
         {
             _userManager = userManager;
-            _signInManager = signInManager;
             _groupService = groupService;
         }
 
@@ -67,7 +65,7 @@ namespace FlashcardsApp.Controllers
             }, newGroup.Data);
         }
 
-        [HttpPut("{id:guid}")]
+        [HttpPut("{groupId:guid}")]
         public async Task<IActionResult> UpdateGroup(CreateGroupDto dto, Guid groupId)
         {
             var userId = GetCurrentUserId();

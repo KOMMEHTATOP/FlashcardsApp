@@ -1,7 +1,11 @@
 using FlashcardsApp.Data;
 using FlashcardsApp.Models;
+using FlashcardsApp.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,7 +21,41 @@ builder.Services.AddIdentity<User, IdentityRole<Guid>>() //регистриру�
     .AddEntityFrameworkStores<ApplicationDbContext>() // говорит Identity использовать EF Core для хранения данных
     .AddDefaultTokenProviders(); // регистрирует провайдеры токенов для сброса пароля, подтверждения email
 
+// ------------------JWT------------------------ 
+var jwtKey = "your-super-secret-key-at-least-32-characters-long!";
+var key = Encoding.ASCII.GetBytes(jwtKey);
+
+builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme; //говорит системе использовать JWT вместо cookies
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.RequireHttpsMetadata = false;//Отключает требование HTTPS для JWT metadata.
+                                             //В production должно быть true! Сейчас false, потому что работаешь с localhost по HTTP
+        options.SaveToken = true; //Сохраняет JWT токен в HttpContext после валидации.
+                                  //Позволяет получить токен внутри контроллера через HttpContext.GetTokenAsync("access_token").
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(key), //Проверяет подпись токена.
+                                                              //Гарантирует, что токен создан именно твоим сервером, а не подделан
+            ValidateIssuer = false,
+            ValidateAudience = false, //Отключает проверку издателя (кто создал токен)
+                                      //и аудитории (для кого предназначен). Для простого API можно отключить.
+
+            ValidateLifetime = true, //Проверяет, не истек ли срок действия токена. Автоматически отклоняет просроченные токены.
+
+            ClockSkew = TimeSpan.Zero //Убирает временную погрешность при проверке срока действия.
+                                      //По умолчанию ASP.NET Core добавляет 5 минут "запаса" - эта настройка убирает его.
+        };
+    });
+
+
 builder.Services.AddControllers(); //регистрирует сервисы для работы с контроллерами MVC
+builder.Services.AddScoped<GroupService>();
+builder.Services.AddScoped<CardService>();
 
 var app = builder.Build();
 
