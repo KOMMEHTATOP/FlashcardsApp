@@ -6,6 +6,6 @@ public class ResultGroupDto
 {
     public Guid Id {get; set;}
     public required string GroupName  {get; set;}
-    public string GroupColor { get; set; } = GroupColors.Default;
+    public required GroupColor GroupColor { get; set; } = GroupColor.Green;
     public DateTime CreatedAt { get; set; }
 }

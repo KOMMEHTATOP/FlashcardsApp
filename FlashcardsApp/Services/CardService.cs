@@ -33,8 +33,6 @@ public class CardService
         }
 
         var cards = await query.OrderBy(card => card.CreatedAt).ToListAsync();
-
-
         return ServiceResult<IEnumerable<ResultCardDto>>.Success(cards.Select(c => c.ToDto()));
     }
 
@@ -53,7 +51,7 @@ public class CardService
 
             if (!groupExists)
             {
-                return ServiceResult<IEnumerable<ResultCardDto>>.Failure("Group not found");
+                return ServiceResult<IEnumerable<ResultCardDto>>.Failure("Group not found or access denied");
             }
         }
 
@@ -64,7 +62,7 @@ public class CardService
     {
         var card = await _context.Cards
             .AsNoTracking()
-            .FirstOrDefaultAsync(g => g.CardId == cardId && g.UserId == userId);
+            .FirstOrDefaultAsync(c => c.CardId == cardId && c.UserId == userId);
 
         if (card == null)
         {
@@ -74,17 +72,9 @@ public class CardService
         return ServiceResult<ResultCardDto>.Success(card.ToDto());
     }
 
-
     public async Task<ServiceResult<ResultCardDto>> CreateCardAsync(Guid userId, Guid groupId, CreateCardDto dto)
     {
-        var group = await _context.Groups.FirstOrDefaultAsync(g => g.Id == groupId && g.UserId == userId);
-
-        if (group == null)
-        {
-            return ServiceResult<ResultCardDto>.Failure("Group not found or access denied");
-        }
-
-        var result = new Card
+        var card = new Card
         {
             CardId = Guid.NewGuid(),
             UserId = userId,
@@ -95,9 +85,18 @@ public class CardService
             UpdatedAt = DateTime.UtcNow
         };
 
-        _context.Cards.Add(result);
-        await _context.SaveChangesAsync();
-        return ServiceResult<ResultCardDto>.Success(result.ToDto());
+        _context.Cards.Add(card);
+        
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex))
+        {
+            return ServiceResult<ResultCardDto>.Failure("You already have a card with this question");
+        }
+
+        return ServiceResult<ResultCardDto>.Success(card.ToDto());
     }
 
     public async Task<ServiceResult<ResultCardDto>> UpdateCardAsync(Guid cardId, Guid userId, CreateCardDto dto)
@@ -128,7 +127,8 @@ public class CardService
 
     public async Task<ServiceResult<bool>> DeleteCardAsync(Guid cardId, Guid userId)
     {
-        var card = await _context.Cards.FirstOrDefaultAsync(c => c.CardId == cardId && c.UserId == userId);
+        var card = await _context.Cards
+            .FirstOrDefaultAsync(c => c.CardId == cardId && c.UserId == userId);
 
         if (card == null)
         {
@@ -137,19 +137,15 @@ public class CardService
 
         _context.Cards.Remove(card);
         await _context.SaveChangesAsync();
-
         return ServiceResult<bool>.Success(true);
     }
 
     private bool IsUniqueConstraintViolation(DbUpdateException exception)
     {
-        // InnerException будет именно PostgresException при нарушении ограничения
         if (exception.InnerException is PostgresException postgresEx)
         {
-            // 23505 = unique_violation
             return postgresEx.SqlState == "23505";
         }
-
         return false;
     }
 }

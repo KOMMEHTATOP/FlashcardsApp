@@ -52,7 +52,8 @@ namespace FlashcardsApp.Controllers
             return Ok(card.Data);
         }
 
-        [HttpPut("{id:guid}")]
+
+        [HttpPut("{cardId:guid}")]
         public async Task<IActionResult> UpdateCard(Guid cardId, CreateCardDto cardDto)
         {
             var userId = GetCurrentUserId();
@@ -66,7 +67,7 @@ namespace FlashcardsApp.Controllers
             return Ok(updateResult.Data);
         }
 
-        [HttpDelete("{id:guid}")]
+        [HttpDelete("{cardId:guid}")]
         public async Task<IActionResult> DeleteCard(Guid cardId)
         {
             var userId = GetCurrentUserId();

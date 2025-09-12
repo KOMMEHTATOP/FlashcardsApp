@@ -24,7 +24,7 @@ namespace FlashcardsApp.Migrations
 
             modelBuilder.Entity("FlashcardsApp.Models.Card", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<Guid>("CardId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
@@ -50,7 +50,7 @@ namespace FlashcardsApp.Migrations
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
-                    b.HasKey("Id");
+                    b.HasKey("CardId");
 
                     b.HasIndex("GroupId");
 
@@ -99,10 +99,9 @@ namespace FlashcardsApp.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("GroupColor")
-                        .IsRequired()
+                    b.Property<int>("GroupColor")
                         .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                        .HasColumnType("integer");
 
                     b.Property<string>("GroupName")
                         .IsRequired()

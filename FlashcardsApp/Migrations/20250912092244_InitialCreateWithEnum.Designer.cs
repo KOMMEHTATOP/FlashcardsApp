@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FlashcardsApp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250904073401_AddIdentitySystem")]
-    partial class AddIdentitySystem
+    [Migration("20250912092244_InitialCreateWithEnum")]
+    partial class InitialCreateWithEnum
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -27,7 +27,7 @@ namespace FlashcardsApp.Migrations
 
             modelBuilder.Entity("FlashcardsApp.Models.Card", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<Guid>("CardId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
@@ -53,11 +53,12 @@ namespace FlashcardsApp.Migrations
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
-                    b.HasKey("Id");
+                    b.HasKey("CardId");
 
                     b.HasIndex("GroupId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId", "Question")
+                        .IsUnique();
 
                     b.ToTable("Cards");
                 });
@@ -86,7 +87,10 @@ namespace FlashcardsApp.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("CardRatings");
+                    b.ToTable("CardRatings", t =>
+                        {
+                            t.HasCheckConstraint("CK_CardRating_Rating", "\"Rating\" >= 1 AND \"Rating\" <= 5");
+                        });
                 });
 
             modelBuilder.Entity("FlashcardsApp.Models.Group", b =>
@@ -98,10 +102,9 @@ namespace FlashcardsApp.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("GroupColor")
-                        .IsRequired()
+                    b.Property<int>("GroupColor")
                         .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                        .HasColumnType("integer");
 
                     b.Property<string>("GroupName")
                         .IsRequired()
@@ -113,7 +116,8 @@ namespace FlashcardsApp.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId", "GroupName")
+                        .IsUnique();
 
                     b.ToTable("Groups");
                 });

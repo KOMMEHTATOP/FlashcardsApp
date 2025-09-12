@@ -7,27 +7,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FlashcardsApp.Migrations
 {
     /// <inheritdoc />
-    public partial class AddIdentitySystem : Migration
+    public partial class InitialCreateWithEnum : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterColumn<string>(
-                name: "GroupColor",
-                table: "Groups",
-                type: "character varying(20)",
-                maxLength: 20,
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "text");
-
-            migrationBuilder.AddColumn<Guid>(
-                name: "UserId",
-                table: "Cards",
-                type: "uuid",
-                nullable: false,
-                defaultValue: new Guid("00000000-0000-0000-0000-000000000000"));
-
             migrationBuilder.CreateTable(
                 name: "AspNetRoles",
                 columns: table => new
@@ -173,20 +157,83 @@ namespace FlashcardsApp.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateIndex(
-                name: "IX_Groups_UserId",
-                table: "Groups",
-                column: "UserId");
+            migrationBuilder.CreateTable(
+                name: "Groups",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    GroupName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    GroupColor = table.Column<int>(type: "integer", maxLength: 20, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Groups", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Groups_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
 
-            migrationBuilder.CreateIndex(
-                name: "IX_Cards_UserId",
-                table: "Cards",
-                column: "UserId");
+            migrationBuilder.CreateTable(
+                name: "Cards",
+                columns: table => new
+                {
+                    CardId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Question = table.Column<string>(type: "character varying(300)", maxLength: 300, nullable: false),
+                    Answer = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    GroupId = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Cards", x => x.CardId);
+                    table.ForeignKey(
+                        name: "FK_Cards_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Cards_Groups_GroupId",
+                        column: x => x.GroupId,
+                        principalTable: "Groups",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
 
-            migrationBuilder.CreateIndex(
-                name: "IX_CardRatings_UserId",
-                table: "CardRatings",
-                column: "UserId");
+            migrationBuilder.CreateTable(
+                name: "CardRatings",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Rating = table.Column<int>(type: "integer", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CardId = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CardRatings", x => x.Id);
+                    table.CheckConstraint("CK_CardRating_Rating", "\"Rating\" >= 1 AND \"Rating\" <= 5");
+                    table.ForeignKey(
+                        name: "FK_CardRatings_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_CardRatings_Cards_CardId",
+                        column: x => x.CardId,
+                        principalTable: "Cards",
+                        principalColumn: "CardId",
+                        onDelete: ReferentialAction.Cascade);
+                });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
@@ -225,46 +272,37 @@ namespace FlashcardsApp.Migrations
                 column: "NormalizedUserName",
                 unique: true);
 
-            migrationBuilder.AddForeignKey(
-                name: "FK_CardRatings_AspNetUsers_UserId",
+            migrationBuilder.CreateIndex(
+                name: "IX_CardRatings_CardId",
                 table: "CardRatings",
-                column: "UserId",
-                principalTable: "AspNetUsers",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+                column: "CardId");
 
-            migrationBuilder.AddForeignKey(
-                name: "FK_Cards_AspNetUsers_UserId",
+            migrationBuilder.CreateIndex(
+                name: "IX_CardRatings_UserId",
+                table: "CardRatings",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Cards_GroupId",
                 table: "Cards",
-                column: "UserId",
-                principalTable: "AspNetUsers",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+                column: "GroupId");
 
-            migrationBuilder.AddForeignKey(
-                name: "FK_Groups_AspNetUsers_UserId",
+            migrationBuilder.CreateIndex(
+                name: "IX_Cards_UserId_Question",
+                table: "Cards",
+                columns: new[] { "UserId", "Question" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Groups_UserId_GroupName",
                 table: "Groups",
-                column: "UserId",
-                principalTable: "AspNetUsers",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+                columns: new[] { "UserId", "GroupName" },
+                unique: true);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_CardRatings_AspNetUsers_UserId",
-                table: "CardRatings");
-
-            migrationBuilder.DropForeignKey(
-                name: "FK_Cards_AspNetUsers_UserId",
-                table: "Cards");
-
-            migrationBuilder.DropForeignKey(
-                name: "FK_Groups_AspNetUsers_UserId",
-                table: "Groups");
-
             migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
 
@@ -281,35 +319,19 @@ namespace FlashcardsApp.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "CardRatings");
+
+            migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
+                name: "Cards");
+
+            migrationBuilder.DropTable(
+                name: "Groups");
+
+            migrationBuilder.DropTable(
                 name: "AspNetUsers");
-
-            migrationBuilder.DropIndex(
-                name: "IX_Groups_UserId",
-                table: "Groups");
-
-            migrationBuilder.DropIndex(
-                name: "IX_Cards_UserId",
-                table: "Cards");
-
-            migrationBuilder.DropIndex(
-                name: "IX_CardRatings_UserId",
-                table: "CardRatings");
-
-            migrationBuilder.DropColumn(
-                name: "UserId",
-                table: "Cards");
-
-            migrationBuilder.AlterColumn<string>(
-                name: "GroupColor",
-                table: "Groups",
-                type: "text",
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "character varying(20)",
-                oldMaxLength: 20);
         }
     }
 }
