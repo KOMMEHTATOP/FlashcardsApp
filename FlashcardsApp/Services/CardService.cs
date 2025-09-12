@@ -16,13 +16,25 @@ public class CardService
         _context = context;
     }
 
-    public async Task<ServiceResult<IEnumerable<ResultCardDto>>> GetAllCardsAsync(Guid userId)
+    public async Task<ServiceResult<IEnumerable<ResultCardDto>>> GetAllCardsAsync(Guid userId, int? targetRating)
     {
-        var cards = await _context.Cards
+        var query = _context.Cards
             .AsNoTracking()
-            .Where(c => c.UserId == userId)
-            .OrderBy(c => c.CreatedAt)
-            .ToListAsync();
+            .Where(card => card.UserId == userId);
+
+        if (targetRating.HasValue)
+        {
+            query = query.Where(c =>
+                !_context.CardRatings.Any(r => r.CardId == c.CardId) ||
+                _context.CardRatings
+                    .Where(r => r.CardId == c.CardId)
+                    .OrderByDescending(r => r.CreatedAt)
+                    .First().Rating <= targetRating.Value);
+        }
+
+        var cards = await query.OrderBy(card => card.CreatedAt).ToListAsync();
+
+
         return ServiceResult<IEnumerable<ResultCardDto>>.Success(cards.Select(c => c.ToDto()));
     }
 
@@ -44,7 +56,7 @@ public class CardService
                 return ServiceResult<IEnumerable<ResultCardDto>>.Failure("Group not found");
             }
         }
-        
+
         return ServiceResult<IEnumerable<ResultCardDto>>.Success(cards.Select(c => c.ToDto()));
     }
 

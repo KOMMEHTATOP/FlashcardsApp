@@ -25,10 +25,10 @@ namespace FlashcardsApp.Controllers
 
 
         [HttpGet]
-        public async Task<IActionResult> GetAllCards()
+        public async Task<IActionResult> GetAllCards(int? rating = null)
         {
             var userId = GetCurrentUserId();
-            var cards = await _cardService.GetAllCardsAsync(userId);
+            var cards = await _cardService.GetAllCardsAsync(userId, rating);
 
             if (!cards.IsSuccess)
             {

@@ -14,19 +14,8 @@ public class CardRatingService
     {
         _context = context;
     }
-
-    public async Task<ServiceResult<IEnumerable<ResultCardRating>>> GetAllCardRatings(Guid userId)
-    {
-        var cardRatings = await _context.CardRatings
-            .AsNoTracking()
-            .Where(c => c.UserId == userId)
-            .OrderBy(c => c.CreatedAt)
-            .ToListAsync();
-
-        return ServiceResult<IEnumerable<ResultCardRating>>.Success(cardRatings.Select(c => c.ToDto()));
-    }
-
-    public async Task<ServiceResult<IEnumerable<ResultCardRating>>> GetCardRating(Guid userId, Guid cardId)
+    
+    public async Task<ServiceResult<IEnumerable<ResultCardRating>>> GetCardRatingsAsync(Guid userId, Guid cardId)
     {
         var card = await _context.Cards
             .AsNoTracking()
@@ -43,7 +32,7 @@ public class CardRatingService
         return ServiceResult<IEnumerable<ResultCardRating>>.Success(ratings);
     }
 
-    public async Task<ServiceResult<ResultCardRating>> CreateCardRating(Guid cardId, Guid userId, CreateCardRatingDto dto)
+    public async Task<ServiceResult<ResultCardRating>> CreateCardRatingAsync(Guid cardId, Guid userId, CreateCardRatingDto dto)
     {
         if (dto.Rating is < 1 or > 5)
         {
