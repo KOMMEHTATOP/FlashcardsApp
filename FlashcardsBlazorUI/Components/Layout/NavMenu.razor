@@ -1,83 +1,128 @@
-﻿@using FlashcardsBlazorUI.Models
+﻿@using System
+@using System.Collections.Generic
+@using System.Linq
+@using FlashcardsBlazorUI.Models
 @using FlashcardsBlazorUI.Services
 @inject ApiService ApiService
-@rendermode InteractiveServer
 @inject NavigationManager Navigation
-@inject IJSRuntime JSRuntime
+@rendermode InteractiveServer
 
-<!-- Верхняя панель навигации -->
+<!-- Верхняя панель -->
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">FlashcardsBlazorUI</a>
     </div>
 </div>
 
-<!-- Кнопка-переключатель для мобильного меню -->
-<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+<input type="checkbox" title="Navigation menu" class="navbar-toggler"/>
 
-<!-- Основная область навигации -->
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="flex-column">
-        
-        <!-- Кнопка входа - показывается всегда -->
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="login">
-                <span class="bi bi-person-fill" aria-hidden="true"></span> Вход
+                <span class="bi bi-person-fill"></span> Вход
             </NavLink>
         </div>
-        
-        <!-- Блок для авторизованных пользователей -->
+
         @if (ApiService.IsAuthenticated)
         {
-            <!-- Раздел "Мои группы" с выпадающим списком -->
             <div class="nav-item px-3">
-                <div class="nav-link" @onclick="ToggleGroupsMenu" style="cursor: pointer;">
-                    <span class="bi bi-collection-fill" aria-hidden="true"></span> 
+                <div class="nav-link" @onclick="ToggleGroupsMenu" style="cursor:pointer;">
+                    <span class="bi bi-collection-fill"></span>
                     Мои группы
-                    <span class="bi @(isGroupsMenuExpanded ? "bi-chevron-down" : "bi-chevron-right")" style="float: right;"></span>
+                    <span class="bi @(isGroupsMenuExpanded ? "bi-chevron-down" : "bi-chevron-right")"
+                          style="float:right;"></span>
                 </div>
-                
-                <!-- Выпадающий список групп с drag & drop -->
+
                 @if (isGroupsMenuExpanded && groups != null)
                 {
-                    <div class="groups-submenu" style="margin-left: 20px;">
+                    <div class="groups-submenu" style="margin-left:20px;">
                         @foreach (var group in groups.OrderBy(g => g.Order))
                         {
-                            <!-- Элемент группы с поддержкой перетаскивания -->
-                            <div class="nav-link group-item" 
+                            <div class="nav-link group-item"
                                  draggable="true"
                                  @ondragstart="@(e => OnDragStart(e, group))"
+                                 @ondragend="OnDragEnd"
                                  @ondragenter="OnDragEnter" @ondragenter:preventDefault="true"
                                  @ondragover="OnDragOver" @ondragover:preventDefault="true"
                                  @ondrop="@(e => OnDrop(e, group))" @ondrop:preventDefault="true"
-                                 style="background-color: @GetColorCode(group.GroupColor); margin: 2px 0; border-radius: 4px; color: white; cursor: move;"
-                                 @onclick="() => NavigateToGroup(group.Id)">
-                                @group.GroupName
+                                 style="@GetGroupStyle(group)"
+                                 @onclick="() => OnGroupClick(group)">
+                                <span>@group.GroupName</span>
+
+                                <span style="float:right; display:inline-flex; align-items:center;">
+                                    <span class="bi @(IsGroupExpanded(group.Id) ? "bi-chevron-down" : "bi-chevron-right")"
+                                          style="margin-right:8px;">
+                                    </span>
+
+                                    <span class="bi bi-box-arrow-up-right" title="Открыть группу"
+                                          style="cursor:pointer;"
+                                          @onclick="() => NavigateToGroup(group.Id)"
+                                          @onclick:stopPropagation="true">
+                                    </span>
+                                </span>
                             </div>
+
+                            @if (IsGroupExpanded(group.Id))
+                            {
+                                <div style="margin-left:20px;">
+                                    @if (IsGroupLoaded(group.Id) && GetGroupCards(group.Id).Any())
+                                    {
+                                        @foreach (var card in GetGroupCards(group.Id))
+                                        {
+                                            <div class="nav-link"
+                                                 style="color:#ccc; font-size:0.9em; padding:2px 8px; cursor:pointer;"
+                                                 @onclick="@(() => OnCardClick(card.CardId))"
+                                                 @onclick:stopPropagation="true">
+                                                @card.Question
+                                            </div>
+                                        }
+                                    }
+                                    else if (!IsGroupLoading(group.Id))
+                                    {
+                                        <div class="nav-link" style="color:#999; font-size:0.9em; padding:2px 8px;">
+                                            Нет карточек
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="nav-link" style="color:#999; font-size:0.9em; padding:2px 8px;">
+                                            Загружаю...
+                                        </div>
+                                    }
+                                </div>
+                            }
                         }
                     </div>
                 }
             </div>
-            
-            <!-- Кнопка выхода -->
+
             <div class="nav-item px-3">
-                <div class="nav-link" @onclick="Logout" style="cursor: pointer;">
-                    <span class="bi bi-box-arrow-right" aria-hidden="true"></span> Выход
+                <div class="nav-link" @onclick="Logout" style="cursor:pointer;">
+                    <span class="bi bi-box-arrow-right"></span> Выход
                 </div>
             </div>
         }
-        
     </nav>
 </div>
 
 @code {
     private bool isGroupsMenuExpanded = false;
     private List<Group>? groups;
+
+    // Drag state
     private Group? draggedGroup;
+    private bool isDragging = false;
+
+    // Expand / cards (ключи - Guid)
+    private Dictionary<Guid, bool> expandedGroups = new();
+    private Dictionary<Guid, List<Card>> groupCards = new();
+    private Dictionary<Guid, bool> loadingGroupCards = new();
 
     protected override async Task OnInitializedAsync()
     {
         await ApiService.InitializeAsync();
+
         if (ApiService.IsAuthenticated)
         {
             await LoadGroups();
@@ -89,37 +134,91 @@
         try
         {
             groups = await ApiService.GetGroupsAsync();
-            Console.WriteLine($"Загружено групп в меню: {groups?.Count ?? 0}");
+            Console.WriteLine($"Загружено групп: {groups?.Count ?? 0}");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Ошибка загрузки групп в меню: {ex.Message}");
+            Console.WriteLine($"Ошибка загрузки групп: {ex.Message}");
+            groups = new List<Group>();
         }
     }
 
-    private void ToggleGroupsMenu()
+    private async Task ToggleGroupsMenu() 
     {
         isGroupsMenuExpanded = !isGroupsMenuExpanded;
-        Console.WriteLine($"Меню группы expanded: {isGroupsMenuExpanded}, групп загружено: {groups?.Count ?? 0}");
-    }
-
-    private void NavigateToGroup(string groupId)
-    {
-        Navigation.NavigateTo($"/groups/{groupId}/cards");
-        Console.WriteLine($"Переход к группе {groupId}");
+    
+        // Переходим на страницу групп
+        Navigation.NavigateTo("/groups");
     }
     
+    private void NavigateToGroup(Guid groupId)
+    {
+        // Переход на страницу списка карточек для группы
+        Navigation.NavigateTo($"/groups/{groupId}/cards");
+    }
+
+    private async Task OnGroupClick(Group group)
+    {
+        if (isDragging) return;
+
+        var id = group.Id;
+        var current = IsGroupExpanded(id);
+        SetGroupExpanded(id, !current);
+        Navigation.NavigateTo($"/groups/{id}/cards");
+
+        if (IsGroupExpanded(id) && !IsGroupLoaded(id) && !IsGroupLoading(id))
+        {
+            await LoadCardsForGroup(id);
+        }
+    }
+
+    private async Task LoadCardsForGroup(Guid groupId)
+    {
+        SetGroupLoading(groupId, true);
+        try
+        {
+            var cards = await ApiService.GetCardsAsync(groupId);
+            groupCards[groupId] = cards ?? new List<Card>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка загрузки карточек для {groupId}: {ex.Message}");
+            groupCards[groupId] = new List<Card>();
+        }
+        finally
+        {
+            SetGroupLoading(groupId, false);
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private void OnCardClick(Guid cardId)
+    {
+        Navigation.NavigateTo($"/cards/{cardId}");
+    }
+
     private async Task Logout()
     {
         await ApiService.LogoutAsync();
         Navigation.NavigateTo("/login", forceLoad: true);
     }
 
-    // === DRAG & DROP ===
+    // --- Drag & Drop handlers ---
     private void OnDragStart(DragEventArgs e, Group group)
     {
         draggedGroup = group;
-        Console.WriteLine($"[DRAG] START: {group.GroupName} (ID: {group.Id})");
+        isDragging = true;
+        Console.WriteLine($"[DRAG] START {group.GroupName}");
+    }
+
+    private async Task OnDragEnd(DragEventArgs e)
+    {
+        // небольшой таймаут, чтобы не было ложных кликов сразу после drag
+        await Task.Delay(60);
+        isDragging = false;
+        draggedGroup = null;
+        Console.WriteLine("[DRAG] END");
+        await InvokeAsync(StateHasChanged);
     }
 
     private void OnDragEnter(DragEventArgs e)
@@ -134,45 +233,47 @@
 
     private async Task OnDrop(DragEventArgs e, Group targetGroup)
     {
-        Console.WriteLine($"[DRAG] DROP: {targetGroup.GroupName}");
+        Console.WriteLine($"[DRAG] DROP target={targetGroup.GroupName}");
+
         if (draggedGroup != null && draggedGroup.Id != targetGroup.Id)
         {
             await ReorderGroups(draggedGroup, targetGroup);
-            draggedGroup = null;
         }
+
+        // завершение drag
+        isDragging = false;
+        draggedGroup = null;
+        await InvokeAsync(StateHasChanged);
     }
-    
-    private async Task ReorderGroups(Group draggedGroup, Group targetGroup)
+
+    private async Task ReorderGroups(Group dragged, Group target)
     {
         if (groups == null) return;
 
-        var draggedIndex = groups.FindIndex(g => g.Id == draggedGroup.Id);
-        var targetIndex = groups.FindIndex(g => g.Id == targetGroup.Id);
+        var draggedIndex = groups.FindIndex(g => g.Id == dragged.Id);
+        var targetIndex = groups.FindIndex(g => g.Id == target.Id);
         if (draggedIndex == -1 || targetIndex == -1) return;
 
-        var movedGroup = groups[draggedIndex];
+        var moved = groups[draggedIndex];
         groups.RemoveAt(draggedIndex);
-        groups.Insert(targetIndex, movedGroup);
+        groups.Insert(targetIndex, moved);
 
-        var reorderList = new List<ReorderGroupDto>();
-        for (int i = 0; i < groups.Count; i++)
-        {
-            groups[i].Order = i;
-            reorderList.Add(new ReorderGroupDto { Id = groups[i].Id, Order = i });
-        }
+        var reorderList = groups
+            .Select((g, i) => new ReorderGroupDto { Id = g.Id, Order = i })
+            .ToList();
 
         try
         {
-            var success = await ApiService.UpdateGroupOrderAsync(reorderList);
-            if (success)
+            var ok = await ApiService.UpdateGroupOrderAsync(reorderList);
+
+            if (!ok)
             {
-                Console.WriteLine("Порядок групп успешно обновлен");
-                StateHasChanged();
+                Console.WriteLine("Ошибка обновления порядка — перезагружаю группы");
+                await LoadGroups();
             }
             else
             {
-                Console.WriteLine("Ошибка обновления порядка групп");
-                await LoadGroups();
+                Console.WriteLine("Порядок обновлён");
             }
         }
         catch (Exception ex)
@@ -180,18 +281,48 @@
             Console.WriteLine($"Ошибка при обновлении порядка: {ex.Message}");
             await LoadGroups();
         }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    // --- Helpers for dictionary access (avoid GetValueOrDefault issues) ---
+    private bool IsGroupExpanded(Guid groupId) =>
+        expandedGroups.TryGetValue(groupId, out var v) && v;
+
+    private void SetGroupExpanded(Guid groupId, bool value) => expandedGroups[groupId] = value;
+
+    private bool IsGroupLoaded(Guid groupId) => groupCards.ContainsKey(groupId);
+
+    private List<Card> GetGroupCards(Guid groupId) =>
+        groupCards.TryGetValue(groupId, out var list) ? list : new List<Card>();
+
+    private bool IsGroupLoading(Guid groupId) =>
+        loadingGroupCards.TryGetValue(groupId, out var loading) && loading;
+
+    private void SetGroupLoading(Guid groupId, bool value) => loadingGroupCards[groupId] = value;
+
+    // Вспомогательные стили: добавляем лёгкий эффект для перетаскиваемого элемента
+    private string GetGroupStyle(Group group)
+    {
+        var baseStyle = $"background-color:{GetColorCode(group.GroupColor)}; margin:2px 0; border-radius:4px; color:white; cursor:move; display:flex; justify-content:space-between; align-items:center; padding:6px 8px;";
+
+        baseStyle += (draggedGroup?.Id == group.Id)
+            ? " opacity:0.7; transform:scale(1.02); transition:transform 0.15s ease, opacity 0.15s ease;"
+            : " transition:transform 0.15s ease, opacity 0.15s ease;";
+
+        return baseStyle;
     }
 
     private string GetColorCode(string colorName) =>
         colorName.ToLower() switch
         {
-            "red" => "#dc3545",
-            "green" => "#28a745",
+            "red"    => "#dc3545",
+            "green"  => "#28a745",
             "yellow" => "#ffc107",
             "orange" => "#fd7e14",
             "purple" => "#6f42c1",
-            "pink" => "#e83e8c",
-            "black" => "#343a40",
-            _ => "#6c757d"
+            "pink"   => "#e83e8c",
+            "black"  => "#343a40",
+            _        => "#6c757d"
         };
 }

@@ -8,7 +8,12 @@
 
 <PageTitle>Группы карточек</PageTitle>
 
-<h3>Мои группы карточек</h3>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3>Мои группы карточек</h3>
+    <button class="btn btn-success" @onclick="CreateNewGroup">
+        <span class="bi bi-plus-circle"></span> Создать группу
+    </button>
+</div>
 
 @if (isLoading)
 {
@@ -16,8 +21,10 @@
 }
 else if (groups == null || !groups.Any())
 {
-    <p>У вас пока нет групп карточек.</p>
-    <button class="btn btn-primary" @onclick="CreateNewGroup">Создать первую группу</button>
+    <div class="alert alert-info text-center">
+        <h5>У вас пока нет групп карточек</h5>
+        <p>Создайте первую группу для изучения карточек</p>
+    </div>
 }
 else
 {
@@ -41,8 +48,6 @@ else
             </div>
         }
     </div>
-    
-    <button class="btn btn-success" @onclick="CreateNewGroup">Создать новую группу</button>
 }
 
 @if (showCreateForm)
@@ -89,10 +94,11 @@ else
     private async Task OnGroupCreated()
     {
         showCreateForm = false;
-        await LoadGroups(); // Перезагружаем список групп
+        await LoadGroups();
+        Navigation.NavigateTo("/groups", forceLoad: true);
     }
 
-    private void ViewCards(string groupId)
+    private void ViewCards(Guid groupId)
     {
         Navigation.NavigateTo($"/groups/{groupId}/cards");
     }

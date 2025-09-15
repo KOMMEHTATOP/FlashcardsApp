@@ -10,7 +10,7 @@ builder.Services.AddRazorComponents()
 // HTTP склиент для обращения к моему API (нужно прописать мой порт).
 builder.Services.AddHttpClient("FlashcardsAPI", client =>
 {
-    client.BaseAddress = new Uri("https://localhost:5153/api/");
+    client.BaseAddress = new Uri("http://localhost:5153/");
 });
 
 builder.Services.AddScoped<ApiService>();

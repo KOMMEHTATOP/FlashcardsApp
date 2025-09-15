@@ -1,29 +1,87 @@
-@page "/groups/{groupId}/cards"
+@page "/groups/{groupId:guid}/cards"
 @using FlashcardsBlazorUI.Models
 @using FlashcardsBlazorUI.Services
 @inject ApiService ApiService
 @inject NavigationManager Navigation
 @rendermode InteractiveServer
 
-<PageTitle>Карточки группы</PageTitle>
+<PageTitle>@(currentGroup?.GroupName ?? "Карточки группы")</PageTitle>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h3>Карточки группы</h3>
-    <button class="btn btn-secondary" @onclick="GoBack">
-        <span class="bi bi-arrow-left"></span> Назад к группам
-    </button>
+    <div>
+        @if (!showCreateForm)
+        {
+            <button class="btn btn-success me-2" @onclick="CreateNewCard">
+                <span class="bi bi-plus-circle"></span> Создать карточку
+            </button>
+        }
+        <button class="btn btn-secondary" @onclick="GoBack">
+            <span class="bi bi-arrow-left"></span> Назад к группам
+        </button>
+    </div>
 </div>
+
+@if (showCreateForm)
+{
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Создание новой карточки</h5>
+        </div>
+        <div class="card-body">
+            <EditForm Model="newCard" OnValidSubmit="HandleSubmit">
+                <DataAnnotationsValidator />
+                
+                <div class="mb-3">
+                    <label for="question" class="form-label">Вопрос <span class="text-danger">*</span></label>
+                    <InputTextArea id="question" class="form-control" @bind-Value="newCard.Question" 
+                                   rows="3" placeholder="Введите вопрос для изучения..." />
+                    <ValidationMessage For="() => newCard.Question" class="text-danger" />
+                </div>
+                
+                <div class="mb-3">
+                    <label for="answer" class="form-label">Ответ <span class="text-danger">*</span></label>
+                    <InputTextArea id="answer" class="form-control" @bind-Value="newCard.Answer" 
+                                   rows="4" placeholder="Введите правильный ответ..." />
+                    <ValidationMessage For="() => newCard.Answer" class="text-danger" />
+                </div>
+                
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-success" disabled="@isSubmitting">
+                        @if (isSubmitting)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                        }
+                        Создать карточку
+                    </button>
+                    <button type="button" class="btn btn-secondary" @onclick="CancelCreate">
+                        Отмена
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
 
 @if (isLoading)
 {
-    <p><em>Загружаю карточки...</em></p>
+    <div class="d-flex justify-content-center">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Загружаю карточки...</span>
+        </div>
+    </div>
 }
 else if (cards == null || !cards.Any())
 {
-    <div class="alert alert-info">
+    <div class="alert alert-info text-center">
         <h5>В этой группе пока нет карточек</h5>
         <p>Создайте первую карточку для изучения.</p>
-        <button class="btn btn-primary">Создать карточку</button>
+        @if (!showCreateForm)
+        {
+            <button class="btn btn-primary" @onclick="CreateNewCard">
+                <span class="bi bi-plus-circle"></span> Создать первую карточку
+            </button>
+        }
     </div>
 }
 else
@@ -32,7 +90,7 @@ else
         @foreach (var card in cards)
         {
             <div class="col-md-6 mb-3">
-                <div class="card">
+                <div class="card h-100">
                     <div class="card-body">
                         <h6 class="card-subtitle mb-2 text-muted">Вопрос:</h6>
                         <h5 class="card-title">@card.Question</h5>
@@ -40,28 +98,54 @@ else
                         <p class="card-text">@card.Answer</p>
                         <small class="text-muted">Создана: @card.CreatedAt.ToString("dd.MM.yyyy")</small>
                     </div>
+                    <div class="card-footer bg-light">
+                        <button class="btn btn-outline-primary btn-sm me-2" 
+                                @onclick="() => ViewCard(card.CardId)">
+                            <span class="bi bi-eye"></span> Изучать
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm">
+                            <span class="bi bi-pencil"></span> Изменить
+                        </button>
+                    </div>
                 </div>
             </div>
         }
     </div>
-    
-    <button class="btn btn-success mb-3">Добавить карточку</button>
 }
 
-<p class="text-muted">ID группы: @GroupId</p>
+<div class="mt-3">
+    <small class="text-muted">ID группы: @GroupId</small>
+</div>
 
 @code {
-    [Parameter] public string GroupId { get; set; } = "";
-    
+    [Parameter] public Guid GroupId { get; set; } 
+    private Group? currentGroup;
     private List<Card>? cards;
     private bool isLoading = true;
-
+    private bool showCreateForm = false;
+    private bool isSubmitting = false;
+    private CreateCardDto newCard = new();
+    
     protected override async Task OnInitializedAsync()
     {
         await ApiService.InitializeAsync();
+        await LoadGroup();
         await LoadCards();
     }
 
+    private async Task LoadGroup()
+    {
+        try
+        {
+            currentGroup = await ApiService.GetGroupAsync(GroupId);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка загрузки группы: {ex.Message}");
+            currentGroup = null;
+        }
+    }
+    
     private async Task LoadCards()
     {
         try
@@ -79,6 +163,55 @@ else
         {
             isLoading = false;
         }
+    }
+
+    private void CreateNewCard()
+    {
+        newCard = new CreateCardDto();
+        showCreateForm = true;
+    }
+
+    private void CancelCreate()
+    {
+        showCreateForm = false;
+        newCard = new CreateCardDto();
+    }
+
+    private async Task HandleSubmit()
+    {
+        try
+        {
+            isSubmitting = true;
+            
+            var cardDto = new CreateCardDto
+            {
+                Question = newCard.Question.Trim(),
+                Answer = newCard.Answer.Trim()
+            };
+
+            await ApiService.CreateCardAsync(cardDto, GroupId);
+            
+            // Сбрасываем форму и перезагружаем карточки
+            showCreateForm = false;
+            newCard = new CreateCardDto();
+            await LoadCards();
+            
+            Console.WriteLine("Карточка успешно создана");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка создания карточки: {ex.Message}");
+            // Здесь можно добавить уведомление об ошибке
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void ViewCard(Guid cardId)
+    {
+        Navigation.NavigateTo($"/cards/{cardId}");
     }
 
     private void GoBack()

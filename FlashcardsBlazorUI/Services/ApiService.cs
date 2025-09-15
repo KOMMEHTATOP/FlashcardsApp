@@ -20,6 +20,12 @@ namespace FlashcardsBlazorUI.Services
                 PropertyNameCaseInsensitive = true
             };
         }
+        public async Task<Card?> GetCardAsync(Guid cardId)
+        {
+            var resp = await _httpClient.GetAsync($"api/cards/{cardId}");
+            if (!resp.IsSuccessStatusCode) return null;
+            return await resp.Content.ReadFromJsonAsync<Card>();
+        }
 
         public async Task InitializeAsync()
         {
@@ -36,6 +42,7 @@ namespace FlashcardsBlazorUI.Services
                 // Ignore localStorage errors in SSR mode
             }
         }
+        
 
         // Методы аутентификации
         public async Task<LoginResponse> LoginAsync(LoginRequest loginRequest)
@@ -97,42 +104,67 @@ namespace FlashcardsBlazorUI.Services
         // Существующие методы (теперь с токеном)
         public async Task<List<Group>> GetGroupsAsync()
         {
-            var response = await _httpClient.GetAsync("http://localhost:5153/api/group");
+            var response = await _httpClient.GetAsync("api/group");
             response.EnsureSuccessStatusCode();
             
             var json = await response.Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<List<Group>>(json, _jsonOptions) ?? new List<Group>();
         }
         
-        public async Task<List<Card>> GetCardsAsync(string groupId)
+        public async Task<List<Card>> GetCardsAsync(Guid groupId)
         {
-            var response = await _httpClient.GetAsync($"http://localhost:5153/api/groups/{groupId}/cards");
+            var response = await _httpClient.GetAsync($"api/groups/{groupId}/cards");
             response.EnsureSuccessStatusCode();
-    
-            var json = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<List<Card>>(json, _jsonOptions) ?? new List<Card>();
+            return await response.Content.ReadFromJsonAsync<List<Card>>() ?? new();
         }
         
-        public async Task<List<CardRating>> GetCardRatingsAsync(string cardId)
+        public async Task<List<CardRating>> GetCardRatingsAsync(Guid cardId)
         {
-            var response = await _httpClient.GetAsync($"http://localhost:5153/api/cards/{cardId}/ratings");
+            var response = await _httpClient.GetAsync($"api/cards/{cardId}/ratings");
             response.EnsureSuccessStatusCode();
     
             var json = await response.Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<List<CardRating>>(json, _jsonOptions) ?? new List<CardRating>();
         }
 
-        public async Task<CardRating> RateCardAsync(string cardId, int rating)
+        public async Task<CardRating> RateCardAsync(Guid cardId, int rating)
         {
             var ratingData = new { rating };
             var json = JsonSerializer.Serialize(ratingData);
             var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
     
-            var response = await _httpClient.PostAsync($"http://localhost:5153/api/cards/{cardId}/ratings", content);
+            var response = await _httpClient.PostAsync($"api/cards/{cardId}/ratings", content);
             response.EnsureSuccessStatusCode();
     
             var responseJson = await response.Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<CardRating>(responseJson, _jsonOptions);
+        }
+        
+        public async Task<Card> CreateCardAsync(CreateCardDto cardDto, Guid groupId)
+        {
+            var json = JsonSerializer.Serialize(cardDto);
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync($"api/groups/{groupId}/cards", content);
+            response.EnsureSuccessStatusCode();
+
+            var responseJson = await response.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<Card>(responseJson, _jsonOptions);
+        }
+        
+        public async Task<Group?> GetGroupAsync(Guid groupId)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync($"api/group/{groupId}");
+                response.EnsureSuccessStatusCode();
+                var json = await response.Content.ReadAsStringAsync();
+                return JsonSerializer.Deserialize<Group>(json, _jsonOptions);
+            }
+            catch
+            {
+                return null;
+            }
         }
         
         public async Task<Group> CreateGroupAsync(object groupData)
