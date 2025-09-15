@@ -1,0 +1,112 @@
+@page "/groups"
+@using FlashcardsBlazorUI.Models
+@using FlashcardsBlazorUI.Services
+@inject ApiService ApiService
+@rendermode InteractiveServer
+
+<PageTitle>Группы карточек</PageTitle>
+
+<h3>Мои группы карточек</h3>
+
+@if (isLoading)
+{
+    <p><em>Загружаю группы...</em></p>
+}
+else if (groups == null || !groups.Any())
+{
+    <p>У вас пока нет групп карточек.</p>
+    <button class="btn btn-primary" @onclick="CreateNewGroup">Создать первую группу</button>
+}
+else
+{
+    <div class="row">
+        @foreach (var group in groups)
+        {
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">@group.GroupName</h5>
+                        <p class="card-text">
+                            <small class="text-muted">Создана: @group.CreatedAt.ToString("dd.MM.yyyy")</small>
+                        </p>
+                        <span class="badge" style="background-color: @GetColorCode(group.GroupColor)">@group.GroupColor</span>
+                        <br /><br />
+                        <button class="btn btn-primary btn-sm" @onclick="() => ViewCards(group.Id)">
+                            Открыть карточки
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+    
+    <button class="btn btn-success" @onclick="CreateNewGroup">Создать новую группу</button>
+}
+
+@if (showCreateForm)
+{
+    <FlashcardsBlazorUI.Components.Forms.CreateGroupForm 
+        OnCancel="() => showCreateForm = false"
+        OnGroupCreated="OnGroupCreated" />
+}
+
+@code {
+    private List<Group>? groups;
+    private bool isLoading = true;
+    private bool showCreateForm = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadGroups();
+    }
+
+    private async Task LoadGroups()
+    {
+        try
+        {
+            isLoading = true;
+            groups = await ApiService.GetGroupsAsync();
+        }
+        catch (Exception ex)
+        {
+            // Здесь можно добавить обработку ошибок
+            Console.WriteLine($"Ошибка загрузки групп: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void CreateNewGroup()
+    {
+        showCreateForm = true;
+    }
+
+    private async Task OnGroupCreated()
+    {
+        showCreateForm = false;
+        await LoadGroups(); // Перезагружаем список групп
+    }
+
+    private void ViewCards(string groupId)
+    {
+        // TODO: Перейти к карточкам группы
+        Console.WriteLine($"Открыть карточки группы {groupId}");
+    }
+
+    private string GetColorCode(string colorName)
+    {
+        return colorName.ToLower() switch
+        {
+            "red" => "#dc3545",
+            "green" => "#28a745",
+            "yellow" => "#ffc107",
+            "orange" => "#fd7e14",
+            "purple" => "#6f42c1",
+            "pink" => "#e83e8c",
+            "black" => "#343a40",
+            _ => "#6c757d"
+        };
+    }
+}

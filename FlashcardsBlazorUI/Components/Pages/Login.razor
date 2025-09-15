@@ -1,0 +1,85 @@
+@page "/login"
+@using FlashcardsBlazorUI.Models
+@using FlashcardsBlazorUI.Services
+@inject ApiService ApiService
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>Вход в систему</PageTitle>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Вход в FlashCards</h4>
+                </div>
+                <div class="card-body">
+                    <EditForm Model="loginRequest" OnValidSubmit="HandleLogin">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+
+                        @if (!string.IsNullOrEmpty(errorMessage))
+                        {
+                            <div class="alert alert-danger">@errorMessage</div>
+                        }
+
+                        <div class="mb-3">
+                            <label class="form-label">Email:</label>
+                            <InputText @bind-Value="loginRequest.Email" class="form-control" placeholder="Введите email" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Пароль:</label>
+                            <InputText @bind-Value="loginRequest.Password" type="password" class="form-control" placeholder="Введите пароль" />
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100" disabled="@isLogging">
+                            @if (isLogging)
+                            {
+                                <span>Вхожу...</span>
+                            }
+                            else
+                            {
+                                <span>Войти</span>
+                            }
+                        </button>
+                    </EditForm>
+
+                    <hr />
+                    <p class="text-center">
+                        <small>Для тестирования используйте любой email и пароль</small>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private LoginRequest loginRequest = new();
+    private bool isLogging = false;
+    private string errorMessage = "";
+
+    private async Task HandleLogin()
+    {
+        try
+        {
+            isLogging = true;
+            errorMessage = "";
+            
+            var response = await ApiService.LoginAsync(loginRequest);
+            
+            // Перенаправляем на главную страницу после успешного входа
+            Navigation.NavigateTo("/groups");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Ошибка входа: {ex.Message}";
+        }
+        finally
+        {
+            isLogging = false;
+        }
+    }
+}

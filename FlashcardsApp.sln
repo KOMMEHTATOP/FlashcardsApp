@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlashcardsApp", "FlashcardsApp\FlashcardsApp.csproj", "{BCF5E325-D3B3-4083-B871-67D3CF46CFDB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlashcardsBlazorUI", "FlashcardsBlazorUI\FlashcardsBlazorUI.csproj", "{6BD49106-DB81-4C02-9971-9A5F72E62FBC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{BCF5E325-D3B3-4083-B871-67D3CF46CFDB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BCF5E325-D3B3-4083-B871-67D3CF46CFDB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BCF5E325-D3B3-4083-B871-67D3CF46CFDB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6BD49106-DB81-4C02-9971-9A5F72E62FBC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6BD49106-DB81-4C02-9971-9A5F72E62FBC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6BD49106-DB81-4C02-9971-9A5F72E62FBC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6BD49106-DB81-4C02-9971-9A5F72E62FBC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

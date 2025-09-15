@@ -66,6 +66,16 @@ builder.Services.AddScoped<GroupService>();
 builder.Services.AddScoped<CardService>();
 builder.Services.AddScoped<CardRatingService>();
 
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(builder =>
+    {
+        builder.WithOrigins("https://localhost:7255", "http://localhost:5081")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 var app = builder.Build();
 
 // ---------------Тут начинается Middleware Pipeline---------------
@@ -76,6 +86,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection(); //Перенаправляем HTTP запрос в HTTPS
+app.UseCors();
 app.UseAuthentication(); //Кто ты?
 app.UseAuthorization(); // Что тебе можно?
 app.MapControllers(); //настраивает маршрутизацию к контроллерам
