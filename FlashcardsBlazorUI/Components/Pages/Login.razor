@@ -67,11 +67,11 @@
         {
             isLogging = true;
             errorMessage = "";
-            
+        
             var response = await ApiService.LoginAsync(loginRequest);
-            
-            // Перенаправляем на главную страницу после успешного входа
-            Navigation.NavigateTo("/groups");
+        
+            // Перенаправляем на главную страницу после успешного входа с принудительной перезагрузкой
+            Navigation.NavigateTo("/groups", forceLoad: true);
         }
         catch (Exception ex)
         {

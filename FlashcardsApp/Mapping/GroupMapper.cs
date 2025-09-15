@@ -13,6 +13,7 @@ public static class GroupMapper
             GroupName = model.GroupName, 
             GroupColor = model.GroupColor,
             CreatedAt = model.CreatedAt,
+            Order = model.Order
         };
     }
 }

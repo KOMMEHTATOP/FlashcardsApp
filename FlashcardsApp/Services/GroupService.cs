@@ -35,13 +35,13 @@ public class GroupService
         var groups = await _context.Groups
             .AsNoTracking()
             .Where(g => g.UserId == userId)
-            .OrderBy(g => g.CreatedAt)
+            .OrderBy(g => g.Order) //  сортируем по очереди
+            .ThenBy(g => g.CreatedAt) //  второстепенная сортировка по времени
             .ToListAsync();
 
         var groupDtos = groups.Select(g => g.ToDto());
         return ServiceResult<IEnumerable<ResultGroupDto>>.Success(groupDtos);
     }
-
     public async Task<ServiceResult<ResultGroupDto>> CreateNewGroupAsync(CreateGroupDto model, Guid userId)
     {
         var group = new Group()
@@ -108,6 +108,28 @@ public class GroupService
         _context.Groups.Remove(group);
         await _context.SaveChangesAsync();
         return ServiceResult<bool>.Success(true);
+    }
+    
+    public async Task<ServiceResult<bool>> UpdateGroupsOrderAsync(List<ReorderGroupDto> groupOrders, Guid userId)
+    {
+        try
+        {
+            foreach (var item in groupOrders)
+            {
+                var group = await _context.Groups.FirstOrDefaultAsync(g => g.Id == item.Id && g.UserId == userId);
+                if (group != null)
+                {
+                    group.Order = item.Order;
+                }
+            }
+        
+            await _context.SaveChangesAsync();
+            return ServiceResult<bool>.Success(true);
+        }
+        catch (Exception ex)
+        {
+            return ServiceResult<bool>.Failure($"Ошибка обновления порядка: {ex.Message}");
+        }
     }
 
     private bool IsUniqueConstraintViolation(DbUpdateException exception)

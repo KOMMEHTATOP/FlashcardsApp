@@ -1,0 +1,88 @@
+@page "/groups/{groupId}/cards"
+@using FlashcardsBlazorUI.Models
+@using FlashcardsBlazorUI.Services
+@inject ApiService ApiService
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>Карточки группы</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3>Карточки группы</h3>
+    <button class="btn btn-secondary" @onclick="GoBack">
+        <span class="bi bi-arrow-left"></span> Назад к группам
+    </button>
+</div>
+
+@if (isLoading)
+{
+    <p><em>Загружаю карточки...</em></p>
+}
+else if (cards == null || !cards.Any())
+{
+    <div class="alert alert-info">
+        <h5>В этой группе пока нет карточек</h5>
+        <p>Создайте первую карточку для изучения.</p>
+        <button class="btn btn-primary">Создать карточку</button>
+    </div>
+}
+else
+{
+    <div class="row">
+        @foreach (var card in cards)
+        {
+            <div class="col-md-6 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">Вопрос:</h6>
+                        <h5 class="card-title">@card.Question</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">Ответ:</h6>
+                        <p class="card-text">@card.Answer</p>
+                        <small class="text-muted">Создана: @card.CreatedAt.ToString("dd.MM.yyyy")</small>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+    
+    <button class="btn btn-success mb-3">Добавить карточку</button>
+}
+
+<p class="text-muted">ID группы: @GroupId</p>
+
+@code {
+    [Parameter] public string GroupId { get; set; } = "";
+    
+    private List<Card>? cards;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ApiService.InitializeAsync();
+        await LoadCards();
+    }
+
+    private async Task LoadCards()
+    {
+        try
+        {
+            isLoading = true;
+            cards = await ApiService.GetCardsAsync(GroupId);
+            Console.WriteLine($"Загружено карточек: {cards?.Count ?? 0}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка загрузки карточек: {ex.Message}");
+            cards = new List<Card>();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/groups");
+    }
+}

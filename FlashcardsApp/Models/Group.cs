@@ -10,6 +10,7 @@ public class Group
 
     public GroupColor GroupColor { get; set; } = GroupColor.Green; 
     public DateTime CreatedAt { get; set; }
+    public int Order { get; set; } = 0;
     
     public User? User { get; set; }
     public List<Card>? Cards { get; set; } //Navigation property

@@ -3,6 +3,8 @@
 @using FlashcardsBlazorUI.Services
 @inject ApiService ApiService
 @rendermode InteractiveServer
+@inject NavigationManager Navigation
+
 
 <PageTitle>Группы карточек</PageTitle>
 
@@ -57,6 +59,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        await ApiService.InitializeAsync();
         await LoadGroups();
     }
 
@@ -91,16 +94,15 @@ else
 
     private void ViewCards(string groupId)
     {
-        // TODO: Перейти к карточкам группы
-        Console.WriteLine($"Открыть карточки группы {groupId}");
+        Navigation.NavigateTo($"/groups/{groupId}/cards");
     }
-
+    
     private string GetColorCode(string colorName)
     {
         return colorName.ToLower() switch
         {
             "red" => "#dc3545",
-            "green" => "#28a745",
+            "green" => "#28a745", 
             "yellow" => "#ffc107",
             "orange" => "#fd7e14",
             "purple" => "#6f42c1",
@@ -108,5 +110,6 @@ else
             "black" => "#343a40",
             _ => "#6c757d"
         };
-    }
+    }    
+
 }

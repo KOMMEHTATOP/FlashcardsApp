@@ -1,4 +1,10 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+﻿@using FlashcardsBlazorUI.Models
+@using FlashcardsBlazorUI.Services
+@inject ApiService ApiService
+@rendermode InteractiveServer
+@inject NavigationManager Navigation
+
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">FlashcardsBlazorUI</a>
     </div>
@@ -8,11 +14,6 @@
 
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
         
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="login">
@@ -20,22 +21,96 @@
             </NavLink>
         </div>
         
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="groups">
-                <span class="bi bi-collection-fill" aria-hidden="true"></span> Мои группы
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
-            </NavLink>
-        </div>
+        @if (ApiService.IsAuthenticated)
+        {
+            <div class="nav-item px-3">
+                <div class="nav-link" @onclick="ToggleGroupsMenu" style="cursor: pointer;">
+                    <span class="bi bi-collection-fill" aria-hidden="true"></span> 
+                    Мои группы
+                    <span class="bi @(isGroupsMenuExpanded ? "bi-chevron-down" : "bi-chevron-right")" style="float: right;"></span>
+                </div>
+                
+                @if (isGroupsMenuExpanded && groups != null)
+                {
+                    <div class="groups-submenu" style="margin-left: 20px;">
+                        @foreach (var group in groups.OrderBy(g => g.Order))
+                        {
+                            <div class="nav-link group-item" 
+                                 style="background-color: @GetColorCode(group.GroupColor); margin: 2px 0; border-radius: 4px; color: white; cursor: pointer;"
+                                 @onclick="() => NavigateToGroup(group.Id)">
+                                @group.GroupName
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+            
+            <div class="nav-item px-3">
+                <div class="nav-link" @onclick="Logout" style="cursor: pointer;">
+                    <span class="bi bi-box-arrow-right" aria-hidden="true"></span> Выход
+                </div>
+            </div>
+        }
+        
     </nav>
 </div>
+
+@code {
+    private bool isGroupsMenuExpanded = false;
+    private List<Group>? groups;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ApiService.InitializeAsync();
+        if (ApiService.IsAuthenticated)
+        {
+            await LoadGroups();
+        }
+    }
+
+    private async Task LoadGroups()
+    {
+        try
+        {
+            groups = await ApiService.GetGroupsAsync();
+            Console.WriteLine($"Загружено групп в меню: {groups?.Count ?? 0}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка загрузки групп в меню: {ex.Message}");
+        }
+    }
+
+    private void ToggleGroupsMenu()
+    {
+        isGroupsMenuExpanded = !isGroupsMenuExpanded;
+        Console.WriteLine($"Меню группы expanded: {isGroupsMenuExpanded}, групп загружено: {groups?.Count ?? 0}");
+    }
+
+    private void NavigateToGroup(string groupId)
+    {
+        Navigation.NavigateTo($"/groups/{groupId}/cards");
+        Console.WriteLine($"Переход к группе {groupId}");
+    }
+    
+    private async Task Logout()
+    {
+        await ApiService.LogoutAsync();
+        Navigation.NavigateTo("/login", forceLoad: true);
+    }
+    
+    private string GetColorCode(string colorName)
+    {
+        return colorName.ToLower() switch
+        {
+            "red" => "#dc3545",
+            "green" => "#28a745", 
+            "yellow" => "#ffc107",
+            "orange" => "#fd7e14",
+            "purple" => "#6f42c1",
+            "pink" => "#e83e8c",
+            "black" => "#343a40",
+            _ => "#6c757d"
+        };
+    }
+}

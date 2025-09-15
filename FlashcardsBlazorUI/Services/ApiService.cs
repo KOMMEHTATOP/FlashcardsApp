@@ -1,4 +1,5 @@
 using FlashcardsBlazorUI.Models;
+using Microsoft.JSInterop;
 using System.Text.Json;
 
 namespace FlashcardsBlazorUI.Services
@@ -7,15 +8,33 @@ namespace FlashcardsBlazorUI.Services
     {
         private readonly HttpClient _httpClient;
         private readonly JsonSerializerOptions _jsonOptions;
+        private readonly IJSRuntime _jsRuntime;
         private string? _currentToken;
 
-        public ApiService(IHttpClientFactory httpClientFactory)
+        public ApiService(IHttpClientFactory httpClientFactory, IJSRuntime jsRuntime)
         {
             _httpClient = httpClientFactory.CreateClient("FlashcardsAPI");
+            _jsRuntime = jsRuntime;
             _jsonOptions = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             };
+        }
+
+        public async Task InitializeAsync()
+        {
+            try
+            {
+                var token = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "authToken");
+                if (!string.IsNullOrEmpty(token))
+                {
+                    SetAuthToken(token);
+                }
+            }
+            catch
+            {
+                // Ignore localStorage errors in SSR mode
+            }
         }
 
         // Методы аутентификации
@@ -34,9 +53,30 @@ namespace FlashcardsBlazorUI.Services
             if (loginResponse != null)
             {
                 SetAuthToken(loginResponse.Token);
+                try
+                {
+                    await _jsRuntime.InvokeVoidAsync("localStorage.setItem", "authToken", loginResponse.Token);
+                }
+                catch
+                {
+                    // Ignore localStorage errors in SSR mode
+                }
             }
             
             return loginResponse;
+        }
+
+        public async Task LogoutAsync()
+        {
+            ClearAuthToken();
+            try
+            {
+                await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", "authToken");
+            }
+            catch
+            {
+                // Ignore localStorage errors
+            }
         }
 
         public void SetAuthToken(string token)
@@ -111,6 +151,19 @@ namespace FlashcardsBlazorUI.Services
     
             var responseJson = await response.Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<Group>(responseJson, _jsonOptions);
+        }
+        
+        public async Task<bool> UpdateGroupOrderAsync(List<ReorderGroupDto> groupOrders)
+        {
+            try
+            {
+                var response = await _httpClient.PutAsJsonAsync("http://localhost:5153/api/group/reorder", groupOrders);
+                return response.IsSuccessStatusCode;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

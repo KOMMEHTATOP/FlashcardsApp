@@ -99,6 +99,20 @@ namespace FlashcardsApp.Controllers
             return NoContent();
         }
         
+        [HttpPut("reorder")]
+        public async Task<IActionResult> ReorderGroups([FromBody] List<ReorderGroupDto> groupOrders)
+        {
+            var userId = GetCurrentUserId();
+            var result = await _groupService.UpdateGroupsOrderAsync(groupOrders, userId);
+    
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result.Errors);
+            }
+    
+            return Ok();
+        }
+        
         
         private Guid GetCurrentUserId()
         {
