@@ -3,26 +3,33 @@
 @inject ApiService ApiService
 @rendermode InteractiveServer
 @inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
 
+<!-- Верхняя панель навигации -->
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">FlashcardsBlazorUI</a>
     </div>
 </div>
 
+<!-- Кнопка-переключатель для мобильного меню -->
 <input type="checkbox" title="Navigation menu" class="navbar-toggler" />
 
+<!-- Основная область навигации -->
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="flex-column">
         
+        <!-- Кнопка входа - показывается всегда -->
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="login">
                 <span class="bi bi-person-fill" aria-hidden="true"></span> Вход
             </NavLink>
         </div>
         
+        <!-- Блок для авторизованных пользователей -->
         @if (ApiService.IsAuthenticated)
         {
+            <!-- Раздел "Мои группы" с выпадающим списком -->
             <div class="nav-item px-3">
                 <div class="nav-link" @onclick="ToggleGroupsMenu" style="cursor: pointer;">
                     <span class="bi bi-collection-fill" aria-hidden="true"></span> 
@@ -30,13 +37,20 @@
                     <span class="bi @(isGroupsMenuExpanded ? "bi-chevron-down" : "bi-chevron-right")" style="float: right;"></span>
                 </div>
                 
+                <!-- Выпадающий список групп с drag & drop -->
                 @if (isGroupsMenuExpanded && groups != null)
                 {
                     <div class="groups-submenu" style="margin-left: 20px;">
                         @foreach (var group in groups.OrderBy(g => g.Order))
                         {
+                            <!-- Элемент группы с поддержкой перетаскивания -->
                             <div class="nav-link group-item" 
-                                 style="background-color: @GetColorCode(group.GroupColor); margin: 2px 0; border-radius: 4px; color: white; cursor: pointer;"
+                                 draggable="true"
+                                 @ondragstart="@(e => OnDragStart(e, group))"
+                                 @ondragenter="OnDragEnter" @ondragenter:preventDefault="true"
+                                 @ondragover="OnDragOver" @ondragover:preventDefault="true"
+                                 @ondrop="@(e => OnDrop(e, group))" @ondrop:preventDefault="true"
+                                 style="background-color: @GetColorCode(group.GroupColor); margin: 2px 0; border-radius: 4px; color: white; cursor: move;"
                                  @onclick="() => NavigateToGroup(group.Id)">
                                 @group.GroupName
                             </div>
@@ -45,6 +59,7 @@
                 }
             </div>
             
+            <!-- Кнопка выхода -->
             <div class="nav-item px-3">
                 <div class="nav-link" @onclick="Logout" style="cursor: pointer;">
                     <span class="bi bi-box-arrow-right" aria-hidden="true"></span> Выход
@@ -58,6 +73,7 @@
 @code {
     private bool isGroupsMenuExpanded = false;
     private List<Group>? groups;
+    private Group? draggedGroup;
 
     protected override async Task OnInitializedAsync()
     {
@@ -98,13 +114,79 @@
         await ApiService.LogoutAsync();
         Navigation.NavigateTo("/login", forceLoad: true);
     }
-    
-    private string GetColorCode(string colorName)
+
+    // === DRAG & DROP ===
+    private void OnDragStart(DragEventArgs e, Group group)
     {
-        return colorName.ToLower() switch
+        draggedGroup = group;
+        Console.WriteLine($"[DRAG] START: {group.GroupName} (ID: {group.Id})");
+    }
+
+    private void OnDragEnter(DragEventArgs e)
+    {
+        Console.WriteLine("[DRAG] ENTER");
+    }
+
+    private void OnDragOver(DragEventArgs e)
+    {
+        Console.WriteLine("[DRAG] OVER");
+    }
+
+    private async Task OnDrop(DragEventArgs e, Group targetGroup)
+    {
+        Console.WriteLine($"[DRAG] DROP: {targetGroup.GroupName}");
+        if (draggedGroup != null && draggedGroup.Id != targetGroup.Id)
+        {
+            await ReorderGroups(draggedGroup, targetGroup);
+            draggedGroup = null;
+        }
+    }
+    
+    private async Task ReorderGroups(Group draggedGroup, Group targetGroup)
+    {
+        if (groups == null) return;
+
+        var draggedIndex = groups.FindIndex(g => g.Id == draggedGroup.Id);
+        var targetIndex = groups.FindIndex(g => g.Id == targetGroup.Id);
+        if (draggedIndex == -1 || targetIndex == -1) return;
+
+        var movedGroup = groups[draggedIndex];
+        groups.RemoveAt(draggedIndex);
+        groups.Insert(targetIndex, movedGroup);
+
+        var reorderList = new List<ReorderGroupDto>();
+        for (int i = 0; i < groups.Count; i++)
+        {
+            groups[i].Order = i;
+            reorderList.Add(new ReorderGroupDto { Id = groups[i].Id, Order = i });
+        }
+
+        try
+        {
+            var success = await ApiService.UpdateGroupOrderAsync(reorderList);
+            if (success)
+            {
+                Console.WriteLine("Порядок групп успешно обновлен");
+                StateHasChanged();
+            }
+            else
+            {
+                Console.WriteLine("Ошибка обновления порядка групп");
+                await LoadGroups();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка при обновлении порядка: {ex.Message}");
+            await LoadGroups();
+        }
+    }
+
+    private string GetColorCode(string colorName) =>
+        colorName.ToLower() switch
         {
             "red" => "#dc3545",
-            "green" => "#28a745", 
+            "green" => "#28a745",
             "yellow" => "#ffc107",
             "orange" => "#fd7e14",
             "purple" => "#6f42c1",
@@ -112,5 +194,4 @@
             "black" => "#343a40",
             _ => "#6c757d"
         };
-    }
 }
