@@ -75,13 +75,7 @@ else if (cards == null || !cards.Any())
 {
     <div class="alert alert-info text-center">
         <h5>В этой группе пока нет карточек</h5>
-        <p>Создайте первую карточку для изучения.</p>
-        @if (!showCreateForm)
-        {
-            <button class="btn btn-primary" @onclick="CreateNewCard">
-                <span class="bi bi-plus-circle"></span> Создать первую карточку
-            </button>
-        }
+        <p>Используйте кнопку "Создать карточку" выше для добавления первой карточки.</p>
     </div>
 }
 else
@@ -122,8 +116,8 @@ else
     private Group? currentGroup;
     private List<Card>? cards;
     private bool isLoading = true;
-    private bool showCreateForm = false;
-    private bool isSubmitting = false;
+    private bool showCreateForm;
+    private bool isSubmitting;
     private CreateCardDto newCard = new();
     
     protected override async Task OnInitializedAsync()

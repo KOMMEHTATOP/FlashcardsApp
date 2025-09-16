@@ -1,3 +1,4 @@
+@page "/"
 @page "/login"
 @using FlashcardsBlazorUI.Models
 @using FlashcardsBlazorUI.Services
@@ -45,11 +46,7 @@
                             }
                         </button>
                     </EditForm>
-
                     <hr />
-                    <p class="text-center">
-                        <small>Для тестирования используйте любой email и пароль</small>
-                    </p>
                 </div>
             </div>
         </div>
@@ -58,7 +55,7 @@
 
 @code {
     private LoginRequest loginRequest = new();
-    private bool isLogging = false;
+    private bool isLogging;
     private string errorMessage = "";
 
     private async Task HandleLogin()
@@ -67,10 +64,8 @@
         {
             isLogging = true;
             errorMessage = "";
-        
-            var response = await ApiService.LoginAsync(loginRequest);
-        
-            // Перенаправляем на главную страницу после успешного входа с принудительной перезагрузкой
+            await ApiService.LoginAsync(loginRequest);
+
             Navigation.NavigateTo("/groups", forceLoad: true);
         }
         catch (Exception ex)

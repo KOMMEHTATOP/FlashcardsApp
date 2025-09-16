@@ -101,14 +101,15 @@ namespace FlashcardsBlazorUI.Services
 
         public bool IsAuthenticated => !string.IsNullOrEmpty(_currentToken);
 
-        // Существующие методы (теперь с токеном)
         public async Task<List<Group>> GetGroupsAsync()
         {
-            var response = await _httpClient.GetAsync("api/group");
-            response.EnsureSuccessStatusCode();
-            
-            var json = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<List<Group>>(json, _jsonOptions) ?? new List<Group>();
+            return await ExecuteRequestAsync(async () =>
+            {
+                var response = await _httpClient.GetAsync("api/group");
+                response.EnsureSuccessStatusCode();
+                var json = await response.Content.ReadAsStringAsync();
+                return JsonSerializer.Deserialize<List<Group>>(json, _jsonOptions) ?? new List<Group>();
+            });
         }
         
         public async Task<List<Card>> GetCardsAsync(Guid groupId)
@@ -197,5 +198,33 @@ namespace FlashcardsBlazorUI.Services
                 return false;
             }
         }
+        
+        public async Task<bool> DeleteGroupAsync(Guid groupId)
+        {
+            try
+            {
+                var response = await _httpClient.DeleteAsync($"api/group/{groupId}");
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка удаления группы: {ex.Message}");
+                return false;
+            }
+        }
+        
+        private async Task<T> ExecuteRequestAsync<T>(Func<Task<T>> request)
+        {
+            try
+            {
+                return await request();
+            }
+            catch (HttpRequestException ex) when (ex.Message.Contains("401"))
+            {
+                await LogoutAsync();
+                throw new UnauthorizedAccessException("Требуется авторизация");
+            }
+        }
+
     }
 }

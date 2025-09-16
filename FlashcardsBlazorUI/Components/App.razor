@@ -1,4 +1,5 @@
 ﻿@inject Services.ApiService Api
+@inject NavigationManager Navigation
 
 <!DOCTYPE html>
 <html lang="en">
@@ -23,7 +24,18 @@
     {
         if (firstRender)
         {
-            await Api.InitializeAsync(); // подтягиваем токен из localStorage
+            await Api.InitializeAsync();
+                
+            var currentPath = Navigation.ToBaseRelativePath(Navigation.Uri);
+                
+            if (!Api.IsAuthenticated && currentPath != "login")
+            {
+                Navigation.NavigateTo("/login", true);
+            }
+            else if (Api.IsAuthenticated && (currentPath == "login" || currentPath == ""))
+            {
+                Navigation.NavigateTo("/groups", true);
+            }
         }
     }
 }
