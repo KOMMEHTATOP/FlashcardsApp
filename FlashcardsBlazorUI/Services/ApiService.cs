@@ -1,5 +1,7 @@
 using FlashcardsBlazorUI.Models;
 using Microsoft.JSInterop;
+using System.Net;
+using System.Net.Http.Json;
 using System.Text.Json;
 
 namespace FlashcardsBlazorUI.Services
@@ -20,13 +22,21 @@ namespace FlashcardsBlazorUI.Services
                 PropertyNameCaseInsensitive = true
             };
         }
+
+        // Получение карточки
         public async Task<Card?> GetCardAsync(Guid cardId)
         {
-            var resp = await _httpClient.GetAsync($"api/cards/{cardId}");
-            if (!resp.IsSuccessStatusCode) return null;
-            return await resp.Content.ReadFromJsonAsync<Card>();
+            var response = await _httpClient.GetAsync($"api/cards/{cardId}");
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                await LogoutAsync();
+                throw new UnauthorizedAccessException("Требуется авторизация");
+            }
+            if (!response.IsSuccessStatusCode) return null;
+            return await response.Content.ReadFromJsonAsync<Card>();
         }
 
+        // Инициализация: читаем токен из localStorage (вызов через JSRuntime)
         public async Task InitializeAsync()
         {
             try
@@ -39,25 +49,24 @@ namespace FlashcardsBlazorUI.Services
             }
             catch
             {
-                // Ignore localStorage errors in SSR mode
+                // Игнорируем ошибки localStorage во время SSR/prerendering
             }
         }
-        
 
-        // Методы аутентификации
+        // --- Аутентификация ---
         public async Task<LoginResponse> LoginAsync(LoginRequest loginRequest)
         {
-            var json = JsonSerializer.Serialize(loginRequest);
-            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
-            
-            var response = await _httpClient.PostAsync("http://localhost:5153/api/auth/login", content);
+            var response = await _httpClient.PostAsJsonAsync("api/auth/login", loginRequest);
+
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+                throw new UnauthorizedAccessException("Неверные учетные данные");
+
             response.EnsureSuccessStatusCode();
-            
+
             var responseJson = await response.Content.ReadAsStringAsync();
             var loginResponse = JsonSerializer.Deserialize<LoginResponse>(responseJson, _jsonOptions);
-            
-            // Сохраняем токен для последующих запросов
-            if (loginResponse != null)
+
+            if (loginResponse != null && !string.IsNullOrEmpty(loginResponse.Token))
             {
                 SetAuthToken(loginResponse.Token);
                 try
@@ -66,11 +75,11 @@ namespace FlashcardsBlazorUI.Services
                 }
                 catch
                 {
-                    // Ignore localStorage errors in SSR mode
+                    // Игнорируем ошибки localStorage в SSR
                 }
             }
-            
-            return loginResponse;
+
+            return loginResponse!;
         }
 
         public async Task LogoutAsync()
@@ -82,14 +91,14 @@ namespace FlashcardsBlazorUI.Services
             }
             catch
             {
-                // Ignore localStorage errors
+                // Игнорируем ошибки localStorage
             }
         }
 
         public void SetAuthToken(string token)
         {
             _currentToken = token;
-            _httpClient.DefaultRequestHeaders.Authorization = 
+            _httpClient.DefaultRequestHeaders.Authorization =
                 new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
         }
 
@@ -101,96 +110,65 @@ namespace FlashcardsBlazorUI.Services
 
         public bool IsAuthenticated => !string.IsNullOrEmpty(_currentToken);
 
+        // --- Группы ---
         public async Task<List<Group>> GetGroupsAsync()
         {
-            return await ExecuteRequestAsync(async () =>
+            var response = await _httpClient.GetAsync("api/group");
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
-                var response = await _httpClient.GetAsync("api/group");
-                response.EnsureSuccessStatusCode();
-                var json = await response.Content.ReadAsStringAsync();
-                return JsonSerializer.Deserialize<List<Group>>(json, _jsonOptions) ?? new List<Group>();
-            });
-        }
-        
-        public async Task<List<Card>> GetCardsAsync(Guid groupId)
-        {
-            var response = await _httpClient.GetAsync($"api/groups/{groupId}/cards");
+                await LogoutAsync();
+                throw new UnauthorizedAccessException("Требуется авторизация");
+            }
             response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<List<Card>>() ?? new();
-        }
-        
-        public async Task<List<CardRating>> GetCardRatingsAsync(Guid cardId)
-        {
-            var response = await _httpClient.GetAsync($"api/cards/{cardId}/ratings");
-            response.EnsureSuccessStatusCode();
-    
+
             var json = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<List<CardRating>>(json, _jsonOptions) ?? new List<CardRating>();
+            return JsonSerializer.Deserialize<List<Group>>(json, _jsonOptions) ?? new List<Group>();
         }
 
-        public async Task<CardRating> RateCardAsync(Guid cardId, int rating)
-        {
-            var ratingData = new { rating };
-            var json = JsonSerializer.Serialize(ratingData);
-            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
-    
-            var response = await _httpClient.PostAsync($"api/cards/{cardId}/ratings", content);
-            response.EnsureSuccessStatusCode();
-    
-            var responseJson = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<CardRating>(responseJson, _jsonOptions);
-        }
-        
-        public async Task<Card> CreateCardAsync(CreateCardDto cardDto, Guid groupId)
-        {
-            var json = JsonSerializer.Serialize(cardDto);
-            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
-
-            var response = await _httpClient.PostAsync($"api/groups/{groupId}/cards", content);
-            response.EnsureSuccessStatusCode();
-
-            var responseJson = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<Card>(responseJson, _jsonOptions);
-        }
-        
         public async Task<Group?> GetGroupAsync(Guid groupId)
         {
-            try
+            var response = await _httpClient.GetAsync($"api/group/{groupId}");
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
-                var response = await _httpClient.GetAsync($"api/group/{groupId}");
-                response.EnsureSuccessStatusCode();
-                var json = await response.Content.ReadAsStringAsync();
-                return JsonSerializer.Deserialize<Group>(json, _jsonOptions);
+                await LogoutAsync();
+                throw new UnauthorizedAccessException("Требуется авторизация");
             }
-            catch
-            {
-                return null;
-            }
+            if (!response.IsSuccessStatusCode) return null;
+
+            var json = await response.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<Group>(json, _jsonOptions);
         }
-        
+
         public async Task<Group> CreateGroupAsync(object groupData)
         {
-            // Преобразуем объект в правильный формат для API
+            // Подготовим DTO корректно
             var createGroupDto = new {
                 Name = ((dynamic)groupData).Name,
-                Color = int.Parse(((dynamic)groupData).Color) // Преобразуем строку в число enum
+                Color = ((dynamic)groupData).Color
             };
-            
-            var json = JsonSerializer.Serialize(createGroupDto);
-            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
-    
-            var response = await _httpClient.PostAsync("http://localhost:5153/api/group", content);
+
+            var response = await _httpClient.PostAsJsonAsync("api/group", createGroupDto);
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                await LogoutAsync();
+                throw new UnauthorizedAccessException("Требуется авторизация");
+            }
             response.EnsureSuccessStatusCode();
-    
+
             var responseJson = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<Group>(responseJson, _jsonOptions);
+            return JsonSerializer.Deserialize<Group>(responseJson, _jsonOptions)!;
         }
-        
+
         public async Task<bool> UpdateGroupOrderAsync(List<ReorderGroupDto> groupOrders)
         {
             try
             {
-                var response = await _httpClient.PutAsJsonAsync("http://localhost:5153/api/group/reorder", groupOrders);
+                var response = await _httpClient.PutAsJsonAsync("api/group/reorder", groupOrders);
+                if (response.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    await LogoutAsync();
+                    return false;
+                }
                 return response.IsSuccessStatusCode;
             }
             catch
@@ -198,12 +176,17 @@ namespace FlashcardsBlazorUI.Services
                 return false;
             }
         }
-        
+
         public async Task<bool> DeleteGroupAsync(Guid groupId)
         {
             try
             {
                 var response = await _httpClient.DeleteAsync($"api/group/{groupId}");
+                if (response.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    await LogoutAsync();
+                    return false;
+                }
                 return response.IsSuccessStatusCode;
             }
             catch (Exception ex)
@@ -212,19 +195,61 @@ namespace FlashcardsBlazorUI.Services
                 return false;
             }
         }
-        
-        private async Task<T> ExecuteRequestAsync<T>(Func<Task<T>> request)
+
+        // --- Карточки и рейтинги ---
+        public async Task<List<Card>> GetCardsAsync(Guid groupId)
         {
-            try
-            {
-                return await request();
-            }
-            catch (HttpRequestException ex) when (ex.Message.Contains("401"))
+            var response = await _httpClient.GetAsync($"api/groups/{groupId}/cards");
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
                 await LogoutAsync();
                 throw new UnauthorizedAccessException("Требуется авторизация");
             }
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<List<Card>>() ?? new();
         }
 
+        public async Task<List<CardRating>> GetCardRatingsAsync(Guid cardId)
+        {
+            var response = await _httpClient.GetAsync($"api/cards/{cardId}/ratings");
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                await LogoutAsync();
+                throw new UnauthorizedAccessException("Требуется авторизация");
+            }
+            response.EnsureSuccessStatusCode();
+
+            var json = await response.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<List<CardRating>>(json, _jsonOptions) ?? new List<CardRating>();
+        }
+
+        public async Task<CardRating> RateCardAsync(Guid cardId, int rating)
+        {
+            var ratingData = new { rating };
+            var response = await _httpClient.PostAsJsonAsync($"api/cards/{cardId}/ratings", ratingData);
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                await LogoutAsync();
+                throw new UnauthorizedAccessException("Требуется авторизация");
+            }
+            response.EnsureSuccessStatusCode();
+
+            var responseJson = await response.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<CardRating>(responseJson, _jsonOptions)!;
+        }
+
+        public async Task<Card> CreateCardAsync(CreateCardDto cardDto, Guid groupId)
+        {
+            var response = await _httpClient.PostAsJsonAsync($"api/groups/{groupId}/cards", cardDto);
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                await LogoutAsync();
+                throw new UnauthorizedAccessException("Требуется авторизация");
+            }
+            response.EnsureSuccessStatusCode();
+
+            var responseJson = await response.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<Card>(responseJson, _jsonOptions)!;
+        }
     }
 }

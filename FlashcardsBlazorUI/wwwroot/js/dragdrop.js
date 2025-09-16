@@ -1,53 +1,103 @@
-window.dragDropInterop = {
-    initializeDragDrop: function() {
-        console.log("=== Начало инициализации drag & drop ===");
+(function () {
+    window.dragDropInterop = {
+        initializeDragDrop: function () {
+            console.log("=== dragdrop: init ===");
 
-        const groupCards = document.querySelectorAll('.group-card');
-        console.log(`Найдено карточек групп: ${groupCards.length}`);
+            const container = document.getElementById('groups-container');
+            if (!container) {
+                console.log("dragdrop: groups-container не найден");
+                return;
+            }
 
-        const trashZone = document.querySelector('.trash-zone');
-        console.log(`Корзина найдена: ${trashZone ? 'да' : 'нет'}`);
+            const cards = container.querySelectorAll('.group-card');
+            console.log(`dragdrop: найдено карточек = ${cards.length}`);
+            if (!cards.length) return;
 
-        // Делаем карточки групп перетаскиваемыми
-        groupCards.forEach((card, index) => {
-            console.log(`Настройка карточки ${index + 1}:`, card.dataset.groupId);
-            card.draggable = true;
+            let dragged = null;
 
-            card.addEventListener('dragstart', function(e) {
-                const groupId = this.dataset.groupId;
-                e.dataTransfer.setData('text/plain', groupId);
-                this.style.opacity = '0.5';
-                console.log('DRAG START - ID группы:', groupId);
+            cards.forEach(function (card, idx) {
+                card.draggable = true;
+                card.style.cursor = 'grab';
+                console.log(`dragdrop: init card[${idx}] id=${card.dataset.groupId}`);
+
+                card.addEventListener('dragstart', function (e) {
+                    dragged = this;
+                    e.dataTransfer.effectAllowed = 'move';
+                    try { e.dataTransfer.setData('text/plain', this.dataset.groupId); } catch {}
+                    this.style.opacity = '0.5';
+                });
+
+                card.addEventListener('dragend', function () {
+                    this.style.opacity = '1';
+                    dragged = null;
+                });
+
+                card.addEventListener('dragover', function (e) {
+                    e.preventDefault();
+                    this.style.border = '2px solid #0d6efd';
+                });
+
+                card.addEventListener('dragleave', function () {
+                    this.style.border = '';
+                });
+
+                card.addEventListener('drop', function (e) {
+                    e.preventDefault();
+                    this.style.border = '';
+                    if (!dragged || dragged === this) return;
+
+                    const draggedCol = dragged.closest('.col-md-4, .col');
+                    const targetCol = this.closest('.col-md-4, .col');
+                    if (!draggedCol || !targetCol) return;
+
+                    targetCol.parentNode.insertBefore(draggedCol, targetCol);
+
+                    const data = [];
+                    let order = 1;
+                    container.querySelectorAll('.group-card').forEach(function (c) {
+                        data.push({ Id: c.dataset.groupId, Order: order++ });
+                    });
+
+                    fetch('/api/group/reorder', {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + localStorage.getItem('authToken')
+                        },
+                        body: JSON.stringify(data)
+                    }).then(r => {
+                        if (!r.ok) alert('Ошибка изменения порядка');
+                    });
+                });
             });
 
-            card.addEventListener('dragend', function(e) {
-                this.style.opacity = '1';
-                console.log('DRAG END');
-            });
-        });
+            // корзина
+            const trash = document.querySelector('.trash-zone');
+            if (trash) {
+                trash.addEventListener('dragover', e => {
+                    e.preventDefault();
+                    trash.style.backgroundColor = '#f8d7da';
+                });
+                trash.addEventListener('dragleave', () => trash.style.backgroundColor = '');
+                trash.addEventListener('drop', e => {
+                    e.preventDefault();
+                    trash.style.backgroundColor = '';
+                    let id = null;
+                    try { id = e.dataTransfer.getData('text/plain'); } catch {}
+                    if (!id) return;
+                    if (!confirm('Удалить группу?')) return;
 
-        // Настраиваем корзину
-        if (trashZone) {
-            trashZone.addEventListener('dragover', function(e) {
-                e.preventDefault();
-                this.style.backgroundColor = '#f8d7da';
-                console.log('DRAG OVER trash zone');
-            });
+                    fetch('/api/group/' + id, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': 'Bearer ' + localStorage.getItem('authToken') }
+                    }).then(r => {
+                        if (r.ok) location.reload();
+                        else alert('Ошибка удаления группы');
+                    });
+                });
+            }
 
-            trashZone.addEventListener('dragleave', function(e) {
-                this.style.backgroundColor = '';
-                console.log('DRAG LEAVE trash zone');
-            });
-
-            trashZone.addEventListener('drop', function(e) {
-                e.preventDefault();
-                this.style.backgroundColor = '';
-                const groupId = e.dataTransfer.getData('text/plain');
-                console.log('DROP на корзину! Group ID:', groupId);
-                DotNet.invokeMethodAsync('FlashcardsBlazorUI', 'DeleteGroupFromJS', groupId);
-            });
+            console.log("=== dragdrop: ready ===");
         }
-
-        console.log("=== Инициализация завершена ===");
-    }
-};
+    };
+})();

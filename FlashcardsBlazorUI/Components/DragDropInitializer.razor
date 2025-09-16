@@ -1,0 +1,22 @@
+@inject IJSRuntime JSRuntime
+
+@code {
+    private bool _initialized;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !_initialized)
+        {
+            _initialized = true;
+            await Task.Delay(50); // чуть ждём пока DOM нарисуется
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("dragDropInterop.initializeDragDrop");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("DragDropInitializer: JS init failed: " + ex.Message);
+            }
+        }
+    }
+}
