@@ -1,7 +1,8 @@
 (function () {
     window.dragDropInterop = {
-        initializeDragDrop: function () {
+        initializeDragDrop: function (authToken) {
             console.log("=== dragdrop: init ===");
+            console.log("Received token:", authToken ? "YES" : "NO");
 
             const container = document.getElementById('groups-container');
             if (!container) {
@@ -50,19 +51,29 @@
                     const targetCol = this.closest('.col-md-4, .col');
                     if (!draggedCol || !targetCol) return;
 
-                    targetCol.parentNode.insertBefore(draggedCol, targetCol);
+                    // Определяем позиции элементов
+                    const draggedIndex = Array.from(container.children).indexOf(draggedCol);
+                    const targetIndex = Array.from(container.children).indexOf(targetCol);
 
+                    // Вставляем в зависимости от направления
+                    if (draggedIndex < targetIndex) {
+                        // Перетаскиваем вниз/вправо - вставляем ПОСЛЕ целевого
+                        targetCol.parentNode.insertBefore(draggedCol, targetCol.nextSibling);
+                    } else {
+                        // Перетаскиваем вверх/влево - вставляем ПЕРЕД целевым
+                        targetCol.parentNode.insertBefore(draggedCol, targetCol);
+                    }
                     const data = [];
                     let order = 1;
                     container.querySelectorAll('.group-card').forEach(function (c) {
                         data.push({ Id: c.dataset.groupId, Order: order++ });
                     });
 
-                    fetch('/api/group/reorder', {
+                    fetch('http://localhost:5153/api/group/reorder', {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ' + localStorage.getItem('authToken')
+                            'Authorization': 'Bearer ' + authToken
                         },
                         body: JSON.stringify(data)
                     }).then(r => {
@@ -89,7 +100,7 @@
 
                     fetch('/api/group/' + id, {
                         method: 'DELETE',
-                        headers: { 'Authorization': 'Bearer ' + localStorage.getItem('authToken') }
+                        headers: { 'Authorization': 'Bearer ' + authToken }
                     }).then(r => {
                         if (r.ok) location.reload();
                         else alert('Ошибка удаления группы');

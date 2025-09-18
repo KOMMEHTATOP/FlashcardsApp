@@ -1,4 +1,7 @@
+@using FlashcardsBlazorUI.Services
 @inject IJSRuntime JSRuntime
+@inject ITokenManager TokenManager
+
 
 @code {
     private bool _initialized;
@@ -8,10 +11,11 @@
         if (firstRender && !_initialized)
         {
             _initialized = true;
-            await Task.Delay(50); // чуть ждём пока DOM нарисуется
+            await Task.Delay(50);
             try
             {
-                await JSRuntime.InvokeVoidAsync("dragDropInterop.initializeDragDrop");
+                var token = TokenManager.Token;
+                await JSRuntime.InvokeVoidAsync("dragDropInterop.initializeDragDrop", token);
             }
             catch (Exception ex)
             {
