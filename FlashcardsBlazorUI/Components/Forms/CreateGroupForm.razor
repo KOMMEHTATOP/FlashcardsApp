@@ -1,6 +1,7 @@
-@using FlashcardsBlazorUI.Models
+@using FlashcardsAppContracts.DTOs.Requests
+@using FlashcardsAppContracts.Constants
 @using FlashcardsBlazorUI.Services
-@inject ApiService ApiService
+@inject GroupService GroupService
 
 <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
     <div class="modal-dialog">
@@ -10,26 +11,23 @@
                 <button type="button" class="btn-close" @onclick="OnCancel"></button>
             </div>
             <div class="modal-body">
-                <EditForm Model="newGroup" OnValidSubmit="HandleSubmit">
-                    <DataAnnotationsValidator />
-                    <ValidationSummary />
+                <EditForm Model="newGroup" OnValidSubmit="HandleSubmit" FormName="CreateGroup">
+                    <DataAnnotationsValidator/>
+                    <ValidationSummary/>
 
                     <div class="mb-3">
                         <label class="form-label">Название группы:</label>
-                        <InputText @bind-Value="newGroup.Name" class="form-control" placeholder="Введите название группы" />
+                        <InputText @bind-Value="newGroup.Name" class="form-control" placeholder="Введите название группы"/>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Цвет группы:</label>
                         <InputSelect @bind-Value="newGroup.Color" class="form-select">
                             <option value="">Выберите цвет</option>
-                            <option value="0">Черный</option>
-                            <option value="1">Красный</option>
-                            <option value="2">Зеленый</option>
-                            <option value="3">Желтый</option>
-                            <option value="4">Оранжевый</option>
-                            <option value="5">Фиолетовый</option>
-                            <option value="6">Розовый</option>
+                            @foreach (GroupColor color in Enum.GetValues<GroupColor>())
+                            {
+                                <option value="@color">@GetColorDisplayName(color)</option>
+                            }
                         </InputSelect>
                     </div>
 
@@ -56,15 +54,20 @@
     [Parameter] public EventCallback OnCancel { get; set; }
     [Parameter] public EventCallback OnGroupCreated { get; set; }
 
-    private CreateGroupModel newGroup = new();
-    private bool isSubmitting = false;
+    private CreateGroupDto newGroup = new() 
+    { 
+        Name = "", 
+        Color = GroupColor.Green, 
+        Order = 0 
+    };
+    private bool isSubmitting;
 
     private async Task HandleSubmit()
     {
         try
         {
             isSubmitting = true;
-            await ApiService.CreateGroupAsync(newGroup);
+            await GroupService.CreateGroupAsync(newGroup);
             await OnGroupCreated.InvokeAsync();
         }
         catch (Exception ex)
@@ -77,9 +80,15 @@
         }
     }
 
-    public class CreateGroupModel
+    private string GetColorDisplayName(GroupColor color) => color switch
     {
-        public string Name { get; set; } = "";
-        public string Color { get; set; } = "";
-    }
+        GroupColor.Black => "Черный",
+        GroupColor.Red => "Красный",
+        GroupColor.Green => "Зеленый",
+        GroupColor.Yellow => "Желтый",
+        GroupColor.Orange => "Оранжевый",
+        GroupColor.Purple => "Фиолетовый",
+        GroupColor.Pink => "Розовый",
+        _ => color.ToString()
+    };
 }

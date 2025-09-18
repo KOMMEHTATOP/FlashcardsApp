@@ -1,4 +1,4 @@
-namespace FlashcardsApp.Constants;
+namespace FlashcardsAppContracts.Constants;
 
 public enum GroupColor 
 {

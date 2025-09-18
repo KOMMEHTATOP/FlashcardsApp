@@ -1,7 +1,11 @@
 @page "/groups/{groupId:guid}/cards"
+@using FlashcardsAppContracts.DTOs.Requests
+@using FlashcardsAppContracts.DTOs.Responses
 @using FlashcardsBlazorUI.Models
 @using FlashcardsBlazorUI.Services
-@inject ApiService ApiService
+@inject GroupService GroupService
+@inject CardService CardService
+@inject AuthService AuthService
 @inject NavigationManager Navigation
 @rendermode InteractiveServer
 
@@ -113,16 +117,16 @@ else
 
 @code {
     [Parameter] public Guid GroupId { get; set; } 
-    private Group? currentGroup;
+    private ResultGroupDto? currentGroup;
     private List<Card>? cards;
     private bool isLoading = true;
     private bool showCreateForm;
     private bool isSubmitting;
-    private CreateCardDto newCard = new();
+    private CreateCardDto newCard = new() { Answer = "", Question = "" };
     
     protected override async Task OnInitializedAsync()
     {
-        await ApiService.InitializeAsync();
+        await AuthService.InitializeAsync();
         await LoadGroup();
         await LoadCards();
     }
@@ -131,7 +135,7 @@ else
     {
         try
         {
-            currentGroup = await ApiService.GetGroupAsync(GroupId);
+            currentGroup = await GroupService.GetGroupAsync(GroupId);
         }
         catch (Exception ex)
         {
@@ -145,7 +149,7 @@ else
         try
         {
             isLoading = true;
-            cards = await ApiService.GetCardsAsync(GroupId);
+            cards = await CardService.GetCardsAsync(GroupId);
             Console.WriteLine($"Загружено карточек: {cards?.Count ?? 0}");
         }
         catch (Exception ex)
@@ -161,14 +165,14 @@ else
 
     private void CreateNewCard()
     {
-        newCard = new CreateCardDto();
+        newCard = new CreateCardDto() { Answer = "", Question = "" };
         showCreateForm = true;
     }
 
     private void CancelCreate()
     {
         showCreateForm = false;
-        newCard = new CreateCardDto();
+        newCard = new CreateCardDto() { Answer = "", Question = "" };
     }
 
     private async Task HandleSubmit()
@@ -183,11 +187,10 @@ else
                 Answer = newCard.Answer.Trim()
             };
 
-            await ApiService.CreateCardAsync(cardDto, GroupId);
+            await CardService.CreateCardAsync(cardDto, GroupId);
             
-            // Сбрасываем форму и перезагружаем карточки
             showCreateForm = false;
-            newCard = new CreateCardDto();
+            newCard = new CreateCardDto() { Answer = "", Question = "" };
             await LoadCards();
             
             Console.WriteLine("Карточка успешно создана");
@@ -195,7 +198,6 @@ else
         catch (Exception ex)
         {
             Console.WriteLine($"Ошибка создания карточки: {ex.Message}");
-            // Здесь можно добавить уведомление об ошибке
         }
         finally
         {

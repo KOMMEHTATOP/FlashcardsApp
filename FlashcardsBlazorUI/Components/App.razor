@@ -1,4 +1,4 @@
-﻿@inject Services.ApiService Api
+﻿@inject Services.AuthService Auth
 @inject NavigationManager Navigation
 
 <!DOCTYPE html>
@@ -22,18 +22,24 @@
 @code {
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        Console.WriteLine($"[App.razor] OnAfterRenderAsync firstRender: {firstRender}");
+        
         if (firstRender)
         {
-            await Api.InitializeAsync();
+            await Auth.InitializeAsync();
+            Console.WriteLine($"[App.razor] IsAuthenticated: {Auth.IsAuthenticated}");
                 
             var currentPath = Navigation.ToBaseRelativePath(Navigation.Uri);
+            Console.WriteLine($"[App.razor] currentPath: '{currentPath}'");
                 
-            if (!Api.IsAuthenticated && currentPath != "login")
+            if (!Auth.IsAuthenticated && currentPath != "login" && currentPath != "")
             {
+                Console.WriteLine("[App.razor] Navigating to /login");
                 Navigation.NavigateTo("/login", true);
             }
-            else if (Api.IsAuthenticated && (currentPath == "login" || currentPath == ""))
+            else if (Auth.IsAuthenticated && (currentPath == "login" || currentPath == ""))
             {
+                Console.WriteLine("[App.razor] Navigating to /groups");
                 Navigation.NavigateTo("/groups", true);
             }
         }

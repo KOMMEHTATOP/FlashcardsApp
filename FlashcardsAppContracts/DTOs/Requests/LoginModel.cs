@@ -1,4 +1,4 @@
-namespace FlashcardsApp.Models.DTOs;
+namespace FlashcardsAppContracts.DTOs.Requests;
 
 public class LoginModel
 {

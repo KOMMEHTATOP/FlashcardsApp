@@ -1,12 +1,17 @@
 @page "/"
 @page "/login"
-@using FlashcardsBlazorUI.Models
+@using FlashcardsAppContracts.DTOs.Requests
 @using FlashcardsBlazorUI.Services
-@inject ApiService ApiService
+@inject AuthService AuthService
 @inject NavigationManager Navigation
 @rendermode InteractiveServer
 
 <PageTitle>Вход в систему</PageTitle>
+
+@if (shouldRedirect)
+{
+    <script>window.location.href = '/groups';</script>
+}
 
 <div class="container mt-5">
     <div class="row justify-content-center">
@@ -16,37 +21,58 @@
                     <h4>Вход в FlashCards</h4>
                 </div>
                 <div class="card-body">
-                    <EditForm Model="loginRequest" OnValidSubmit="HandleLogin">
-                        <DataAnnotationsValidator />
-                        <ValidationSummary />
 
-                        @if (!string.IsNullOrEmpty(errorMessage))
-                        {
-                            <div class="alert alert-danger">@errorMessage</div>
-                        }
-
-                        <div class="mb-3">
-                            <label class="form-label">Email:</label>
-                            <InputText @bind-Value="loginRequest.Email" class="form-control" placeholder="Введите email" />
+                    @if (isLogging)
+                    {
+                        <div class="alert alert-info">
+                            <div class="spinner-border spinner-border-sm me-2"></div>
+                            Выполняется вход...
                         </div>
+                    }
+                    else
+                    {
+                        <!-- Отладочный вывод текущих значений -->
+                        <p style="color:red">
+                            DEBUG: Email=@loginRequest.Email |
+                            PasswordLen=@(loginRequest.Password?.Length ?? 0)
+                        </p>
 
-                        <div class="mb-3">
-                            <label class="form-label">Пароль:</label>
-                            <InputText @bind-Value="loginRequest.Password" type="password" class="form-control" placeholder="Введите пароль" />
-                        </div>
+                        <EditForm Model="loginRequest" OnValidSubmit="HandleLogin" FormName="LoginForm">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary />
 
-                        <button type="submit" class="btn btn-primary w-100" disabled="@isLogging">
-                            @if (isLogging)
+                            @if (!string.IsNullOrEmpty(errorMessage))
                             {
-                                <span>Вхожу...</span>
+                                <div class="alert alert-danger">@errorMessage</div>
                             }
-                            else
-                            {
-                                <span>Войти</span>
-                            }
-                        </button>
-                    </EditForm>
-                    <hr />
+
+                            <div class="mb-3">
+                                <label class="form-label">Email:</label>
+                                <InputText @bind-Value="loginRequest.Email"
+                                           class="form-control"
+                                           placeholder="Введите email" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Пароль:</label>
+                                <InputText @bind-Value="loginRequest.Password"
+                                           type="password"
+                                           class="form-control"
+                                           placeholder="Введите пароль" />
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100" disabled="@isLogging">
+                                @if (isLogging)
+                                {
+                                    <span>Вхожу...</span>
+                                }
+                                else
+                                {
+                                    <span>Войти</span>
+                                }
+                            </button>
+                        </EditForm>
+                    }
                 </div>
             </div>
         </div>
@@ -54,9 +80,12 @@
 </div>
 
 @code {
-    private LoginRequest loginRequest = new();
+    [SupplyParameterFromForm]
+    public LoginRequest loginRequest { get; set; } = new() { Email = "", Password = "" };
+    
     private bool isLogging;
     private string errorMessage = "";
+    private bool shouldRedirect;
 
     private async Task HandleLogin()
     {
@@ -64,17 +93,26 @@
         {
             isLogging = true;
             errorMessage = "";
-            await ApiService.LoginAsync(loginRequest);
-
-            Navigation.NavigateTo("/groups", forceLoad: true);
+            StateHasChanged(); // Показываем индикатор загрузки
+            
+            await AuthService.LoginAsync(loginRequest);
+            
+            // Устанавливаем флаг для JavaScript редиректа
+            shouldRedirect = true;
+            StateHasChanged();
         }
         catch (Exception ex)
         {
+            Console.WriteLine($"[SubmitError] {ex}");
             errorMessage = $"Ошибка входа: {ex.Message}";
         }
         finally
         {
             isLogging = false;
+            if (!shouldRedirect) // Обновляем UI только если нет редиректа
+            {
+                StateHasChanged();
+            }
         }
     }
 }

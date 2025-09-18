@@ -1,5 +1,5 @@
 using FlashcardsApp.Models;
-using FlashcardsApp.Models.DTOs;
+using FlashcardsAppContracts.DTOs.Requests;
 using FlashcardsApp.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;

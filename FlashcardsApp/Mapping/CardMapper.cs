@@ -1,5 +1,5 @@
 using FlashcardsApp.Models;
-using FlashcardsApp.Models.DTOs;
+using FlashcardsAppContracts.DTOs.Responses;
 
 namespace FlashcardsApp.Mapping;
 

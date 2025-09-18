@@ -1,4 +1,5 @@
-using FlashcardsApp.Constants;
+using FlashcardsAppContracts.Constants;
+
 
 namespace FlashcardsApp.Models;
 

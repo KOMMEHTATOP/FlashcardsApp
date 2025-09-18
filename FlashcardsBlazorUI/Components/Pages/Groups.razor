@@ -1,8 +1,11 @@
 @page "/groups"
-@using FlashcardsBlazorUI.Models
+@using FlashcardsAppContracts.Constants
+@using FlashcardsAppContracts.DTOs.Responses
 @using FlashcardsBlazorUI.Services
-@inject ApiService ApiService
+@inject GroupService GroupService
+@inject AuthService AuthService
 @inject NavigationManager Navigation
+@rendermode InteractiveServer
 
 <PageTitle>Группы карточек</PageTitle>
 
@@ -37,7 +40,7 @@ else
                             <small class="text-muted">Создана: @group.CreatedAt.ToString("dd.MM.yyyy")</small>
                         </p>
                         <span class="badge" style="background-color:@GetColorCode(group.GroupColor)">
-                            @group.GroupColor
+                            @GetColorDisplayName(group.GroupColor)
                         </span>
                         <br /><br />
                         <button class="btn btn-primary btn-sm" @onclick="() => ViewCards(group.Id)">
@@ -71,32 +74,24 @@ else
 <DragDropInitializer />
 
 @code {
-    private List<Group>? groups;
+    private List<ResultGroupDto>? groups;
     private bool isLoading = true;
-    private bool showCreateForm = false;
-    private bool _initializedOnce = false;
+    private bool showCreateForm;
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnInitializedAsync()
     {
-        if (firstRender && !_initializedOnce)
+        try
         {
-            _initializedOnce = true;
-
-            try
-            {
-                await ApiService.InitializeAsync();
-                await LoadGroups();
-            }
-            catch (UnauthorizedAccessException)
-            {
-                Navigation.NavigateTo("/login");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Ошибка загрузки групп: {ex.Message}");
-            }
-
-            StateHasChanged();
+            await AuthService.InitializeAsync();
+            await LoadGroups();
+        }
+        catch (UnauthorizedAccessException)
+        {
+            Navigation.NavigateTo("/login");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка загрузки групп: {ex.Message}");
         }
     }
 
@@ -105,14 +100,23 @@ else
         isLoading = true;
         try
         {
-            groups = await ApiService.GetGroupsAsync();
+            groups = await GroupService.GetGroupsAsync();
+            Console.WriteLine($"Groups loaded: {groups?.Count ?? 0}");
+            if (groups != null)
+            {
+                foreach (var group in groups)
+                {
+                    Console.WriteLine($"Group: {group.GroupName}");
+                }
+            }
         }
         finally
         {
             isLoading = false;
+            StateHasChanged();
         }
     }
-
+    
     private void CreateNewGroup() => showCreateForm = true;
 
     private async Task OnGroupCreated()
@@ -125,15 +129,27 @@ else
     private void ViewCards(Guid groupId) =>
         Navigation.NavigateTo($"/groups/{groupId}/cards");
 
-    private string GetColorCode(string colorName) => colorName.ToLower() switch
+    private string GetColorCode(GroupColor color) => color switch
     {
-        "red" => "#dc3545",
-        "green" => "#28a745",
-        "yellow" => "#ffc107",
-        "orange" => "#fd7e14",
-        "purple" => "#6f42c1",
-        "pink" => "#e83e8c",
-        "black" => "#343a40",
+        GroupColor.Red => "#dc3545",
+        GroupColor.Green => "#28a745",
+        GroupColor.Yellow => "#ffc107",
+        GroupColor.Orange => "#fd7e14",
+        GroupColor.Purple => "#6f42c1",
+        GroupColor.Pink => "#e83e8c",
+        GroupColor.Black => "#343a40",
         _ => "#6c757d"
+    };
+
+    private string GetColorDisplayName(GroupColor color) => color switch
+    {
+        GroupColor.Red => "Красный",
+        GroupColor.Green => "Зеленый",
+        GroupColor.Yellow => "Желтый",
+        GroupColor.Orange => "Оранжевый",
+        GroupColor.Purple => "Фиолетовый",
+        GroupColor.Pink => "Розовый",
+        GroupColor.Black => "Черный",
+        _ => "Серый"
     };
 }

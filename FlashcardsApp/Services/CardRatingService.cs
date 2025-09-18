@@ -1,7 +1,8 @@
 using FlashcardsApp.Data;
 using FlashcardsApp.Mapping;
 using FlashcardsApp.Models;
-using FlashcardsApp.Models.DTOs;
+using FlashcardsAppContracts.DTOs.Requests;
+using FlashcardsAppContracts.DTOs.Responses;
 using Microsoft.EntityFrameworkCore;
 
 namespace FlashcardsApp.Services;

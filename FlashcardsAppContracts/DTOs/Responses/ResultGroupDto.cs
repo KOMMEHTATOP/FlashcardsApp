@@ -1,6 +1,6 @@
-using FlashcardsApp.Constants;
+using FlashcardsAppContracts.Constants;
 
-namespace FlashcardsApp.Models.DTOs;
+namespace FlashcardsAppContracts.DTOs.Responses;
 
 public class ResultGroupDto
 {

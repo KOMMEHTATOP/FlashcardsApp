@@ -1,9 +1,11 @@
 @page "/cards/{CardId:guid}"
 @using FlashcardsBlazorUI.Models
 @using FlashcardsBlazorUI.Services
-@inject ApiService ApiService
+@inject CardService CardService
+@inject AuthService AuthService
 @inject NavigationManager Navigation
 @rendermode InteractiveServer
+
 
 <PageTitle>Карточка</PageTitle>
 
@@ -169,7 +171,8 @@ else
                             }
                         </small>
                     </div>
-                </div>            }
+                </div>
+            }
 
             <div class="mt-4 text-center">
                 <button class="btn btn-outline-primary me-2" @onclick="ResetCard">
@@ -200,7 +203,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        await ApiService.InitializeAsync();
+        await AuthService.InitializeAsync();
         await LoadCard();
     }
 
@@ -216,7 +219,7 @@ else
         try
         {
             isLoading = true;
-            card = await ApiService.GetCardAsync(CardId);
+            card = await CardService.GetCardAsync(CardId);
             Console.WriteLine($"Загружена карточка: {card?.Question ?? "null"}");
         }
         catch (Exception ex)
@@ -247,7 +250,7 @@ else
         try
         {
             selectedRating = rating;
-            await ApiService.RateCardAsync(CardId, rating);
+            await CardService.RateCardAsync(CardId, rating);
             Console.WriteLine($"Карточка оценена: {rating} звезд");
 
             // Показываем уведомление об успешной оценке

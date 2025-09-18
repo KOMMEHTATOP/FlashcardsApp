@@ -1,5 +1,6 @@
 namespace FlashcardsApp.Services;
 
+
 public class ServiceResult<T>
 {
     public bool IsSuccess { get; private set; }
