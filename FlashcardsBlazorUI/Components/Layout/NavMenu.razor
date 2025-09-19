@@ -9,6 +9,10 @@
 @inject AuthService AuthService
 @inject IGroupNotificationService GroupOrderService
 @inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@inject ITokenManager TokenManager
+
+
 @implements IDisposable
 @rendermode InteractiveServer
 
@@ -168,14 +172,39 @@
             Console.WriteLine("NavMenu: Игнорируем уведомление из собственного контейнера");
             return;
         }
-    
+
         Console.WriteLine($"NavMenu: RefreshGroups из {sourceContainer}");
         _ = InvokeAsync(async () =>
         {
             await LoadGroups();
             StateHasChanged();
+        
+            // Переинициализируем drag and drop после обновления
+            await Task.Delay(100);
+            await ReinitializeDragDrop();
         });
     }
+    
+    private async Task ReinitializeDragDrop()
+    {
+        try
+        {
+            var token = TokenManager.Token;
+            await JSRuntime.InvokeVoidAsync("dragDropInterop.initializeDragDrop",
+                token,
+                "#nav-groups-container", 
+                ".nav-group-draggable",
+                "http://localhost:5153/api/group/reorder",
+                ".nav-trash-zone");
+            
+            Console.WriteLine("NavMenu: Drag and drop переинициализирован");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка переинициализации drag and drop: {ex.Message}");
+        }
+    }
+    
     
     private async Task ToggleGroupsMenu() 
     {

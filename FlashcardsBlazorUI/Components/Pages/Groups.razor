@@ -6,8 +6,12 @@
 @inject AuthService AuthService
 @inject IGroupNotificationService GroupNotificationService
 @inject NavigationManager Navigation
+@inject ITokenManager TokenManager
+@inject IJSRuntime JSRuntime
 @implements IDisposable
 @rendermode InteractiveServer
+
+
 
 <PageTitle>Группы карточек</PageTitle>
 
@@ -134,9 +138,38 @@ else
     {
         showCreateForm = false;
         await LoadGroups();
+        
+        GroupNotificationService.NotifyGroupsReordered("group-created");
+
+        await Task.Delay(100); // Небольшая задержка для рендеринга
+        await ReinitializeDragDrop();
+
+        
         Navigation.NavigateTo("/groups");
     }
+    
 
+    private async Task ReinitializeDragDrop()
+    {
+        try
+        {
+            var token = TokenManager.Token; 
+            await JSRuntime.InvokeVoidAsync("dragDropInterop.initializeDragDrop",
+                token,
+                "#groups-container",
+                ".group-card",
+                "http://localhost:5153/api/group/reorder",
+                ".trash-zone");
+        
+            Console.WriteLine("Groups: Drag and drop переинициализирован");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка переинициализации drag and drop: {ex.Message}");
+        }
+    }
+
+    
     private void ViewCards(Guid groupId) =>
         Navigation.NavigateTo($"/groups/{groupId}/cards");
 
