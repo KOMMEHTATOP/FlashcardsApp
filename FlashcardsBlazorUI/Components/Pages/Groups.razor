@@ -4,7 +4,7 @@
 @using FlashcardsBlazorUI.Services
 @inject GroupService GroupService
 @inject AuthService AuthService
-@inject IGroupOrderService GroupOrderService
+@inject IGroupNotificationService GroupNotificationService
 @inject NavigationManager Navigation
 @implements IDisposable
 @rendermode InteractiveServer
@@ -82,7 +82,7 @@ else
     {
         try
         {
-            GroupOrderService.OnGroupsReordered += RefreshGroups;
+            GroupNotificationService.OnGroupsReordered += RefreshGroups;
             await AuthService.InitializeAsync();
             await LoadGroups();
         }
@@ -102,7 +102,7 @@ else
         try
         {
             groups = await GroupService.GetGroupsAsync();
-            Console.WriteLine($"Groups loaded: {groups?.Count ?? 0}");
+            Console.WriteLine($"Groups.razor: Загружено групп: {groups?.Count ?? 0}");
         }
         finally
         {
@@ -111,10 +111,21 @@ else
         }
     }
     
-    private async void RefreshGroups()
+    private void RefreshGroups(string sourceContainer)
     {
-        groups = null;
-        await LoadGroups();
+        // Обновляемся только если изменения пришли НЕ из основного окна
+        if (sourceContainer == "#groups-container")
+        {
+            Console.WriteLine("Groups.razor: Игнорируем уведомление из собственного контейнера");
+            return;
+        }
+        
+        Console.WriteLine($"Groups.razor: RefreshGroups из {sourceContainer}");
+        _ = InvokeAsync(async () =>
+        {
+            await LoadGroups();
+            StateHasChanged();
+        });
     }
 
     private void CreateNewGroup() => showCreateForm = true;
@@ -155,6 +166,6 @@ else
 
     public void Dispose()
     {
-        GroupOrderService.OnGroupsReordered -= RefreshGroups;
+        GroupNotificationService.OnGroupsReordered -= RefreshGroups;
     }
 }

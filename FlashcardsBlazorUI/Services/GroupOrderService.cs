@@ -28,5 +28,10 @@ public class GroupOrderService : IGroupOrderService
         return result;
     }
 
-    public void NotifyGroupsReordered() => OnGroupsReordered?.Invoke();
+    public void NotifyGroupsReordered() 
+    {
+        Console.WriteLine($"GroupOrderService: NotifyGroupsReordered вызван. Подписчиков: {OnGroupsReordered?.GetInvocationList()?.Length ?? 0}");
+        OnGroupsReordered?.Invoke();
+    }
+    
 }

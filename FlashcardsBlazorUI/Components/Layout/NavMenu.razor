@@ -7,7 +7,7 @@
 @inject GroupService GroupService
 @inject CardService CardService
 @inject AuthService AuthService
-@inject IGroupOrderService GroupOrderService
+@inject IGroupNotificationService GroupOrderService
 @inject NavigationManager Navigation
 @implements IDisposable
 @rendermode InteractiveServer
@@ -160,13 +160,23 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    private async void RefreshGroups()
+    private void RefreshGroups(string sourceContainer)
     {
-        Console.WriteLine("NavMenu: RefreshGroups вызван");
-        groups = null;
-        await LoadGroups();
+        // Обновляемся только если изменения пришли НЕ из бокового меню
+        if (sourceContainer == "#nav-groups-container")
+        {
+            Console.WriteLine("NavMenu: Игнорируем уведомление из собственного контейнера");
+            return;
+        }
+    
+        Console.WriteLine($"NavMenu: RefreshGroups из {sourceContainer}");
+        _ = InvokeAsync(async () =>
+        {
+            await LoadGroups();
+            StateHasChanged();
+        });
     }
-
+    
     private async Task ToggleGroupsMenu() 
     {
         isGroupsMenuExpanded = !isGroupsMenuExpanded;

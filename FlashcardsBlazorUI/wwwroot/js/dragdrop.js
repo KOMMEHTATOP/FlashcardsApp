@@ -75,6 +75,11 @@
 
                     console.log('Starting reorder logic');
 
+                    // Сначала получаем данные о новом порядке ДО изменения DOM
+                    let newOrder = [];
+                    let draggedId = dragged.dataset.groupId;
+                    let targetId = this.dataset.groupId;
+
                     if (containerSelector === '#groups-container') {
                         console.log('Using Groups logic');
                         // Логика для горизонтальной сетки Bootstrap (Groups.razor)
@@ -92,12 +97,22 @@
                         console.log(`Groups drop: dragged=${draggedIndex}, target=${targetIndex}`);
 
                         if (draggedIndex !== -1 && targetIndex !== -1 && draggedIndex !== targetIndex) {
+                            // Визуально перемещаем элемент
                             if (draggedIndex < targetIndex) {
                                 targetCol.parentNode.insertBefore(draggedCol, targetCol.nextSibling);
                             } else {
                                 targetCol.parentNode.insertBefore(draggedCol, targetCol);
                             }
                             console.log('Groups: DOM reordered');
+
+                            // Получаем новый порядок после перестановки
+                            let order = 1;
+                            container.querySelectorAll(itemSelector).forEach(function (el) {
+                                const groupId = el.dataset.groupId;
+                                if (groupId) {
+                                    newOrder.push({ Id: groupId, Order: order++ });
+                                }
+                            });
                         }
                     } else {
                         console.log('Using NavMenu logic');
@@ -109,12 +124,22 @@
 
                         if (draggedIndex !== -1 && targetIndex !== -1 && draggedIndex !== targetIndex) {
                             console.log('Attempting DOM reorder...');
+                            // Визуально перемещаем элемент
                             if (draggedIndex < targetIndex) {
                                 container.insertBefore(dragged, this.nextSibling);
                             } else {
                                 container.insertBefore(dragged, this);
                             }
                             console.log('NavMenu: DOM reordered');
+
+                            // Получаем новый порядок после перестановки
+                            let order = 1;
+                            container.querySelectorAll(itemSelector).forEach(function (el) {
+                                const groupId = el.dataset.groupId;
+                                if (groupId) {
+                                    newOrder.push({ Id: groupId, Order: order++ });
+                                }
+                            });
                         } else {
                             console.log('NavMenu reorder conditions not met:', {
                                 draggedIndex,
@@ -124,44 +149,38 @@
                         }
                     }
 
-                    // Сохранение нового порядка
-                    const reorderData = [];
-                    let order = 1;
-                    container.querySelectorAll(itemSelector).forEach(function (el) {
-                        const groupId = el.dataset.groupId;
-                        if (groupId) {
-                            reorderData.push({ Id: groupId, Order: order++ });
-                        }
-                    });
-
-                    console.log('Reorder data:', reorderData);
-
-                    if (reorderData.length === 0) {
+                    if (newOrder.length === 0) {
                         console.log('No reorder data, skipping API call');
                         return;
                     }
 
+                    console.log('Reorder data:', newOrder);
+
+                    // Отправляем на сервер
                     fetch(apiEndpoint, {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',
                             'Authorization': 'Bearer ' + authToken
                         },
-                        body: JSON.stringify(reorderData)
+                        body: JSON.stringify(newOrder)
                     }).then(r => {
                         if (r.ok) {
-                            console.log('Порядок обновлен');
+                            console.log('Порядок обновлен на сервере');
                             try {
-                                DotNet.invokeMethodAsync('FlashcardsBlazorUI', 'NotifyGroupsReordered');
-                            } catch (err) {
+                                // Уведомляем только ДРУГОЙ компонент для обновления
+                                DotNet.invokeMethodAsync('FlashcardsBlazorUI', 'NotifyGroupsReordered', containerSelector);                            } catch (err) {
                                 console.log('DotNet invoke failed:', err);
                             }
                         } else {
                             alert('Ошибка изменения порядка');
+                            // При ошибке возвращаем элементы обратно
+                            location.reload();
                         }
                     }).catch(err => {
                         console.error('Ошибка запроса:', err);
                         alert('Ошибка изменения порядка');
+                        location.reload();
                     });
                 });
             });
@@ -206,8 +225,7 @@
                             elementToRemove?.remove();
 
                             try {
-                                DotNet.invokeMethodAsync('FlashcardsBlazorUI', 'NotifyGroupDeleted');
-                            } catch (err) {
+                                DotNet.invokeMethodAsync('FlashcardsBlazorUI', 'NotifyGroupsReordered', containerSelector);                            } catch (err) {
                                 console.log('DotNet invoke failed:', err);
                             }
                         } else {

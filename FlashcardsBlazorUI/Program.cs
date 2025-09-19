@@ -27,6 +27,7 @@ builder.Services.AddHttpClient("FlashcardsAPI", client =>
 builder.Services.AddSingleton<ITokenManager, TokenManager>();
 builder.Services.AddTransient<AuthenticationHandler>();
 
+builder.Services.AddSingleton<IGroupNotificationService, GroupNotificationService>();
 builder.Services.AddScoped<IGroupOrderService, GroupOrderService>();
 
 builder.Services.AddScoped<GroupService>();

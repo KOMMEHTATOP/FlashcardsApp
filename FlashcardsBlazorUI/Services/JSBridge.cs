@@ -12,9 +12,9 @@ public static class JSBridge
     }
     
     [JSInvokable]
-    public static void NotifyGroupsReordered()
+    public static void NotifyGroupsReordered(string sourceContainer = "unknown")
     {
-        Console.WriteLine("JS уведомил об изменении порядка групп");
+        Console.WriteLine($"JS уведомил об изменении порядка групп из {sourceContainer}");
         
         if (_serviceScopeFactory == null)
         {
@@ -25,8 +25,8 @@ public static class JSBridge
         try
         {
             using var scope = _serviceScopeFactory.CreateScope();
-            var groupOrderService = scope.ServiceProvider.GetRequiredService<IGroupOrderService>();
-            groupOrderService.NotifyGroupsReordered();
+            var notificationService = scope.ServiceProvider.GetRequiredService<IGroupNotificationService>();
+            notificationService.NotifyGroupsReordered(sourceContainer);
         }
         catch (Exception ex)
         {
@@ -48,8 +48,8 @@ public static class JSBridge
         try
         {
             using var scope = _serviceScopeFactory.CreateScope();
-            var groupOrderService = scope.ServiceProvider.GetRequiredService<IGroupOrderService>();
-            groupOrderService.NotifyGroupsReordered();
+            var notificationService = scope.ServiceProvider.GetRequiredService<IGroupNotificationService>();
+            notificationService.NotifyGroupsReordered("delete");
         }
         catch (Exception ex)
         {
