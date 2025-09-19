@@ -35,6 +35,8 @@ builder.Services.AddScoped<AuthService>();
 
 var app = builder.Build();
 
+JSBridge.Initialize(app.Services);
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
