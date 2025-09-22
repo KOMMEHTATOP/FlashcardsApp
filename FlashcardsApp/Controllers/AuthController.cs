@@ -86,7 +86,7 @@ namespace FlashcardsApp.Controllers
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims), // Кто владелец токена - упаковывает все claims (UserId, Email и т.д.)
-                Expires = DateTime.UtcNow.AddHours(24), // Когда токен станет недействительным - через 24 часа от создания
+                Expires = DateTime.UtcNow.AddSeconds(40), // Время жизни токена
                 SigningCredentials = new SigningCredentials( // Как подписать токен для защиты от подделки
                     new SymmetricSecurityKey(key), // Секретный ключ для создания цифровой подписи
                     SecurityAlgorithms.HmacSha256) // Алгоритм шифрования подписи (HMAC-SHA256 - стандарт)

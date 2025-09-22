@@ -4,14 +4,14 @@
 @using System.Linq
 @using FlashcardsBlazorUI.Models
 @using FlashcardsBlazorUI.Services
+@using FlashcardsBlazorUI.Interfaces
+@using Microsoft.AspNetCore.Components.Authorization
 @inject GroupService GroupService
 @inject CardService CardService
-@inject AuthService AuthService
 @inject IGroupNotificationService GroupOrderService
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
-@inject ITokenManager TokenManager
-
+@inject IAuthService AuthService
 
 @implements IDisposable
 @rendermode InteractiveServer
@@ -33,92 +33,93 @@
             </NavLink>
         </div>
 
-        @if (AuthService.IsAuthenticated)
-        {
-            <div class="nav-item px-3">
-                <div class="nav-link" @onclick="ToggleGroupsMenu" style="cursor:pointer;">
-                    <span class="bi bi-collection-fill"></span>
-                    Мои группы
-                    <span class="bi @(isGroupsMenuExpanded ? "bi-chevron-down" : "bi-chevron-right")"
-                          style="float:right;"></span>
-                </div>
+        <AuthorizeView>
+            <Authorized>
+                <div class="nav-item px-3">
+                    <div class="nav-link" @onclick="ToggleGroupsMenu" style="cursor:pointer;">
+                        <span class="bi bi-collection-fill"></span>
+                        Мои группы
+                        <span class="bi @(isGroupsMenuExpanded ? "bi-chevron-down" : "bi-chevron-right")"
+                              style="float:right;"></span>
+                    </div>
 
-                @if (isGroupsMenuExpanded && groups != null)
-                {
-                    <div id="nav-groups-container" class="groups-submenu" style="margin-left:20px;">
-                        @foreach (var group in groups.OrderBy(g => g.Order))
-                        {
-                            <div class="nav-link group-item nav-group-draggable"
-                                 data-group-id="@group.Id"
-                                 style="@GetGroupStyle(group)">
-                                <span class="drag-handle" 
-                                      style="cursor:grab; padding:8px; display:inline-flex; align-items:center; min-width:24px; margin-right:4px;"
-                                      draggable="true">
-                                    <i class="bi bi-grip-vertical"></i>
-                                </span>
-                                <span @onclick="() => OnGroupClick(group)" 
-                                      @onclick:stopPropagation="true"
-                                      style="flex-grow:1; cursor:pointer; user-select:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-                                    @group.GroupName
-                                </span>
-                                <span style="display:inline-flex; align-items:center; flex-shrink:0; margin-left:8px;">
-                                    <span class="bi @(IsGroupExpanded(group.Id) ? "bi-chevron-down" : "bi-chevron-right")"
-                                          style="margin-right:8px; cursor:pointer; font-size:12px;"
-                                          @onclick="() => OnGroupClick(group)"
-                                          @onclick:stopPropagation="true">
-                                    </span>
-                                    <span class="bi bi-box-arrow-up-right" title="Открыть группу"
-                                          style="cursor:pointer; font-size:12px;"
-                                          @onclick="() => NavigateToGroup(group.Id)"
-                                          @onclick:stopPropagation="true">
-                                    </span>
-                                </span>
-                            </div>
-
-                            @if (IsGroupExpanded(group.Id))
+                    @if (isGroupsMenuExpanded && groups != null)
+                    {
+                        <div id="nav-groups-container" class="groups-submenu" style="margin-left:20px;">
+                            @foreach (var group in groups.OrderBy(g => g.Order))
                             {
-                                <div style="margin-left:20px;">
-                                    @if (IsGroupLoaded(group.Id) && GetGroupCards(group.Id).Any())
-                                    {
-                                        @foreach (var card in GetGroupCards(group.Id))
+                                <div class="nav-link group-item nav-group-draggable"
+                                     data-group-id="@group.Id"
+                                     style="@GetGroupStyle(group)">
+                                    <span class="drag-handle" 
+                                          style="cursor:grab; padding:8px; display:inline-flex; align-items:center; min-width:24px; margin-right:4px;"
+                                          draggable="true">
+                                        <i class="bi bi-grip-vertical"></i>
+                                    </span>
+                                    <span @onclick="() => OnGroupClick(group)" 
+                                          @onclick:stopPropagation="true"
+                                          style="flex-grow:1; cursor:pointer; user-select:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                                        @group.GroupName
+                                    </span>
+                                    <span style="display:inline-flex; align-items:center; flex-shrink:0; margin-left:8px;">
+                                        <span class="bi @(IsGroupExpanded(group.Id) ? "bi-chevron-down" : "bi-chevron-right")"
+                                              style="margin-right:8px; cursor:pointer; font-size:12px;"
+                                              @onclick="() => OnGroupClick(group)"
+                                              @onclick:stopPropagation="true">
+                                        </span>
+                                        <span class="bi bi-box-arrow-up-right" title="Открыть группу"
+                                              style="cursor:pointer; font-size:12px;"
+                                              @onclick="() => NavigateToGroup(group.Id)"
+                                              @onclick:stopPropagation="true">
+                                        </span>
+                                    </span>
+                                </div>
+
+                                @if (IsGroupExpanded(group.Id))
+                                {
+                                    <div style="margin-left:20px;">
+                                        @if (IsGroupLoaded(group.Id) && GetGroupCards(group.Id).Any())
                                         {
-                                            <div class="nav-link"
-                                                 style="color:#ccc; font-size:0.9em; padding:2px 8px; cursor:pointer;"
-                                                 @onclick="@(() => OnCardClick(card.CardId))"
-                                                 @onclick:stopPropagation="true">
-                                                @card.Question
+                                            @foreach (var card in GetGroupCards(group.Id))
+                                            {
+                                                <div class="nav-link"
+                                                     style="color:#ccc; font-size:0.9em; padding:2px 8px; cursor:pointer;"
+                                                     @onclick="@(() => OnCardClick(card.CardId))"
+                                                     @onclick:stopPropagation="true">
+                                                    @card.Question
+                                                </div>
+                                            }
+                                        }
+                                        else if (!IsGroupLoading(group.Id))
+                                        {
+                                            <div class="nav-link" style="color:#999; font-size:0.9em; padding:2px 8px;">
+                                                Нет карточек
                                             </div>
                                         }
-                                    }
-                                    else if (!IsGroupLoading(group.Id))
-                                    {
-                                        <div class="nav-link" style="color:#999; font-size:0.9em; padding:2px 8px;">
-                                            Нет карточек
-                                        </div>
-                                    }
-                                    else
-                                    {
-                                        <div class="nav-link" style="color:#999; font-size:0.9em; padding:2px 8px;">
-                                            Загружаю...
-                                        </div>
-                                    }
-                                </div>
+                                        else
+                                        {
+                                            <div class="nav-link" style="color:#999; font-size:0.9em; padding:2px 8px;">
+                                                Загружаю...
+                                            </div>
+                                        }
+                                    </div>
+                                }
                             }
-                        }
-                        
-                        <DragDropInitializer ContainerSelector="#nav-groups-container" 
-                                            ItemSelector=".nav-group-draggable"
-                                            TrashSelector=".nav-trash-zone" />
-                    </div>
-                }
-            </div>
-
-            <div class="nav-item px-3">
-                <div class="nav-link" @onclick="Logout" style="cursor:pointer;">
-                    <span class="bi bi-box-arrow-right"></span> Выход
+                            
+                            <DragDropInitializer ContainerSelector="#nav-groups-container" 
+                                                ItemSelector=".nav-group-draggable"
+                                                TrashSelector=".nav-trash-zone" />
+                        </div>
+                    }
                 </div>
-            </div>
-        }
+
+                <div class="nav-item px-3">
+                    <div class="nav-link" @onclick="Logout" style="cursor:pointer;">
+                        <span class="bi bi-box-arrow-right"></span> Выход
+                    </div>
+                </div>
+            </Authorized>
+        </AuthorizeView>
     </nav>
 </div>
 
@@ -139,16 +140,24 @@
     private Dictionary<Guid, List<Card>> groupCards = new();
     private Dictionary<Guid, bool> loadingGroupCards = new();
 
+    [CascadingParameter]
+    private Task<AuthenticationState>? AuthenticationStateTask { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         GroupOrderService.OnGroupsReordered += RefreshGroups;
-        
-        if (AuthService.IsAuthenticated)
+
+        // Проверяем авторизацию через стандартный механизм
+        if (AuthenticationStateTask != null)
         {
-            await LoadGroups();
+            var authState = await AuthenticationStateTask;
+            if (authState.User.Identity?.IsAuthenticated == true)
+            {
+                await LoadGroups();
+            }
         }
     }
-
+    
     private async Task LoadGroups()
     {
         try
@@ -189,22 +198,26 @@
     {
         try
         {
-            var token = TokenManager.Token;
-            await JSRuntime.InvokeVoidAsync("dragDropInterop.initializeDragDrop",
-                token,
-                "#nav-groups-container", 
-                ".nav-group-draggable",
-                "http://localhost:5153/api/group/reorder",
-                ".nav-trash-zone");
+            // Получаем токен через новый AuthService
+            var token = await AuthService.GetTokenAsync();
             
-            Console.WriteLine("NavMenu: Drag and drop переинициализирован");
+            if (!string.IsNullOrEmpty(token))
+            {
+                await JSRuntime.InvokeVoidAsync("dragDropInterop.initializeDragDrop",
+                    token,
+                    "#nav-groups-container", 
+                    ".nav-group-draggable",
+                    "http://localhost:5153/api/group/reorder",
+                    ".nav-trash-zone");
+                
+                Console.WriteLine("NavMenu: Drag and drop переинициализирован");
+            }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Ошибка переинициализации drag and drop: {ex.Message}");
         }
     }
-    
     
     private async Task ToggleGroupsMenu() 
     {

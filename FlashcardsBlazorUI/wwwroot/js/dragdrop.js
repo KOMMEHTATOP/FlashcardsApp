@@ -1,30 +1,21 @@
 (function () {
     window.dragDropInterop = {
         initializeDragDrop: function (authToken, containerSelector, itemSelector, apiEndpoint, trashSelector) {
-            console.log(`=== dragdrop: init for ${containerSelector} ===`);
-
             const container = document.querySelector(containerSelector);
-            if (!container) {
-                console.log(`dragdrop: ${containerSelector} не найден`);
-                return;
-            }
+            if (!container) return;
 
             const items = container.querySelectorAll(itemSelector);
-            console.log(`dragdrop: найдено элементов = ${items.length}`);
             if (!items.length) return;
 
             let dragged = null;
 
             items.forEach(function (item, idx) {
-                // Унифицированная логика для drag handle
                 const dragHandle = item.querySelector('.drag-handle') || item;
 
                 dragHandle.draggable = true;
                 dragHandle.style.cursor = 'grab';
-                console.log(`Adding dragstart to: ${item.className} [${item.dataset.groupId || item.dataset.cardId}]`);
 
                 dragHandle.addEventListener('dragstart', function (e) {
-                    console.log('Dragstart event fired for:', item.className);
                     dragged = item;
                     e.dataTransfer.effectAllowed = 'move';
                     try {
@@ -34,7 +25,6 @@
                 });
 
                 item.addEventListener('dragend', function () {
-                    console.log('Dragend event fired');
                     this.style.opacity = '1';
                     dragged = null;
                 });
@@ -57,55 +47,31 @@
                 item.addEventListener('drop', function (e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log('Drop event fired');
-                    console.log('Container selector:', containerSelector);
 
                     this.style.border = '';
                     this.style.borderTop = '';
 
-                    if (!dragged) {
-                        console.log('No dragged element');
-                        return;
-                    }
+                    if (!dragged || dragged === this) return;
 
-                    if (dragged === this) {
-                        console.log('Same element - skipping');
-                        return;
-                    }
-
-                    console.log('Starting reorder logic');
-
-                    // Сначала получаем данные о новом порядке ДО изменения DOM
                     let newOrder = [];
-                    let draggedId = dragged.dataset.groupId;
-                    let targetId = this.dataset.groupId;
 
                     if (containerSelector === '#groups-container') {
-                        console.log('Using Groups logic');
                         // Логика для горизонтальной сетки Bootstrap (Groups.razor)
                         const draggedCol = dragged.closest('.col-md-4, .col');
                         const targetCol = this.closest('.col-md-4, .col');
 
-                        if (!draggedCol || !targetCol) {
-                            console.log('Could not find col elements');
-                            return;
-                        }
+                        if (!draggedCol || !targetCol) return;
 
                         const draggedIndex = Array.from(container.children).indexOf(draggedCol);
                         const targetIndex = Array.from(container.children).indexOf(targetCol);
 
-                        console.log(`Groups drop: dragged=${draggedIndex}, target=${targetIndex}`);
-
                         if (draggedIndex !== -1 && targetIndex !== -1 && draggedIndex !== targetIndex) {
-                            // Визуально перемещаем элемент
                             if (draggedIndex < targetIndex) {
                                 targetCol.parentNode.insertBefore(draggedCol, targetCol.nextSibling);
                             } else {
                                 targetCol.parentNode.insertBefore(draggedCol, targetCol);
                             }
-                            console.log('Groups: DOM reordered');
 
-                            // Получаем новый порядок после перестановки
                             let order = 1;
                             container.querySelectorAll(itemSelector).forEach(function (el) {
                                 const groupId = el.dataset.groupId;
@@ -115,24 +81,17 @@
                             });
                         }
                     } else {
-                        console.log('Using NavMenu logic');
                         // Логика для вертикального списка (NavMenu.razor)
                         const draggedIndex = Array.from(container.children).indexOf(dragged);
                         const targetIndex = Array.from(container.children).indexOf(this);
 
-                        console.log(`NavMenu drop: dragged=${draggedIndex}, target=${targetIndex}`);
-
                         if (draggedIndex !== -1 && targetIndex !== -1 && draggedIndex !== targetIndex) {
-                            console.log('Attempting DOM reorder...');
-                            // Визуально перемещаем элемент
                             if (draggedIndex < targetIndex) {
                                 container.insertBefore(dragged, this.nextSibling);
                             } else {
                                 container.insertBefore(dragged, this);
                             }
-                            console.log('NavMenu: DOM reordered');
 
-                            // Получаем новый порядок после перестановки
                             let order = 1;
                             container.querySelectorAll(itemSelector).forEach(function (el) {
                                 const groupId = el.dataset.groupId;
@@ -140,23 +99,11 @@
                                     newOrder.push({ Id: groupId, Order: order++ });
                                 }
                             });
-                        } else {
-                            console.log('NavMenu reorder conditions not met:', {
-                                draggedIndex,
-                                targetIndex,
-                                sameElement: dragged === this
-                            });
                         }
                     }
 
-                    if (newOrder.length === 0) {
-                        console.log('No reorder data, skipping API call');
-                        return;
-                    }
+                    if (newOrder.length === 0) return;
 
-                    console.log('Reorder data:', newOrder);
-
-                    // Отправляем на сервер
                     fetch(apiEndpoint, {
                         method: 'PUT',
                         headers: {
@@ -166,15 +113,13 @@
                         body: JSON.stringify(newOrder)
                     }).then(r => {
                         if (r.ok) {
-                            console.log('Порядок обновлен на сервере');
                             try {
-                                // Уведомляем только ДРУГОЙ компонент для обновления
-                                DotNet.invokeMethodAsync('FlashcardsBlazorUI', 'NotifyGroupsReordered', containerSelector);                            } catch (err) {
-                                console.log('DotNet invoke failed:', err);
+                                DotNet.invokeMethodAsync('FlashcardsBlazorUI', 'NotifyGroupsReordered', containerSelector);
+                            } catch (err) {
+                                console.error('DotNet invoke failed:', err);
                             }
                         } else {
                             alert('Ошибка изменения порядка');
-                            // При ошибке возвращаем элементы обратно
                             location.reload();
                         }
                     }).catch(err => {
@@ -217,16 +162,15 @@
                         }
                     }).then(r => {
                         if (r.ok) {
-                            console.log('Группа удалена');
-                            // Удаляем правильный элемент в зависимости от контейнера
                             const elementToRemove = containerSelector === '#groups-container'
                                 ? dragged.closest('.col-md-4, .col')
                                 : dragged;
                             elementToRemove?.remove();
 
                             try {
-                                DotNet.invokeMethodAsync('FlashcardsBlazorUI', 'NotifyGroupsReordered', containerSelector);                            } catch (err) {
-                                console.log('DotNet invoke failed:', err);
+                                DotNet.invokeMethodAsync('FlashcardsBlazorUI', 'NotifyGroupsReordered', containerSelector);
+                            } catch (err) {
+                                console.error('DotNet invoke failed:', err);
                             }
                         } else {
                             alert('Ошибка удаления группы');
@@ -237,8 +181,6 @@
                     });
                 });
             }
-
-            console.log(`=== dragdrop: ready for ${containerSelector} ===`);
         }
     };
 })();

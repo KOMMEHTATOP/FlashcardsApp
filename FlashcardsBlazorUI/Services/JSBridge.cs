@@ -1,3 +1,4 @@
+using FlashcardsBlazorUI.Interfaces;
 using Microsoft.JSInterop;
 
 namespace FlashcardsBlazorUI.Services;
@@ -25,7 +26,7 @@ public static class JSBridge
         try
         {
             using var scope = _serviceScopeFactory.CreateScope();
-            var notificationService = scope.ServiceProvider.GetRequiredService<IGroupNotificationService>();
+            var notificationService = scope.ServiceProvider.GetRequiredService<GroupNotificationService>();
             notificationService.NotifyGroupsReordered(sourceContainer);
         }
         catch (Exception ex)
@@ -48,7 +49,7 @@ public static class JSBridge
         try
         {
             using var scope = _serviceScopeFactory.CreateScope();
-            var notificationService = scope.ServiceProvider.GetRequiredService<IGroupNotificationService>();
+            var notificationService = scope.ServiceProvider.GetRequiredService<GroupNotificationService>();
             notificationService.NotifyGroupsReordered("delete");
         }
         catch (Exception ex)

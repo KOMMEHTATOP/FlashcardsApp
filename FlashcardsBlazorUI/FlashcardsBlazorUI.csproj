@@ -10,4 +10,8 @@
       <ProjectReference Include="..\FlashcardsAppContracts\FlashcardsAppContracts.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.14.0" />
+    </ItemGroup>
+
 </Project>

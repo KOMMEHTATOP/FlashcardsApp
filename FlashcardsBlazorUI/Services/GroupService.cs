@@ -6,8 +6,8 @@ namespace FlashcardsBlazorUI.Services
 {
     public class GroupService : BaseApiService
     {
-        public GroupService(IHttpClientFactory httpClientFactory, ITokenManager tokenManager) 
-            : base(httpClientFactory, tokenManager)
+        public GroupService(IHttpClientFactory httpClientFactory) 
+            : base(httpClientFactory)
         {
         }
 

@@ -2,16 +2,16 @@
 @using FlashcardsAppContracts.Constants
 @using FlashcardsAppContracts.DTOs.Responses
 @using FlashcardsBlazorUI.Services
+@using FlashcardsBlazorUI.Interfaces
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthStateProvider
 @inject GroupService GroupService
-@inject AuthService AuthService
+@inject IAuthService AuthService
 @inject IGroupNotificationService GroupNotificationService
 @inject NavigationManager Navigation
-@inject ITokenManager TokenManager
 @inject IJSRuntime JSRuntime
 @implements IDisposable
 @rendermode InteractiveServer
-
-
 
 <PageTitle>Группы карточек</PageTitle>
 
@@ -87,7 +87,6 @@ else
         try
         {
             GroupNotificationService.OnGroupsReordered += RefreshGroups;
-            await AuthService.InitializeAsync();
             await LoadGroups();
         }
         catch (UnauthorizedAccessException)
@@ -144,31 +143,31 @@ else
         await Task.Delay(100); // Небольшая задержка для рендеринга
         await ReinitializeDragDrop();
 
-        
         Navigation.NavigateTo("/groups");
     }
-    
 
     private async Task ReinitializeDragDrop()
     {
         try
         {
-            var token = TokenManager.Token; 
-            await JSRuntime.InvokeVoidAsync("dragDropInterop.initializeDragDrop",
-                token,
-                "#groups-container",
-                ".group-card",
-                "http://localhost:5153/api/group/reorder",
-                ".trash-zone");
+            // Получаем токен через новый AuthService
+            var token = await AuthService.GetTokenAsync();
         
-            Console.WriteLine("Groups: Drag and drop переинициализирован");
+            if (!string.IsNullOrEmpty(token))
+            {
+                await JSRuntime.InvokeVoidAsync("dragDropInterop.initializeDragDrop",
+                    token,
+                    "#groups-container",
+                    ".group-card", 
+                    "http://localhost:5153/api/group/reorder",
+                    ".trash-zone");
+            }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Ошибка переинициализации drag and drop: {ex.Message}");
         }
-    }
-
+    }    
     
     private void ViewCards(Guid groupId) =>
         Navigation.NavigateTo($"/groups/{groupId}/cards");

@@ -126,7 +126,6 @@ else
     
     protected override async Task OnInitializedAsync()
     {
-        await AuthService.InitializeAsync();
         await LoadGroup();
         await LoadCards();
     }

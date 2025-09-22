@@ -8,12 +8,10 @@ namespace FlashcardsBlazorUI.Services
     {
         protected readonly HttpClient _httpClient;
         protected readonly JsonSerializerOptions _jsonOptions;
-        protected readonly ITokenManager _tokenManager;
 
-        protected BaseApiService(IHttpClientFactory httpClientFactory, ITokenManager tokenManager)
+        protected BaseApiService(IHttpClientFactory httpClientFactory)
         {
             _httpClient = httpClientFactory.CreateClient("FlashcardsAPI");
-            _tokenManager = tokenManager;
             _jsonOptions = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true,
@@ -21,21 +19,20 @@ namespace FlashcardsBlazorUI.Services
             };
         }
 
-        // Общий метод для обработки HTTP запросов с автоматической проверкой авторизации
+        // Общий метод для обработки HTTP запросов
         protected async Task<HttpResponseMessage> SendRequestAsync(Func<Task<HttpResponseMessage>> request)
         {
             var response = await request();
             
             if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
-                await _tokenManager.ClearTokenAsync();
                 throw new UnauthorizedAccessException("Требуется авторизация");
             }
             
             return response;
         }
 
-        // Перегрузки для удобства - токен автоматически добавляется через AuthenticationHandler
+        // HTTP методы - токен автоматически добавляется через AuthenticationHandler
         protected async Task<HttpResponseMessage> GetAsync(string requestUri)
         {
             return await SendRequestAsync(() => _httpClient.GetAsync(requestUri));

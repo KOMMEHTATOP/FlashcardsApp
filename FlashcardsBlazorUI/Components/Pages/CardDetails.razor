@@ -197,13 +197,12 @@ else
 
     private Card? card;
     private bool isLoading = true;
-    private bool isFlipped = false;
-    private int hoveredRating = 0;
-    private int selectedRating = 0;
+    private bool isFlipped;
+    private int hoveredRating;
+    private int selectedRating;
 
     protected override async Task OnInitializedAsync()
     {
-        await AuthService.InitializeAsync();
         await LoadCard();
     }
 

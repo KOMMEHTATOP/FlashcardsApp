@@ -1,7 +1,8 @@
 @using FlashcardsBlazorUI.Services
+@using Microsoft.AspNetCore.Components.Authorization
 @inject IJSRuntime JSRuntime
-@inject ITokenManager TokenManager
 @inject IHttpClientFactory HttpClientFactory
+@inject AuthenticationStateProvider AuthStateProvider
 
 @code {
     [Parameter] public string ContainerSelector { get; set; } = "#groups-container";
@@ -19,15 +20,18 @@
             await Task.Delay(50); // ждём пока DOM нарисуется
             try
             {
-                var token = TokenManager.Token;
-                if (!string.IsNullOrEmpty(token))
+                // Получаем токен из AuthenticationStateProvider
+                var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+                var tokenClaim = authState.User.FindFirst("jwt_token");
+                
+                if (tokenClaim != null)
                 {
                     // Получаем полный URL из HttpClient
                     var httpClient = HttpClientFactory.CreateClient("FlashcardsAPI");
                     var fullApiEndpoint = $"{httpClient.BaseAddress?.ToString().TrimEnd('/')}{ApiEndpoint}";
                     
                     await JSRuntime.InvokeVoidAsync("dragDropInterop.initializeDragDrop", 
-                        token, ContainerSelector, ItemSelector, fullApiEndpoint, TrashSelector);
+                        tokenClaim.Value, ContainerSelector, ItemSelector, fullApiEndpoint, TrashSelector);
                 }
                 else
                 {

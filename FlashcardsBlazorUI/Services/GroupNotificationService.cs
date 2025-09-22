@@ -1,10 +1,6 @@
-namespace FlashcardsBlazorUI.Services;
+using FlashcardsBlazorUI.Interfaces;
 
-public interface IGroupNotificationService
-{
-    event Action<string> OnGroupsReordered;
-    void NotifyGroupsReordered(string sourceContainer);
-}
+namespace FlashcardsBlazorUI.Services;
 
 public class GroupNotificationService : IGroupNotificationService
 {

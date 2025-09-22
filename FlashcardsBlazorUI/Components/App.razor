@@ -1,5 +1,4 @@
-﻿@inject Services.AuthService Auth
-@inject NavigationManager Navigation
+﻿@using Microsoft.AspNetCore.Components.Authorization
 
 <!DOCTYPE html>
 <html lang="en">
@@ -16,34 +15,9 @@
 </head>
 
 <body>
-<Routes/>
+<CascadingAuthenticationState>
+    <Routes/>
+</CascadingAuthenticationState>
 <script src="_framework/blazor.web.js"></script>
-
-@code {
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        Console.WriteLine($"[App.razor] OnAfterRenderAsync firstRender: {firstRender}");
-        
-        if (firstRender)
-        {
-            await Auth.InitializeAsync();
-            Console.WriteLine($"[App.razor] IsAuthenticated: {Auth.IsAuthenticated}");
-                
-            var currentPath = Navigation.ToBaseRelativePath(Navigation.Uri);
-            Console.WriteLine($"[App.razor] currentPath: '{currentPath}'");
-                
-            if (!Auth.IsAuthenticated && currentPath != "login" && currentPath != "")
-            {
-                Console.WriteLine("[App.razor] Navigating to /login");
-                Navigation.NavigateTo("/login", true);
-            }
-            else if (Auth.IsAuthenticated && (currentPath == "login" || currentPath == ""))
-            {
-                Console.WriteLine("[App.razor] Navigating to /groups");
-                Navigation.NavigateTo("/groups", true);
-            }
-        }
-    }
-}
 </body>
 </html>

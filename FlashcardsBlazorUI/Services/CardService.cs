@@ -6,8 +6,8 @@ namespace FlashcardsBlazorUI.Services
 {
     public class CardService : BaseApiService
     {
-        public CardService(IHttpClientFactory httpClientFactory, ITokenManager tokenManager) 
-            : base(httpClientFactory, tokenManager)
+        public CardService(IHttpClientFactory httpClientFactory) 
+            : base(httpClientFactory)
         {
         }
 

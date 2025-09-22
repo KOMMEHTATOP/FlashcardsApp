@@ -1,59 +1,81 @@
 using FlashcardsAppContracts.DTOs.Requests;
 using FlashcardsAppContracts.DTOs.Responses;
-using System.Net;
-using System.Text.Json;
+using FlashcardsBlazorUI.Helpers;
+using FlashcardsBlazorUI.Interfaces;
 
-namespace FlashcardsBlazorUI.Services
+namespace FlashcardsBlazorUI.Services;
+
+public class AuthService : IAuthService
 {
-    public class AuthService : BaseApiService
+    private readonly HttpClient _httpClient;
+    private readonly JwtAuthenticationStateProvider _authStateProvider;
+    private readonly ILogger<AuthService> _logger;
+
+    public AuthService(
+        HttpClient httpClient,
+        JwtAuthenticationStateProvider authStateProvider,
+        ILogger<AuthService> logger)
     {
-        public AuthService(IHttpClientFactory httpClientFactory, ITokenManager tokenManager) 
-            : base(httpClientFactory, tokenManager)
-        {
-        }
+        _httpClient = httpClient;
+        _authStateProvider = authStateProvider;
+        _logger = logger;
+    }
 
-        // Проксирует свойства TokenManager для совместимости
-        public bool IsAuthenticated => _tokenManager.IsAuthenticated;
-        
-        public async Task InitializeAsync()
+    public async Task<LoginResponse?> LoginAsync(string email, string password)
+    {
+        try
         {
-            await _tokenManager.InitializeAsync();
-        }
+            _logger.LogInformation("Попытка входа для пользователя: {Email}", email);
 
-        public async Task<LoginResponse> LoginAsync(LoginRequest loginRequest)
-        {
-            Console.WriteLine($"Отправляю логин запрос: {JsonSerializer.Serialize(loginRequest)}");
-            
+            var loginRequest = new LoginRequest
+            {
+                Email = email,
+                Password = password
+            };
+
             var response = await _httpClient.PostAsJsonAsync("api/auth/login", loginRequest);
-
-            if (response.StatusCode == HttpStatusCode.Unauthorized)
-                throw new UnauthorizedAccessException("Неверные учетные данные");
-
-            response.EnsureSuccessStatusCode();
-
-            var responseJson = await response.Content.ReadAsStringAsync();
-            Console.WriteLine($"Ответ от сервера: {responseJson}");
             
-            var loginResponse = JsonSerializer.Deserialize<LoginResponse>(responseJson, _jsonOptions);
-            Console.WriteLine($"Десериализованный токен: {loginResponse?.Token}");
-
-            if (loginResponse != null && !string.IsNullOrEmpty(loginResponse.Token))
+            if (!response.IsSuccessStatusCode)
             {
-                Console.WriteLine("Сохраняю токен через TokenManager...");
-                await _tokenManager.SetTokenAsync(loginResponse.Token);
-                Console.WriteLine("Токен сохранен через TokenManager");
-            }
-            else
-            {
-                Console.WriteLine("Токен пустой или null!");
+                _logger.LogWarning("Неудачная попытка входа для пользователя {Email}. Status: {StatusCode}", 
+                    email, response.StatusCode);
+                return null;
             }
 
-            return loginResponse!;
+            var loginResponse = await response.Content.ReadFromJsonAsync<LoginResponse>();
+            
+            if (loginResponse == null || string.IsNullOrEmpty(loginResponse.Token))
+            {
+                _logger.LogWarning("Пустой ответ от API авторизации");
+                return null;
+            }
+
+            var loginSuccess = await _authStateProvider.LoginAsync(loginResponse.Token);
+            
+            if (!loginSuccess)
+            {
+                _logger.LogError("Ошибка при обработке токена");
+                return null;
+            }
+
+            _logger.LogInformation("Пользователь {Email} успешно вошел в систему", email);
+            return loginResponse;
         }
-
-        public async Task LogoutAsync()
+        catch (Exception ex)
         {
-            await _tokenManager.ClearTokenAsync();
+            _logger.LogError(ex, "Ошибка при входе пользователя {Email}", email);
+            return null;
         }
+    }
+
+    public async Task LogoutAsync()
+    {
+        await _authStateProvider.LogoutAsync();
+        _logger.LogInformation("Пользователь вышел из системы");
+    }
+
+    public async Task<string?> GetTokenAsync()
+    {
+        return await _authStateProvider.GetTokenAsync();
     }
 }

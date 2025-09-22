@@ -1,17 +1,13 @@
 @page "/"
 @page "/login"
 @using FlashcardsAppContracts.DTOs.Requests
-@using FlashcardsBlazorUI.Services
-@inject AuthService AuthService
+@using FlashcardsBlazorUI.Interfaces
+@using Microsoft.AspNetCore.Components.Authorization
+@inject IAuthService AuthService
 @inject NavigationManager Navigation
 @rendermode InteractiveServer
 
 <PageTitle>Вход в систему</PageTitle>
-
-@if (shouldRedirect)
-{
-    <script>window.location.href = '/groups';</script>
-}
 
 <div class="container mt-5">
     <div class="row justify-content-center">
@@ -29,14 +25,15 @@
                             Выполняется вход...
                         </div>
                     }
+                    else if (shouldRedirect)
+                    {
+                        <div class="alert alert-success">
+                            <div class="spinner-border spinner-border-sm me-2"></div>
+                            Перенаправление...
+                        </div>
+                    }
                     else
                     {
-                        <!-- Отладочный вывод текущих значений -->
-                        <p style="color:red">
-                            DEBUG: Email=@loginRequest.Email |
-                            PasswordLen=@(loginRequest.Password?.Length ?? 0)
-                        </p>
-
                         <EditForm Model="loginRequest" OnValidSubmit="HandleLogin" FormName="LoginForm">
                             <DataAnnotationsValidator />
                             <ValidationSummary />
@@ -61,7 +58,7 @@
                                            placeholder="Введите пароль" />
                             </div>
 
-                            <button type="submit" class="btn btn-primary w-100" disabled="@isLogging">
+                            <button type="submit" class="btn btn-primary w-100" disabled="@(isLogging || shouldRedirect)">
                                 @if (isLogging)
                                 {
                                     <span>Вхожу...</span>
@@ -83,9 +80,39 @@
     [SupplyParameterFromForm]
     public LoginRequest loginRequest { get; set; } = new() { Email = "", Password = "" };
     
+    [CascadingParameter]
+    private Task<AuthenticationState>? AuthenticationState { get; set; }
+
     private bool isLogging;
-    private string errorMessage = "";
     private bool shouldRedirect;
+    private string errorMessage = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Проверяем, авторизован ли пользователь ТОЛЬКО при первой загрузке
+        if (AuthenticationState != null)
+        {
+            try
+            {
+                var authState = await AuthenticationState;
+                if (authState.User.Identity?.IsAuthenticated == true)
+                {
+                    Console.WriteLine("[Login] Пользователь уже авторизован, перенаправляем");
+                    shouldRedirect = true;
+                    StateHasChanged();
+                    
+                    // Добавляем небольшую задержку и используем forceLoad
+                    await Task.Delay(100);
+                    Navigation.NavigateTo("/groups", forceLoad: true);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Login] Ошибка проверки авторизации: {ex.Message}");
+                // Игнорируем ошибку и показываем форму входа
+            }
+        }
+    }
 
     private async Task HandleLogin()
     {
@@ -93,26 +120,39 @@
         {
             isLogging = true;
             errorMessage = "";
-            StateHasChanged(); // Показываем индикатор загрузки
-            
-            await AuthService.LoginAsync(loginRequest);
-            
-            // Устанавливаем флаг для JavaScript редиректа
-            shouldRedirect = true;
             StateHasChanged();
+
+            Console.WriteLine("[Login] Начинаем процесс входа");
+
+            var loginResponse = await AuthService.LoginAsync(loginRequest.Email, loginRequest.Password);
+            
+            if (loginResponse != null)
+            {
+                Console.WriteLine("[Login] Логин успешен, устанавливаем флаг перенаправления");
+                shouldRedirect = true;
+                StateHasChanged();
+                
+                // Даем время на обновление состояния авторизации
+                await Task.Delay(500);
+                
+                Console.WriteLine("[Login] Выполняем перенаправление");
+                Navigation.NavigateTo("/groups", forceLoad: true);
+            }
+            else
+            {
+                Console.WriteLine("[Login] Ошибка входа - неверные данные");
+                errorMessage = "Неверные учетные данные";
+            }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[SubmitError] {ex}");
-            errorMessage = $"Ошибка входа: {ex.Message}";
+            Console.WriteLine($"[Login] Исключение: {ex}");
+            errorMessage = "Произошла ошибка при входе в систему";
         }
         finally
         {
             isLogging = false;
-            if (!shouldRedirect) // Обновляем UI только если нет редиректа
-            {
-                StateHasChanged();
-            }
+            StateHasChanged();
         }
     }
 }
