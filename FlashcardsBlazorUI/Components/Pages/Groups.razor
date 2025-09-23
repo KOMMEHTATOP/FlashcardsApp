@@ -74,8 +74,6 @@ else
     </div>
 </div>
 
-@* DragDropInitializer убран - используем ручную инициализацию *@
-
 @code {
     private bool isLoading = true;
     private bool showCreateForm;
@@ -84,10 +82,7 @@ else
     {
         try
         {
-            // Подписываемся только на изменения GroupStore
             GroupStore.GroupsChanged += HandleGroupsChanged;
-            
-            // Загружаем данные
             await GroupStore.RefreshAsync();
             isLoading = false;
         }
@@ -105,8 +100,7 @@ else
     {
         if (firstRender)
         {
-            // Инициализируем drag&drop только при первом рендере
-            await Task.Delay(100); // даем время на рендер DOM
+            await Task.Delay(100);
             await InitializeDragDrop();
         }
     }
@@ -116,13 +110,8 @@ else
         InvokeAsync(async () =>
         {
             Console.WriteLine("Groups.razor: Получено уведомление об изменении групп");
-            foreach (var group in GroupStore.Groups.OrderBy(g => g.Order))
-            {
-                Console.WriteLine($"Groups.razor: {group.GroupName} - Order: {group.Order}");
-            }
             StateHasChanged();
         
-            // Реинициализируем drag&drop после пересоздания элементов
             await Task.Delay(200);
             await InitializeDragDrop();
         });

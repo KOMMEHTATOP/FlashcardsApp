@@ -1,4 +1,7 @@
 (function () {
+    // Глобальная блокировка удаления
+    let globalDeletionInProgress = false;
+
     window.dragDropInterop = {
         initializeDragDrop: function (authToken, containerSelector, itemSelector, apiEndpoint, trashSelector) {
             const container = document.querySelector(containerSelector);
@@ -13,13 +16,8 @@
                 this.cleanupDragDrop(containerSelector, itemSelector, trashSelector);
             }
 
-            // отметим первый init, но НЕ выходим на повторную инициализацию
-            if (!container.__dragDropInitialized) {
-                container.__dragDropInitialized = true;
-                console.log("dragDrop: first initialization for", containerSelector);
-            } else {
-                console.log("dragDrop: re-initializing for", containerSelector);
-            }
+            container.__dragDropInitialized = true;
+            console.log("dragDrop: initializing for", containerSelector);
 
             // Нужен один таймер на контейнер
             if (!container.__notifyTimer) container.__notifyTimer = null;
@@ -35,20 +33,18 @@
                 }, 250);
             }
 
-            // Привязываем обработчики только к тем элементам, у которых нет dataset.__ddInit
+            // Локальные переменные для drag&drop состояния
+            let dragged = null;
+
+            // Привязываем обработчики к элементам
             const items = container.querySelectorAll(itemSelector);
             if (!items.length) {
                 console.log("dragDrop: no items for selector", itemSelector, "in", containerSelector);
                 return;
             }
 
-            let dragged = null;
-
             items.forEach(function (item) {
-                // Сбрасываем флаг при реинициализации
-                delete item.dataset.__ddInit;
-
-                if (item.dataset.__ddInit === "1") return; // уже есть обработчики
+                if (item.dataset.__ddInit === "1") return;
                 item.dataset.__ddInit = "1";
 
                 const dragHandle = item.querySelector('.drag-handle') || item;
@@ -56,18 +52,31 @@
                 dragHandle.style.cursor = 'grab';
 
                 dragHandle.addEventListener('dragstart', function (e) {
+                    if (globalDeletionInProgress) {
+                        e.preventDefault();
+                        return;
+                    }
                     dragged = item;
                     e.dataTransfer.effectAllowed = 'move';
-                    try { e.dataTransfer.setData('text/plain', item.dataset.groupId || item.dataset.cardId); } catch {}
+                    try {
+                        e.dataTransfer.setData('text/plain', item.dataset.groupId || item.dataset.cardId);
+                    } catch {}
                     item.style.opacity = '0.5';
+                    item.__isDragging = true;
                 });
 
                 item.addEventListener('dragend', function () {
-                    this.style.opacity = '1';
-                    dragged = null;
+                    if (this.__isDragging) {
+                        this.style.opacity = '1';
+                        this.__isDragging = false;
+                    }
+                    if (dragged === this) {
+                        dragged = null;
+                    }
                 });
 
                 item.addEventListener('dragover', function (e) {
+                    if (globalDeletionInProgress || !dragged || dragged === this) return;
                     e.preventDefault();
                     e.stopPropagation();
                     if (containerSelector === '#groups-container') {
@@ -87,7 +96,8 @@
                     e.stopPropagation();
                     this.style.border = '';
                     this.style.borderTop = '';
-                    if (!dragged || dragged === this) return;
+
+                    if (globalDeletionInProgress || !dragged || dragged === this) return;
 
                     let newOrder = [];
 
@@ -148,35 +158,100 @@
                 });
             });
 
-            // корзина - защищаем от повторной подвязки аналогично
+            // Инициализация корзины
             const trash = document.querySelector(trashSelector);
-            if (trash) {
-                delete trash.dataset.__ddInit; // Сбрасываем флаг
+            if (trash && !trash.dataset.__ddInit) {
+                trash.dataset.__ddInit = "1";
 
-                if (!trash.dataset.__ddInit) {
-                    trash.dataset.__ddInit = "1";
-                    trash.addEventListener('dragover', e => { e.preventDefault(); trash.style.backgroundColor = '#f8d7da'; });
-                    trash.addEventListener('dragleave', () => { trash.style.backgroundColor = ''; });
-                    trash.addEventListener('drop', e => {
+                trash.addEventListener('dragover', e => {
+                    if (!globalDeletionInProgress && dragged) {
                         e.preventDefault();
-                        trash.style.backgroundColor = '';
-                        let id = null;
-                        try { id = e.dataTransfer.getData('text/plain'); } catch {}
-                        if (!id || !dragged) return;
-                        if (!confirm('Удалить группу?')) return;
+                        trash.style.backgroundColor = '#f8d7da';
+                    }
+                });
 
-                        fetch(`http://localhost:5153/api/group/${id}`, {
-                            method: 'DELETE',
-                            headers: { 'Authorization': 'Bearer ' + authToken }
-                        }).then(r => {
-                            if (r.ok) {
-                                const elementToRemove = containerSelector === '#groups-container' ? dragged.closest('.col-md-4, .col') : dragged;
-                                elementToRemove?.remove();
-                                notifyReordered(containerSelector);
-                            } else alert('Ошибка удаления группы');
-                        }).catch(err => { console.error('Ошибка удаления:', err); alert('Ошибка удаления группы'); });
+                trash.addEventListener('dragleave', () => {
+                    trash.style.backgroundColor = '';
+                });
+
+                trash.addEventListener('drop', e => {
+                    e.preventDefault();
+                    trash.style.backgroundColor = '';
+
+                    // Глобальная проверка блокировки
+                    if (globalDeletionInProgress || !dragged) {
+                        console.log("dragDrop: удаление заблокировано или нет dragged элемента");
+                        return;
+                    }
+
+                    let id = null;
+                    try {
+                        id = e.dataTransfer.getData('text/plain');
+                    } catch {}
+
+                    if (!id) {
+                        console.log("dragDrop: не удалось получить ID элемента");
+                        return;
+                    }
+
+                    if (!confirm('Удалить группу?')) return;
+
+                    // Устанавливаем глобальную блокировку
+                    globalDeletionInProgress = true;
+                    console.log("dragDrop: начинаем удаление, блокировка установлена");
+
+                    // Находим элемент для удаления
+                    const elementToRemove = containerSelector === '#groups-container'
+                        ? dragged.closest('.col-md-4, .col')
+                        : dragged;
+
+                    if (!elementToRemove) {
+                        globalDeletionInProgress = false;
+                        console.log("dragDrop: элемент для удаления не найден, блокировка снята");
+                        return;
+                    }
+
+                    // Скрываем элемент сразу для лучшего UX
+                    elementToRemove.style.opacity = '0.3';
+                    elementToRemove.style.pointerEvents = 'none';
+
+                    fetch(`http://localhost:5153/api/group/${id}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': 'Bearer ' + authToken }
+                    }).then(r => {
+                        if (r.ok) {
+                            // Успешное удаление - восстанавливаем элемент перед уведомлением Blazor
+                            console.log("dragDrop: успешное удаление, восстанавливаем элемент и уведомляем Blazor");
+                            elementToRemove.style.opacity = '1';
+                            elementToRemove.style.pointerEvents = 'auto';
+                            dragged = null;
+
+                            // Уведомляем Blazor - он удалит элемент правильно
+                            try {
+                                DotNet.invokeMethodAsync('FlashcardsBlazorUI', 'NotifyGroupDeleted');
+                            } catch (err) {
+                                console.error('DotNet invoke failed:', err);
+                            }
+                        } else {
+                            // Ошибка удаления - восстанавливаем элемент
+                            console.log("dragDrop: ошибка удаления, восстанавливаем элемент");
+                            elementToRemove.style.opacity = '1';
+                            elementToRemove.style.pointerEvents = 'auto';
+                            alert('Ошибка удаления группы');
+                        }
+                    }).catch(err => {
+                        // Ошибка сети - восстанавливаем элемент
+                        console.log("dragDrop: ошибка сети, восстанавливаем элемент");
+                        elementToRemove.style.opacity = '1';
+                        elementToRemove.style.pointerEvents = 'auto';
+                        console.error('Ошибка удаления:', err);
+                        alert('Ошибка удаления группы');
+                    }).finally(() => {
+                        // Снимаем глобальную блокировку
+                        globalDeletionInProgress = false;
+                        console.log("dragDrop: блокировка снята");
                     });
-                }
+                });
             }
 
             console.log("dragDrop: init finished for", containerSelector);
@@ -190,12 +265,19 @@
             const items = container.querySelectorAll(itemSelector);
             items.forEach(item => {
                 delete item.dataset.__ddInit;
+                delete item.__isDragging;
             });
 
             // Очищаем флаг для корзины
             const trash = document.querySelector(trashSelector);
             if (trash) {
                 delete trash.dataset.__ddInit;
+            }
+
+            // Очищаем таймер
+            if (container.__notifyTimer) {
+                clearTimeout(container.__notifyTimer);
+                container.__notifyTimer = null;
             }
 
             console.log("dragDrop: cleanup completed for", containerSelector);

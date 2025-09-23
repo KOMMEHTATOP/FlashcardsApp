@@ -105,10 +105,6 @@
                                     </div>
                                 }
                             }
-                            
-                            <DragDropInitializer ContainerSelector="#nav-groups-container" 
-                                                ItemSelector=".nav-group-draggable"
-                                                TrashSelector=".nav-trash-zone" />
                         </div>
                     }
                 </div>
@@ -144,7 +140,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // Подписываемся только на изменения GroupStore
         GroupStore.GroupsChanged += HandleGroupsChanged;
 
         if (AuthenticationStateTask != null)
@@ -162,18 +157,13 @@
         InvokeAsync(async () =>
         {
             Console.WriteLine("NavMenu: Получено уведомление об изменении групп");
-            Console.WriteLine($"NavMenu: isGroupsMenuExpanded = {isGroupsMenuExpanded}");
-        
-            foreach (var group in GroupStore.Groups.OrderBy(g => g.Order))
-            {
-                Console.WriteLine($"NavMenu: {group.GroupName} - Order: {group.Order}");
-            }
             StateHasChanged();
         
-            // Всегда пытаемся реинициализировать, независимо от состояния меню
-            Console.WriteLine("NavMenu: Попытка реинициализации drag&drop...");
-            await Task.Delay(200);
-            await ReinitializeDragDrop();
+            if (isGroupsMenuExpanded)
+            {
+                await Task.Delay(200);
+                await ReinitializeDragDrop();
+            }
         });
     }
     
@@ -183,8 +173,7 @@
         try
         {
             var token = await AuthService.GetTokenAsync();
-            Console.WriteLine($"NavMenu: Получен токен: {!string.IsNullOrEmpty(token)}");
-        
+            
             if (!string.IsNullOrEmpty(token))
             {
                 await JSRuntime.InvokeVoidAsync("dragDropInterop.initializeDragDrop",
@@ -193,38 +182,12 @@
                     ".nav-group-draggable",
                     "http://localhost:5153/api/group/reorder",
                     ".nav-trash-zone");
-                Console.WriteLine("NavMenu: Drag&drop реинициализирован после обновления");
-            }
-            else
-            {
-                Console.WriteLine("NavMenu: Токен пустой, пропускаем реинициализацию");
+                Console.WriteLine("NavMenu: Drag&drop реинициализирован");
             }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"NavMenu: Ошибка реинициализации drag&drop: {ex.Message}");
-        }
-    }
-    
-    private async Task InitializeDragDrop()
-    {
-        try
-        {
-            var token = await AuthService.GetTokenAsync();
-            if (!string.IsNullOrEmpty(token))
-            {
-                await JSRuntime.InvokeVoidAsync("dragDropInterop.initializeDragDrop",
-                    token,
-                    "#nav-groups-container",
-                    ".nav-group-draggable",
-                    "http://localhost:5153/api/group/reorder",
-                    ".nav-trash-zone");
-                Console.WriteLine("NavMenu: Drag&drop инициализирован");
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"NavMenu: Ошибка инициализации drag&drop: {ex.Message}");
         }
     }
 
@@ -235,6 +198,12 @@
         if (isGroupsMenuExpanded && !GroupStore.Groups.Any())
         {
             await GroupStore.RefreshAsync();
+        }
+        
+        if (isGroupsMenuExpanded)
+        {
+            await Task.Delay(100);
+            await ReinitializeDragDrop();
         }
         
         Navigation.NavigateTo("/groups");
