@@ -1,15 +1,14 @@
 @page "/groups"
 @using FlashcardsAppContracts.Constants
 @using FlashcardsAppContracts.DTOs.Responses
-@using FlashcardsBlazorUI.Services
 @using FlashcardsBlazorUI.Interfaces
+@using FlashcardsBlazorUI.Services
 @using Microsoft.AspNetCore.Components.Authorization
 @inject AuthenticationStateProvider AuthStateProvider
-@inject GroupService GroupService
 @inject IAuthService AuthService
-@inject IGroupNotificationService GroupNotificationService
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
+@inject GroupStore GroupStore     
 @implements IDisposable
 @rendermode InteractiveServer
 
@@ -26,7 +25,7 @@
 {
     <p><em>Загружаю группы...</em></p>
 }
-else if (groups == null || !groups.Any())
+else if (!GroupStore.Groups.Any())
 {
     <div class="alert alert-info text-center">
         <h5>У вас пока нет групп карточек</h5>
@@ -36,9 +35,9 @@ else if (groups == null || !groups.Any())
 else
 {
     <div id="groups-container" class="row">
-        @foreach (var group in groups.OrderBy(g => g.Order))
+        @foreach (var group in GroupStore.Groups.OrderBy(g => g.Order))
         {
-            <div class="col-md-4 mb-3">
+            <div class="col-md-4 mb-3" @key="@($"{group.Id}-{group.Order}")">
                 <div class="card group-card" data-group-id="@group.Id" style="cursor: move;">
                     <div class="card-body">
                         <h5 class="card-title">@group.GroupName</h5>
@@ -75,10 +74,9 @@ else
     </div>
 </div>
 
-<DragDropInitializer />
+@* DragDropInitializer убран - используем ручную инициализацию *@
 
 @code {
-    private List<ResultGroupDto>? groups;
     private bool isLoading = true;
     private bool showCreateForm;
 
@@ -86,8 +84,12 @@ else
     {
         try
         {
-            GroupNotificationService.OnGroupsReordered += RefreshGroups;
-            await LoadGroups();
+            // Подписываемся только на изменения GroupStore
+            GroupStore.GroupsChanged += HandleGroupsChanged;
+            
+            // Загружаем данные
+            await GroupStore.RefreshAsync();
+            isLoading = false;
         }
         catch (UnauthorizedAccessException)
         {
@@ -95,40 +97,57 @@ else
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Ошибка загрузки групп: {ex.Message}");
+            Console.WriteLine($"Groups.razor: Ошибка инициализации: {ex.Message}");
         }
     }
 
-    private async Task LoadGroups()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        isLoading = true;
-        try
+        if (firstRender)
         {
-            groups = await GroupService.GetGroupsAsync();
-            Console.WriteLine($"Groups.razor: Загружено групп: {groups?.Count ?? 0}");
-        }
-        finally
-        {
-            isLoading = false;
-            await InvokeAsync(StateHasChanged);
+            // Инициализируем drag&drop только при первом рендере
+            await Task.Delay(100); // даем время на рендер DOM
+            await InitializeDragDrop();
         }
     }
-    
-    private void RefreshGroups(string sourceContainer)
+
+    private void HandleGroupsChanged()
     {
-        // Обновляемся только если изменения пришли НЕ из основного окна
-        if (sourceContainer == "#groups-container")
+        InvokeAsync(async () =>
         {
-            Console.WriteLine("Groups.razor: Игнорируем уведомление из собственного контейнера");
-            return;
-        }
-        
-        Console.WriteLine($"Groups.razor: RefreshGroups из {sourceContainer}");
-        _ = InvokeAsync(async () =>
-        {
-            await LoadGroups();
+            Console.WriteLine("Groups.razor: Получено уведомление об изменении групп");
+            foreach (var group in GroupStore.Groups.OrderBy(g => g.Order))
+            {
+                Console.WriteLine($"Groups.razor: {group.GroupName} - Order: {group.Order}");
+            }
             StateHasChanged();
+        
+            // Реинициализируем drag&drop после пересоздания элементов
+            await Task.Delay(200);
+            await InitializeDragDrop();
         });
+    }
+    
+    private async Task InitializeDragDrop()
+    {
+        try
+        {
+            var token = await AuthService.GetTokenAsync();
+            if (!string.IsNullOrEmpty(token))
+            {
+                await JSRuntime.InvokeVoidAsync("dragDropInterop.initializeDragDrop",
+                    token,
+                    "#groups-container",
+                    ".group-card",
+                    "http://localhost:5153/api/group/reorder",
+                    ".trash-zone");
+                Console.WriteLine("Groups.razor: Drag&drop инициализирован");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Groups.razor: Ошибка инициализации drag&drop: {ex.Message}");
+        }
     }
 
     private void CreateNewGroup() => showCreateForm = true;
@@ -136,39 +155,10 @@ else
     private async Task OnGroupCreated()
     {
         showCreateForm = false;
-        await LoadGroups();
-        
-        GroupNotificationService.NotifyGroupsReordered("group-created");
-
-        await Task.Delay(100); // Небольшая задержка для рендеринга
-        await ReinitializeDragDrop();
-
+        await GroupStore.RefreshAsync();
         Navigation.NavigateTo("/groups");
     }
 
-    private async Task ReinitializeDragDrop()
-    {
-        try
-        {
-            // Получаем токен через новый AuthService
-            var token = await AuthService.GetTokenAsync();
-        
-            if (!string.IsNullOrEmpty(token))
-            {
-                await JSRuntime.InvokeVoidAsync("dragDropInterop.initializeDragDrop",
-                    token,
-                    "#groups-container",
-                    ".group-card", 
-                    "http://localhost:5153/api/group/reorder",
-                    ".trash-zone");
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Ошибка переинициализации drag and drop: {ex.Message}");
-        }
-    }    
-    
     private void ViewCards(Guid groupId) =>
         Navigation.NavigateTo($"/groups/{groupId}/cards");
 
@@ -198,6 +188,6 @@ else
 
     public void Dispose()
     {
-        GroupNotificationService.OnGroupsReordered -= RefreshGroups;
+        GroupStore.GroupsChanged -= HandleGroupsChanged;
     }
 }

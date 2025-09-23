@@ -1,14 +1,13 @@
 ﻿@using FlashcardsAppContracts.DTOs.Requests
 @using FlashcardsAppContracts.DTOs.Responses
 @using FlashcardsAppContracts.Constants
+@using FlashcardsBlazorUI.Interfaces
 @using System.Linq
 @using FlashcardsBlazorUI.Models
 @using FlashcardsBlazorUI.Services
-@using FlashcardsBlazorUI.Interfaces
 @using Microsoft.AspNetCore.Components.Authorization
-@inject GroupService GroupService
 @inject CardService CardService
-@inject IGroupNotificationService GroupOrderService
+@inject GroupStore GroupStore
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
 @inject IAuthService AuthService
@@ -43,13 +42,14 @@
                               style="float:right;"></span>
                     </div>
 
-                    @if (isGroupsMenuExpanded && groups != null)
+                    @if (isGroupsMenuExpanded)
                     {
                         <div id="nav-groups-container" class="groups-submenu" style="margin-left:20px;">
-                            @foreach (var group in groups.OrderBy(g => g.Order))
+                            @foreach (var group in GroupStore.Groups.OrderBy(g => g.Order))
                             {
                                 <div class="nav-link group-item nav-group-draggable"
                                      data-group-id="@group.Id"
+                                     @key="@($"{group.Id}-{group.Order}")"
                                      style="@GetGroupStyle(group)">
                                     <span class="drag-handle" 
                                           style="cursor:grab; padding:8px; display:inline-flex; align-items:center; min-width:24px; margin-right:4px;"
@@ -134,117 +134,123 @@
 
 @code {
     private bool isGroupsMenuExpanded;
-    private List<ResultGroupDto>? groups;
 
-    private Dictionary<Guid, bool> expandedGroups = new();
-    private Dictionary<Guid, List<Card>> groupCards = new();
-    private Dictionary<Guid, bool> loadingGroupCards = new();
+    private readonly Dictionary<Guid, bool> expandedGroups = new();
+    private readonly Dictionary<Guid, List<Card>> groupCards = new();
+    private readonly Dictionary<Guid, bool> loadingGroupCards = new();
 
     [CascadingParameter]
     private Task<AuthenticationState>? AuthenticationStateTask { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        GroupOrderService.OnGroupsReordered += RefreshGroups;
+        // Подписываемся только на изменения GroupStore
+        GroupStore.GroupsChanged += HandleGroupsChanged;
 
-        // Проверяем авторизацию через стандартный механизм
         if (AuthenticationStateTask != null)
         {
             var authState = await AuthenticationStateTask;
             if (authState.User.Identity?.IsAuthenticated == true)
             {
-                await LoadGroups();
+                await GroupStore.RefreshAsync();
             }
         }
     }
-    
-    private async Task LoadGroups()
-    {
-        try
-        {
-            groups = await GroupService.GetGroupsAsync();
-            Console.WriteLine($"NavMenu: Загружено групп: {groups?.Count ?? 0}");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"NavMenu: Ошибка загрузки групп: {ex.Message}");
-            groups = new List<ResultGroupDto>();
-        }
-        await InvokeAsync(StateHasChanged);
-    }
 
-    private void RefreshGroups(string sourceContainer)
+    private void HandleGroupsChanged()
     {
-        // Обновляемся только если изменения пришли НЕ из бокового меню
-        if (sourceContainer == "#nav-groups-container")
+        InvokeAsync(async () =>
         {
-            Console.WriteLine("NavMenu: Игнорируем уведомление из собственного контейнера");
-            return;
-        }
-
-        Console.WriteLine($"NavMenu: RefreshGroups из {sourceContainer}");
-        _ = InvokeAsync(async () =>
-        {
-            await LoadGroups();
+            Console.WriteLine("NavMenu: Получено уведомление об изменении групп");
+            Console.WriteLine($"NavMenu: isGroupsMenuExpanded = {isGroupsMenuExpanded}");
+        
+            foreach (var group in GroupStore.Groups.OrderBy(g => g.Order))
+            {
+                Console.WriteLine($"NavMenu: {group.GroupName} - Order: {group.Order}");
+            }
             StateHasChanged();
         
-            // Переинициализируем drag and drop после обновления
-            await Task.Delay(100);
+            // Всегда пытаемся реинициализировать, независимо от состояния меню
+            Console.WriteLine("NavMenu: Попытка реинициализации drag&drop...");
+            await Task.Delay(200);
             await ReinitializeDragDrop();
         });
     }
     
     private async Task ReinitializeDragDrop()
     {
+        Console.WriteLine("NavMenu: ReinitializeDragDrop() вызван");
         try
         {
-            // Получаем токен через новый AuthService
             var token = await AuthService.GetTokenAsync();
-            
+            Console.WriteLine($"NavMenu: Получен токен: {!string.IsNullOrEmpty(token)}");
+        
             if (!string.IsNullOrEmpty(token))
             {
                 await JSRuntime.InvokeVoidAsync("dragDropInterop.initializeDragDrop",
                     token,
-                    "#nav-groups-container", 
+                    "#nav-groups-container",
                     ".nav-group-draggable",
                     "http://localhost:5153/api/group/reorder",
                     ".nav-trash-zone");
-                
-                Console.WriteLine("NavMenu: Drag and drop переинициализирован");
+                Console.WriteLine("NavMenu: Drag&drop реинициализирован после обновления");
+            }
+            else
+            {
+                Console.WriteLine("NavMenu: Токен пустой, пропускаем реинициализацию");
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Ошибка переинициализации drag and drop: {ex.Message}");
+            Console.WriteLine($"NavMenu: Ошибка реинициализации drag&drop: {ex.Message}");
         }
     }
     
-    private async Task ToggleGroupsMenu() 
+    private async Task InitializeDragDrop()
+    {
+        try
+        {
+            var token = await AuthService.GetTokenAsync();
+            if (!string.IsNullOrEmpty(token))
+            {
+                await JSRuntime.InvokeVoidAsync("dragDropInterop.initializeDragDrop",
+                    token,
+                    "#nav-groups-container",
+                    ".nav-group-draggable",
+                    "http://localhost:5153/api/group/reorder",
+                    ".nav-trash-zone");
+                Console.WriteLine("NavMenu: Drag&drop инициализирован");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"NavMenu: Ошибка инициализации drag&drop: {ex.Message}");
+        }
+    }
+
+    private async Task ToggleGroupsMenu()
     {
         isGroupsMenuExpanded = !isGroupsMenuExpanded;
-        if (isGroupsMenuExpanded && groups == null)
+        
+        if (isGroupsMenuExpanded && !GroupStore.Groups.Any())
         {
-            await LoadGroups();
+            await GroupStore.RefreshAsync();
         }
+        
         Navigation.NavigateTo("/groups");
     }
-    
-    private void NavigateToGroup(Guid groupId)
-    {
+
+    private void NavigateToGroup(Guid groupId) =>
         Navigation.NavigateTo($"/groups/{groupId}/cards");
-    }
 
     private async Task OnGroupClick(ResultGroupDto group)
     {
         var id = group.Id;
-        var current = IsGroupExpanded(id);
-        SetGroupExpanded(id, !current);
+        SetGroupExpanded(id, !IsGroupExpanded(id));
         Navigation.NavigateTo($"/groups/{id}/cards");
 
         if (IsGroupExpanded(id) && !IsGroupLoaded(id) && !IsGroupLoading(id))
-        {
             await LoadCardsForGroup(id);
-        }
     }
 
     private async Task LoadCardsForGroup(Guid groupId)
@@ -252,12 +258,11 @@
         SetGroupLoading(groupId, true);
         try
         {
-            var cards = await CardService.GetCardsAsync(groupId);
-            groupCards[groupId] = cards;
+            groupCards[groupId] = await CardService.GetCardsAsync(groupId);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Ошибка загрузки карточек для {groupId}: {ex.Message}");
+            Console.WriteLine($"NavMenu: ошибка загрузки карточек {groupId}: {ex.Message}");
             groupCards[groupId] = new List<Card>();
         }
         finally
@@ -267,10 +272,8 @@
         }
     }
 
-    private void OnCardClick(Guid cardId)
-    {
+    private void OnCardClick(Guid cardId) =>
         Navigation.NavigateTo($"/cards/{cardId}");
-    }
 
     private async Task Logout()
     {
@@ -278,27 +281,22 @@
         Navigation.NavigateTo("/login", forceLoad: true);
     }
 
-    private bool IsGroupExpanded(Guid groupId) =>
-        expandedGroups.TryGetValue(groupId, out var v) && v;
+    private bool IsGroupExpanded(Guid id) =>
+        expandedGroups.TryGetValue(id, out var v) && v;
+    private void SetGroupExpanded(Guid id, bool v) => expandedGroups[id] = v;
 
-    private void SetGroupExpanded(Guid groupId, bool value) => expandedGroups[groupId] = value;
+    private bool IsGroupLoaded(Guid id) => groupCards.ContainsKey(id);
+    private List<Card> GetGroupCards(Guid id) =>
+        groupCards.TryGetValue(id, out var list) ? list : new List<Card>();
 
-    private bool IsGroupLoaded(Guid groupId) => groupCards.ContainsKey(groupId);
+    private bool IsGroupLoading(Guid id) =>
+        loadingGroupCards.TryGetValue(id, out var v) && v;
+    private void SetGroupLoading(Guid id, bool v) => loadingGroupCards[id] = v;
 
-    private List<Card> GetGroupCards(Guid groupId) =>
-        groupCards.TryGetValue(groupId, out var list) ? list : new List<Card>();
+    private string GetGroupStyle(ResultGroupDto g) =>
+        $"background-color:{GetColorCode(g.GroupColor)}; margin:2px 0; border-radius:4px; color:white; display:flex; justify-content:space-between; align-items:center; padding:6px 8px; transition:transform 0.15s ease, opacity 0.15s ease; user-select:none; touch-action:manipulation;";
 
-    private bool IsGroupLoading(Guid groupId) =>
-        loadingGroupCards.TryGetValue(groupId, out var loading) && loading;
-
-    private void SetGroupLoading(Guid groupId, bool value) => loadingGroupCards[groupId] = value;
-
-    private string GetGroupStyle(ResultGroupDto group)
-    {
-        return $"background-color:{GetColorCode(group.GroupColor)}; margin:2px 0; border-radius:4px; color:white; display:flex; justify-content:space-between; align-items:center; padding:6px 8px; transition:transform 0.15s ease, opacity 0.15s ease; user-select:none; touch-action:manipulation; position:relative;";
-    }
-
-    private string GetColorCode(GroupColor color) => color switch
+    private string GetColorCode(GroupColor c) => c switch
     {
         GroupColor.Red => "#dc3545",
         GroupColor.Green => "#28a745",
@@ -310,8 +308,6 @@
         _ => "#6c757d"
     };
 
-    public void Dispose()
-    {
-        GroupOrderService.OnGroupsReordered -= RefreshGroups;
-    }
+    public void Dispose() =>
+        GroupStore.GroupsChanged -= HandleGroupsChanged;
 }

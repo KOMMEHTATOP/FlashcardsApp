@@ -26,7 +26,7 @@ public static class JSBridge
         try
         {
             using var scope = _serviceScopeFactory.CreateScope();
-            var notificationService = scope.ServiceProvider.GetRequiredService<GroupNotificationService>();
+            var notificationService = scope.ServiceProvider.GetRequiredService<IGroupNotificationService>();
             notificationService.NotifyGroupsReordered(sourceContainer);
         }
         catch (Exception ex)
@@ -49,7 +49,7 @@ public static class JSBridge
         try
         {
             using var scope = _serviceScopeFactory.CreateScope();
-            var notificationService = scope.ServiceProvider.GetRequiredService<GroupNotificationService>();
+            var notificationService = scope.ServiceProvider.GetRequiredService<IGroupNotificationService>();
             notificationService.NotifyGroupsReordered("delete");
         }
         catch (Exception ex)

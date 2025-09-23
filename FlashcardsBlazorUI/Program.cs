@@ -1,12 +1,14 @@
+using FlashcardsAppContracts.DTOs.Responses;
 using FlashcardsBlazorUI.Components;
 using FlashcardsBlazorUI.Services;
 using FlashcardsBlazorUI.Helpers;
 using FlashcardsBlazorUI.Interfaces;
 using Microsoft.AspNetCore.Components.Authorization;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Razor/Blazor
 builder.Services.AddRazorComponents(options =>
     {
         options.DetailedErrors = true; // только для разработки
@@ -20,50 +22,63 @@ builder.Services.AddRazorComponents(options =>
         options.MaxBufferedUnacknowledgedRenderBatches = 10;
     });
 
-// JWT Authentication - регистрируем наш AuthenticationStateProvider
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
+
+// ===== Аутентификация =====
 builder.Services.AddScoped<JwtAuthenticationStateProvider>();
-builder.Services.AddScoped<AuthenticationStateProvider>(provider => 
-    provider.GetRequiredService<JwtAuthenticationStateProvider>());
+builder.Services.AddScoped<AuthenticationStateProvider>(sp =>
+    sp.GetRequiredService<JwtAuthenticationStateProvider>());
 
-// Регистрируем TokenStorageService как SINGLETON (чтобы один экземпляр на всё приложение)
 builder.Services.AddSingleton<ITokenStorageService, TokenStorageService>();
-
-// Регистрируем AuthenticationHandler
 builder.Services.AddTransient<AuthenticationHandler>();
 
-// HTTP клиент ДЛЯ AuthService БЕЗ AuthenticationHandler (избегаем циклическую зависимость)
+// HttpClient для AuthService (без AuthenticationHandler)
 builder.Services.AddHttpClient<IAuthService, AuthService>("AuthServiceClient", client =>
 {
     client.BaseAddress = new Uri("http://localhost:5153/");
 });
 
-// HTTP клиент для ОСТАЛЬНЫХ сервисов С AuthenticationHandler
+// HttpClient для остальных API с токенами
 builder.Services.AddHttpClient("FlashcardsAPI", client =>
 {
-    client.BaseAddress = new Uri("http://localhost:5153/"); 
+    client.BaseAddress = new Uri("http://localhost:5153/");
 }).AddHttpMessageHandler<AuthenticationHandler>();
 
-// УБРАНО: builder.Services.AddScoped<IAuthService, AuthService>(); - дублирование!
-
-// Ваши бизнес-сервисы
+// ===== Бизнес-сервисы =====
+// ✅ Singleton для уведомлений - должен быть первым
 builder.Services.AddSingleton<IGroupNotificationService, GroupNotificationService>();
+
 builder.Services.AddScoped<IGroupOrderService, GroupOrderService>();
 builder.Services.AddScoped<GroupService>();
+
+// ✅ GroupStore теперь зависит от IGroupNotificationService, поэтому регистрируем его после
+builder.Services.AddScoped<GroupStore>(serviceProvider =>
+{
+    var httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
+    var httpClient = httpClientFactory.CreateClient("FlashcardsAPI");
+    var notificationService = serviceProvider.GetRequiredService<IGroupNotificationService>();
+    
+    return new GroupStore(httpClient, notificationService);
+});
+
 builder.Services.AddScoped<CardService>();
 
-// CORS настройки
+// ===== CORS =====
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(builder =>
+    options.AddDefaultPolicy(policy =>
     {
-        builder.WithOrigins("https://localhost:7255", "http://localhost:5081")
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials();
+        policy.WithOrigins("https://localhost:7255", "http://localhost:5081")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
 
-// Базовые сервисы для авторизации
+// ===== Авторизация для Blazor =====
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddAuthorizationCore();
 builder.Services.AddCascadingAuthenticationState();
@@ -72,7 +87,7 @@ var app = builder.Build();
 
 JSBridge.Initialize(app.Services);
 
-// Configure the HTTP request pipeline
+// ===== Middleware =====
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
@@ -82,13 +97,13 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseCors();
 
-// ВАЖНО: Убрали UseAuthentication() и UseAuthorization() 
-// Для Blazor Server с кастомным AuthenticationStateProvider они не нужны
+// Для Blazor Server с кастомным AuthenticationStateProvider
+// UseAuthentication/UseAuthorization не нужны
 
 app.UseAntiforgery();
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
-    .AddInteractiveServerRenderMode();
+   .AddInteractiveServerRenderMode();
 
 app.Run();
