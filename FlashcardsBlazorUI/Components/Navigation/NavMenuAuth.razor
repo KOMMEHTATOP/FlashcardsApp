@@ -1,0 +1,23 @@
+@namespace FlashcardsBlazorUI.Components.Navigation
+@using FlashcardsBlazorUI.Interfaces
+@using Microsoft.AspNetCore.Components.Authorization
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+
+<AuthorizeView>
+    <Authorized>
+        <div class="nav-item px-3">
+            <div class="nav-link" @onclick="Logout" style="cursor:pointer;">
+                <span class="bi bi-box-arrow-right"></span> Выход
+            </div>
+        </div>
+    </Authorized>
+</AuthorizeView>
+
+@code {
+    private async Task Logout()
+    {
+        await AuthService.LogoutAsync();
+        Navigation.NavigateTo("/login", forceLoad: true);
+    }
+}

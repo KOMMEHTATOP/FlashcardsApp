@@ -1,0 +1,68 @@
+@namespace FlashcardsBlazorUI.Components.Navigation.Groups
+@using FlashcardsAppContracts.DTOs.Responses
+@using FlashcardsAppContracts.Constants
+@inject NavigationManager Navigation
+
+<div class="nav-link group-item nav-group-draggable"
+     data-group-id="@Group.Id"
+     @key="@($"{Group.Id}-{Group.Order}")"
+     style="@GetGroupStyle()">
+    
+    <span class="drag-handle" 
+          style="cursor:grab; padding:8px; display:inline-flex; align-items:center; min-width:24px; margin-right:4px;"
+          draggable="true">
+        <i class="bi bi-grip-vertical"></i>
+    </span>
+    
+    <span @onclick="OnToggleExpand" 
+          @onclick:stopPropagation="true"
+          style="flex-grow:1; cursor:pointer; user-select:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+        @Group.GroupName
+    </span>
+    
+    <span style="display:inline-flex; align-items:center; flex-shrink:0; margin-left:8px;">
+        <span class="bi @(IsExpanded ? "bi-chevron-down" : "bi-chevron-right")"
+              style="margin-right:8px; cursor:pointer; font-size:12px;"
+              @onclick="OnToggleExpand"
+              @onclick:stopPropagation="true">
+        </span>
+        <span class="bi bi-box-arrow-up-right" title="Открыть группу"
+              style="cursor:pointer; font-size:12px;"
+              @onclick="OnNavigateToGroup"
+              @onclick:stopPropagation="true">
+        </span>
+    </span>
+</div>
+
+@if (IsExpanded)
+{
+    <GroupCardsList GroupId="Group.Id" ShouldLoad="IsExpanded" />
+}
+
+@code {
+    [Parameter] public ResultGroupDto Group { get; set; } = null!;
+    [Parameter] public bool IsExpanded { get; set; }
+    [Parameter] public EventCallback OnToggleExpand { get; set; }
+
+    private async Task OnNavigateToGroup()
+    {
+        Navigation.NavigateTo($"/groups/{Group.Id}/cards");
+    }
+
+    private string GetGroupStyle()
+    {
+        return $"background-color:{GetColorCode(Group.GroupColor)}; margin:2px 0; border-radius:4px; color:white; display:flex; justify-content:space-between; align-items:center; padding:6px 8px; transition:transform 0.15s ease, opacity 0.15s ease; user-select:none; touch-action:manipulation;";
+    }
+
+    private string GetColorCode(GroupColor color) => color switch
+    {
+        GroupColor.Red => "#dc3545",
+        GroupColor.Green => "#28a745",
+        GroupColor.Yellow => "#ffc107",
+        GroupColor.Orange => "#fd7e14",
+        GroupColor.Purple => "#6f42c1",
+        GroupColor.Pink => "#e83e8c",
+        GroupColor.Black => "#343a40",
+        _ => "#6c757d"
+    };
+}

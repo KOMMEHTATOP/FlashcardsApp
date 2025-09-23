@@ -1,0 +1,76 @@
+@namespace FlashcardsBlazorUI.Components.Navigation.Groups
+@using FlashcardsBlazorUI.Models
+@using FlashcardsBlazorUI.Services
+@inject CardService CardService
+@inject NavigationManager Navigation
+
+<div style="margin-left:20px;">
+    @if (isLoading)
+    {
+        <div class="nav-link" style="color:#999; font-size:0.9em; padding:2px 8px;">
+            Загружаю...
+        </div>
+    }
+    else if (cards.Any())
+    {
+        @foreach (var card in cards)
+        {
+            <div class="nav-link"
+                 style="color:#ccc; font-size:0.9em; padding:2px 8px; cursor:pointer;"
+                 @onclick="@(() => OnCardClick(card.CardId))"
+                 @onclick:stopPropagation="true">
+                @card.Question
+            </div>
+        }
+    }
+    else
+    {
+        <div class="nav-link" style="color:#999; font-size:0.9em; padding:2px 8px;">
+            Нет карточек
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public Guid GroupId { get; set; }
+    [Parameter] public bool ShouldLoad { get; set; }
+    
+    private List<Card> cards = new();
+    private bool isLoading = false;
+    private Guid lastLoadedGroupId = Guid.Empty;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (ShouldLoad && GroupId != Guid.Empty && GroupId != lastLoadedGroupId)
+        {
+            await LoadCards();
+        }
+    }
+    
+    private async Task LoadCards()
+    {
+        if (isLoading) return;
+        
+        isLoading = true;
+        lastLoadedGroupId = GroupId;
+        
+        try
+        {
+            cards = await CardService.GetCardsAsync(GroupId);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"GroupCardsList: ошибка загрузки карточек {GroupId}: {ex.Message}");
+            cards = new List<Card>();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+    
+    private void OnCardClick(Guid cardId)
+    {
+        Navigation.NavigateTo($"/cards/{cardId}");
+    }
+}
