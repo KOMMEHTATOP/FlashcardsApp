@@ -9,7 +9,7 @@ public class GroupStore : IDisposable
 {
     private readonly HttpClient _http;
     private readonly IGroupNotificationService _notificationService;
-    private bool _disposed = false;
+    private bool _disposed;
 
     public List<ResultGroupDto> Groups { get; private set; } = new();
     public event Action? GroupsChanged;
@@ -18,11 +18,7 @@ public class GroupStore : IDisposable
     {
         _http = http;
         _notificationService = notificationService;
-        
-        // Подписываемся на уведомления об изменении порядка групп
         _notificationService.OnGroupsReordered += HandleGroupsReordered;
-        
-        Console.WriteLine("GroupStore: Подписался на уведомления");
     }
 
     public async Task RefreshAsync()
@@ -35,13 +31,11 @@ public class GroupStore : IDisposable
             };
             options.Converters.Add(new JsonStringEnumConverter());
 
-            Console.WriteLine("GroupStore: Загружаю данные из API...");
             var data = await _http.GetFromJsonAsync<List<ResultGroupDto>>("api/group", options);
             
             if (data is not null)
             {
                 Groups = data;
-                Console.WriteLine($"GroupStore: Загружено {Groups.Count} групп, уведомляю подписчиков");
                 GroupsChanged?.Invoke();
             }
         }
@@ -54,9 +48,6 @@ public class GroupStore : IDisposable
 
     private void HandleGroupsReordered(string sourceContainer)
     {
-        Console.WriteLine($"GroupStore: Получено уведомление от {sourceContainer}, обновляю данные");
-        
-        // Асинхронно обновляем данные
         Task.Run(async () =>
         {
             try
@@ -79,7 +70,6 @@ public class GroupStore : IDisposable
         {
             _notificationService.OnGroupsReordered -= HandleGroupsReordered;
             _disposed = true;
-            Console.WriteLine("GroupStore: Отписался от уведомлений");
         }
     }
 }

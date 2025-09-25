@@ -19,6 +19,9 @@ public class JwtAuthenticationStateProvider : AuthenticationStateProvider, IDisp
     private string? _currentToken;
 
     private const string TOKEN_KEY = "jwt_token";
+    
+    private static int _instanceCounter = 0;
+    private readonly int _instanceId;
 
     public JwtAuthenticationStateProvider(
         ProtectedSessionStorage sessionStorage,
@@ -30,16 +33,35 @@ public class JwtAuthenticationStateProvider : AuthenticationStateProvider, IDisp
         _jsRuntime = jsRuntime;
         _logger = logger;
         _tokenStorage = tokenStorage;
-    }
 
+        _instanceId = Interlocked.Increment(ref _instanceCounter);
+        _logger.LogInformation("JwtAuthenticationStateProvider создан, instance {InstanceId}", _instanceId);
+    }
+    
+    // Статические поля для сохранения состояния между экземплярами
+    private static string? _staticToken;
+    private static ClaimsPrincipal? _staticUser;
+    private static readonly object _lock = new();
+
+    
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
-        // Сначала проверяем кешированного пользователя
-        if (_cachedUser.Identity?.IsAuthenticated == true)
+        _logger.LogInformation("GetAuthenticationStateAsync вызван в instance {InstanceId}, _cachedUser.IsAuthenticated = {IsAuth}", 
+            _instanceId, _cachedUser.Identity?.IsAuthenticated);
+        
+        lock (_lock)
         {
-            return new AuthenticationState(_cachedUser);
+            if (_staticUser?.Identity?.IsAuthenticated == true && !string.IsNullOrEmpty(_staticToken))
+            {
+                _cachedUser = _staticUser;
+                _currentToken = _staticToken;
+                _tokenStorage.SetToken(_staticToken);
+                StartTokenExpiryTimer(_staticToken);
+                _logger.LogInformation("Instance {InstanceId}: Восстановлено состояние из статического кеша", _instanceId);
+                return new AuthenticationState(_staticUser);
+            }
         }
-
+        
         // Проверяем, можем ли мы использовать JavaScript interop
         // Во время prerendering JavaScript недоступен
         try
@@ -48,7 +70,6 @@ public class JwtAuthenticationStateProvider : AuthenticationStateProvider, IDisp
         }
         catch (InvalidOperationException)
         {
-            // JavaScript недоступен (prerendering), возвращаем анонимного пользователя
             return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
         }
 
@@ -82,27 +103,30 @@ public class JwtAuthenticationStateProvider : AuthenticationStateProvider, IDisp
     public async Task<bool> LoginAsync(string token)
     {
         var user = await ValidateAndCreateUser(token);
-        
+    
         if (user.Identity?.IsAuthenticated != true)
-        {
             return false;
-        }
 
         try
         {
-            // Сохраняем токен в ProtectedSessionStorage
             await _sessionStorage.SetAsync(TOKEN_KEY, token);
-            
-            // ВАЖНО: Сохраняем токен в scoped service для AuthenticationHandler
             _tokenStorage.SetToken(token);
-            
+        
+            // Сохраняем в instance переменные
             _cachedUser = user;
             _currentToken = token;
+        
+            // ВАЖНО: Сохраняем статически для других экземпляров
+            lock (_lock)
+            {
+                _staticToken = token;
+                _staticUser = user;
+            }
+        
             StartTokenExpiryTimer(token);
-            
             NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(user)));
-            
-            _logger.LogInformation("Пользователь успешно аутентифицирован");
+        
+            _logger.LogInformation("Instance {InstanceId}: Пользователь успешно аутентифицирован", _instanceId);
             return true;
         }
         catch (Exception ex)
@@ -112,19 +136,29 @@ public class JwtAuthenticationStateProvider : AuthenticationStateProvider, IDisp
         }
     }
 
+    
     public async Task LogoutAsync()
     {
+        _logger.LogInformation("Instance {InstanceId}: LogoutAsync вызван", _instanceId);
+
         try
         {
             await ClearStoredToken();
-            _tokenStorage.ClearToken(); // Очищаем из scoped service
+            _tokenStorage.ClearToken();
             StopTokenExpiryTimer();
-            
+        
             _cachedUser = new ClaimsPrincipal(new ClaimsIdentity());
             _currentToken = null;
-            
+        
+            // Очищаем статический кеш
+            lock (_lock)
+            {
+                _staticToken = null;
+                _staticUser = null;
+            }
+        
             NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(_cachedUser)));
-            
+        
             _logger.LogInformation("Пользователь успешно вышел из системы");
         }
         catch (Exception ex)
@@ -132,7 +166,7 @@ public class JwtAuthenticationStateProvider : AuthenticationStateProvider, IDisp
             _logger.LogError(ex, "Ошибка при выходе из системы");
         }
     }
-
+    
     public async Task<string?> GetTokenAsync()
     {
         if (!string.IsNullOrEmpty(_currentToken))

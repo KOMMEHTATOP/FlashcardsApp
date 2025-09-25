@@ -40,7 +40,6 @@
     {
         InvokeAsync(async () =>
         {
-            Console.WriteLine("GroupsDragDropManager: Получено уведомление об изменении групп");
             if (IsActive)
             {
                 await Task.Delay(200);
@@ -51,7 +50,6 @@
 
     private async Task InitializeDragDrop()
     {
-        Console.WriteLine("GroupsDragDropManager: InitializeDragDrop() вызван");
         try
         {
             var token = await AuthService.GetTokenAsync();
@@ -66,7 +64,6 @@
                     TrashSelector);
                 
                 isInitialized = true;
-                Console.WriteLine($"GroupsDragDropManager: Drag&drop инициализирован для {ContainerSelector}");
             }
             else
             {
@@ -81,7 +78,6 @@
 
     private async Task ReinitializeDragDrop()
     {
-        Console.WriteLine("GroupsDragDropManager: ReinitializeDragDrop() вызван");
         try
         {
             var token = await AuthService.GetTokenAsync();
@@ -94,7 +90,6 @@
                     ItemSelector,
                     ApiEndpoint,
                     TrashSelector);
-                Console.WriteLine("GroupsDragDropManager: Drag&drop реинициализирован");
             }
         }
         catch (Exception ex)

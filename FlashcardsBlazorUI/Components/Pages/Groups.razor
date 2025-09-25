@@ -109,7 +109,6 @@ else
     {
         InvokeAsync(async () =>
         {
-            Console.WriteLine("Groups.razor: Получено уведомление об изменении групп");
             StateHasChanged();
         
             await Task.Delay(200);
@@ -130,7 +129,6 @@ else
                     ".group-card",
                     "http://localhost:5153/api/group/reorder",
                     ".trash-zone");
-                Console.WriteLine("Groups.razor: Drag&drop инициализирован");
             }
         }
         catch (Exception ex)
