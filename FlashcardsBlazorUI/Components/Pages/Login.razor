@@ -89,7 +89,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // Проверяем, авторизован ли пользователь ТОЛЬКО при первой загрузке
         if (AuthenticationState != null)
         {
             try
@@ -97,19 +96,15 @@
                 var authState = await AuthenticationState;
                 if (authState.User.Identity?.IsAuthenticated == true)
                 {
-                    Console.WriteLine("[Login] Пользователь уже авторизован, перенаправляем");
                     shouldRedirect = true;
                     StateHasChanged();
-                    
-                    // Добавляем небольшую задержку и используем forceLoad
                     await Task.Delay(100);
-                    Navigation.NavigateTo("/groups", forceLoad: true);
+                    Navigation.NavigateTo("/groups");
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                Console.WriteLine($"[Login] Ошибка проверки авторизации: {ex.Message}");
-                // Игнорируем ошибку и показываем форму входа
+                // Игнорируем ошибки и показываем форму входа
             }
         }
     }
@@ -122,31 +117,22 @@
             errorMessage = "";
             StateHasChanged();
 
-            Console.WriteLine("[Login] Начинаем процесс входа");
-
             var loginResponse = await AuthService.LoginAsync(loginRequest.Email, loginRequest.Password);
             
             if (loginResponse != null)
             {
-                Console.WriteLine("[Login] Логин успешен, устанавливаем флаг перенаправления");
                 shouldRedirect = true;
                 StateHasChanged();
-                
-                // Даем время на обновление состояния авторизации
                 await Task.Delay(500);
-                
-                Console.WriteLine("[Login] Выполняем перенаправление");
-                Navigation.NavigateTo("/groups", forceLoad: true);
+                Navigation.NavigateTo("/groups");
             }
             else
             {
-                Console.WriteLine("[Login] Ошибка входа - неверные данные");
                 errorMessage = "Неверные учетные данные";
             }
         }
-        catch (Exception ex)
+        catch
         {
-            Console.WriteLine($"[Login] Исключение: {ex}");
             errorMessage = "Произошла ошибка при входе в систему";
         }
         finally

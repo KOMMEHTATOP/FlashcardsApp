@@ -1,0 +1,28 @@
+@using FlashcardsBlazorUI.Interfaces
+@using Microsoft.AspNetCore.Components.Authorization
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<AuthorizeView>
+    <NotAuthorized>
+        <NavLink class="btn btn-outline-light btn-sm" href="/login">
+            <span class="bi bi-person-fill"></span> Вход
+        </NavLink>
+    </NotAuthorized>
+    <Authorized>
+        <span class="text-light me-3">@context.User.Identity?.Name</span>
+        <button class="btn btn-outline-light btn-sm" @onclick="Logout">
+            <span class="bi bi-box-arrow-right"></span> Выход
+        </button>
+    </Authorized>
+</AuthorizeView>
+
+@code {
+    private async Task Logout()
+    {
+        Console.WriteLine("[AuthButton] Logout вызван");
+        await AuthService.LogoutAsync();
+        Navigation.NavigateTo("/login", forceLoad: true);
+    }
+}
