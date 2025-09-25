@@ -14,6 +14,17 @@
 
 <PageTitle>Группы карточек</PageTitle>
 
+<style>
+    body, .blazor-server-app {
+        background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 50%, #6c7b7d 100%);
+        min-height: 100vh;
+    }
+    
+    .page-content {
+        background: transparent;
+    }
+</style>
+
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h3>Мои группы карточек</h3>
     <button class="btn btn-success" @onclick="CreateNewGroup">
@@ -38,16 +49,13 @@ else
         @foreach (var group in GroupStore.Groups.OrderBy(g => g.Order))
         {
             <div class="col-md-4 mb-3" @key="@($"{group.Id}-{group.Order}")">
-                <div class="card group-card" data-group-id="@group.Id" style="cursor: move;">
+                <div class="card group-card" data-group-id="@group.Id" 
+                     style="cursor: move; background: @GetGradientStyle(group.GroupColor); color: @GetTextColor(group.GroupColor);">
                     <div class="card-body">
                         <h5 class="card-title">@group.GroupName</h5>
                         <p class="card-text">
-                            <small class="text-muted">Создана: @group.CreatedAt.ToString("dd.MM.yyyy")</small>
+                            <small style="color: @GetTextColor(group.GroupColor); opacity: 0.8;">Создана: @group.CreatedAt.ToString("dd.MM.yyyy")</small>
                         </p>
-                        <span class="badge" style="background-color:@GetColorCode(group.GroupColor)">
-                            @GetColorDisplayName(group.GroupColor)
-                        </span>
-                        <br /><br />
                         <button class="btn btn-primary btn-sm" @onclick="() => ViewCards(group.Id)">
                             Открыть карточки
                         </button>
@@ -120,6 +128,9 @@ else
     {
         try
         {
+            // Проверяем доступность JavaScript interop
+            await JSRuntime.InvokeVoidAsync("eval", "null");
+        
             var token = await AuthService.GetTokenAsync();
             if (!string.IsNullOrEmpty(token))
             {
@@ -131,12 +142,16 @@ else
                     ".trash-zone");
             }
         }
+        catch (InvalidOperationException)
+        {
+            // JavaScript interop недоступен (prerendering), игнорируем
+        }
         catch (Exception ex)
         {
             Console.WriteLine($"Groups.razor: Ошибка инициализации drag&drop: {ex.Message}");
         }
     }
-
+    
     private void CreateNewGroup() => showCreateForm = true;
 
     private async Task OnGroupCreated()
@@ -149,16 +164,24 @@ else
     private void ViewCards(Guid groupId) =>
         Navigation.NavigateTo($"/groups/{groupId}/cards");
 
-    private string GetColorCode(GroupColor color) => color switch
+    private string GetGradientStyle(GroupColor color) => color switch
     {
-        GroupColor.Red => "#dc3545",
-        GroupColor.Green => "#28a745",
-        GroupColor.Yellow => "#ffc107",
-        GroupColor.Orange => "#fd7e14",
-        GroupColor.Purple => "#6f42c1",
-        GroupColor.Pink => "#e83e8c",
-        GroupColor.Black => "#343a40",
-        _ => "#6c757d"
+        GroupColor.Red => "linear-gradient(135deg, #dc3545 0%, #c82333 100%)",
+        GroupColor.Green => "linear-gradient(135deg, #28a745 0%, #20c997 100%)",
+        GroupColor.Yellow => "linear-gradient(135deg, #ffc107 0%, #ffed4e 100%)",
+        GroupColor.Orange => "linear-gradient(135deg, #fd7e14 0%, #ff9500 100%)",
+        GroupColor.Purple => "linear-gradient(135deg, #6f42c1 0%, #8e44ad 100%)",
+        GroupColor.Pink => "linear-gradient(135deg, #e83e8c 0%, #f06292 100%)",
+        GroupColor.Black => "linear-gradient(135deg, #343a40 0%, #495057 100%)",
+        _ => "linear-gradient(135deg, #6c757d 0%, #868e96 100%)"
+    };
+
+    private string GetTextColor(GroupColor color) => color switch
+    {
+        GroupColor.Yellow => "#000000",
+        GroupColor.Orange => "#000000",
+        GroupColor.Pink => "#000000",
+        _ => "#ffffff"
     };
 
     private string GetColorDisplayName(GroupColor color) => color switch
