@@ -56,9 +56,6 @@ else
                         <p class="card-text">
                             <small style="color: @GetTextColor(group.GroupColor); opacity: 0.8;">Создана: @group.CreatedAt.ToString("dd.MM.yyyy")</small>
                         </p>
-                        <button class="btn btn-primary btn-sm" @onclick="() => ViewCards(group.Id)">
-                            Открыть карточки
-                        </button>
                     </div>
                 </div>
             </div>
@@ -182,18 +179,6 @@ else
         GroupColor.Orange => "#000000",
         GroupColor.Pink => "#000000",
         _ => "#ffffff"
-    };
-
-    private string GetColorDisplayName(GroupColor color) => color switch
-    {
-        GroupColor.Red => "Красный",
-        GroupColor.Green => "Зеленый",
-        GroupColor.Yellow => "Желтый",
-        GroupColor.Orange => "Оранжевый",
-        GroupColor.Purple => "Фиолетовый",
-        GroupColor.Pink => "Розовый",
-        GroupColor.Black => "Черный",
-        _ => "Серый"
     };
 
     public void Dispose()

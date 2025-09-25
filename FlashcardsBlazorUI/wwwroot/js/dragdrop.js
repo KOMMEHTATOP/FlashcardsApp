@@ -51,11 +51,63 @@
                 dragHandle.draggable = true;
                 dragHandle.style.cursor = 'grab';
 
+                // Переменные для отслеживания клика vs drag
+                let mouseDownTime = 0;
+                let mouseDownPos = { x: 0, y: 0 };
+                let isDragStarted = false;
+                let dragTimer = null;
+
+                // Для карточек групп (не навигационное меню) добавляем обработку кликов
+                if (containerSelector === '#groups-container') {
+                    item.addEventListener('mousedown', function(e) {
+                        mouseDownTime = Date.now();
+                        mouseDownPos = { x: e.clientX, y: e.clientY };
+                        isDragStarted = false;
+
+                        // Таймер для определения начала drag (если мышь не отпустили за 150ms)
+                        dragTimer = setTimeout(() => {
+                            isDragStarted = true;
+                        }, 150);
+                    });
+
+                    item.addEventListener('mouseup', function(e) {
+                        const timeDiff = Date.now() - mouseDownTime;
+                        const distance = Math.sqrt(
+                            Math.pow(e.clientX - mouseDownPos.x, 2) +
+                            Math.pow(e.clientY - mouseDownPos.y, 2)
+                        );
+
+                        if (dragTimer) {
+                            clearTimeout(dragTimer);
+                            dragTimer = null;
+                        }
+
+                        // Если это быстрый клик (< 150ms) и мышь почти не двигалась (< 5px)
+                        if (timeDiff < 150 && distance < 5 && !isDragStarted) {
+                            const groupId = item.dataset.groupId;
+                            if (groupId) {
+                                window.location.href = `/groups/${groupId}/cards`;
+                            }
+                        }
+
+                        isDragStarted = false;
+                    });
+
+                    item.addEventListener('mouseleave', function() {
+                        if (dragTimer) {
+                            clearTimeout(dragTimer);
+                            dragTimer = null;
+                        }
+                    });
+                }
+
                 dragHandle.addEventListener('dragstart', function (e) {
                     if (globalDeletionInProgress) {
                         e.preventDefault();
                         return;
                     }
+
+                    isDragStarted = true;
                     dragged = item;
                     e.dataTransfer.effectAllowed = 'move';
                     try {
@@ -73,6 +125,7 @@
                     if (dragged === this) {
                         dragged = null;
                     }
+                    isDragStarted = false;
                 });
 
                 item.addEventListener('dragover', function (e) {

@@ -6,12 +6,26 @@
 @inject GroupService GroupService
 @inject CardService CardService
 @inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
 @rendermode InteractiveServer
 
 <PageTitle>@(currentGroup?.GroupName ?? "Карточки группы")</PageTitle>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h3>Карточки группы</h3>
+    <h3>
+        @if (currentGroup != null)
+        {
+            @currentGroup.GroupName
+        }
+        else if (isLoadingGroup)
+        {
+            <span>Загружаю группу...</span>
+        }
+        else
+        {
+            <span>Группа не найдена</span>
+        }
+    </h3>
     <div>
         @if (!showCreateForm)
         {
@@ -100,13 +114,64 @@ else
                                 @onclick="() => ViewCard(card.CardId)">
                             <span class="bi bi-eye"></span> Изучать
                         </button>
-                        <button class="btn btn-outline-secondary btn-sm">
+                        <button class="btn btn-outline-secondary btn-sm me-2"
+                                @onclick="() => StartEditCard(card)">
                             <span class="bi bi-pencil"></span> Изменить
+                        </button>
+                        <button class="btn btn-outline-danger btn-sm"
+                                @onclick="() => DeleteCard(card)">
+                            <span class="bi bi-trash"></span> Удалить
                         </button>
                     </div>
                 </div>
             </div>
         }
+    </div>
+}
+
+@if (showEditModal && cardToEdit != null)
+{
+    <div class="modal show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Редактирование карточки</h5>
+                    <button type="button" class="btn-close" @onclick="CancelEdit"></button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="editCard" OnValidSubmit="HandleEditSubmit">
+                        <DataAnnotationsValidator />
+                        
+                        <div class="mb-3">
+                            <label for="edit-question" class="form-label">Вопрос <span class="text-danger">*</span></label>
+                            <InputTextArea id="edit-question" class="form-control" @bind-Value="editCard.Question" 
+                                           rows="3" />
+                            <ValidationMessage For="() => editCard.Question" class="text-danger" />
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="edit-answer" class="form-label">Ответ <span class="text-danger">*</span></label>
+                            <InputTextArea id="edit-answer" class="form-control" @bind-Value="editCard.Answer" 
+                                           rows="4" />
+                            <ValidationMessage For="() => editCard.Answer" class="text-danger" />
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary" disabled="@isEditSubmitting">
+                                @if (isEditSubmitting)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2"></span>
+                                }
+                                Сохранить изменения
+                            </button>
+                            <button type="button" class="btn btn-secondary" @onclick="CancelEdit">
+                                Отмена
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
     </div>
 }
 
@@ -119,9 +184,14 @@ else
     private ResultGroupDto? currentGroup;
     private List<Card>? cards;
     private bool isLoading = true;
+    private bool isLoadingGroup = true;
     private bool showCreateForm;
     private bool isSubmitting;
+    private bool showEditModal;
+    private bool isEditSubmitting;
+    private Card? cardToEdit;
     private CreateCardDto newCard = new() { Answer = "", Question = "" };
+    private CreateCardDto editCard = new() { Answer = "", Question = "" };
     
     protected override async Task OnInitializedAsync()
     {
@@ -133,12 +203,17 @@ else
     {
         try
         {
+            isLoadingGroup = true;
             currentGroup = await GroupService.GetGroupAsync(GroupId);
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Ошибка загрузки группы: {ex.Message}");
             currentGroup = null;
+        }
+        finally
+        {
+            isLoadingGroup = false;
         }
     }
     
@@ -206,6 +281,75 @@ else
     private void ViewCard(Guid cardId)
     {
         Navigation.NavigateTo($"/cards/{cardId}");
+    }
+
+    private void StartEditCard(Card card)
+    {
+        cardToEdit = card;
+        editCard = new CreateCardDto
+        {
+            Question = card.Question,
+            Answer = card.Answer
+        };
+        showEditModal = true;
+    }
+
+    private void CancelEdit()
+    {
+        showEditModal = false;
+        cardToEdit = null;
+        editCard = new CreateCardDto() { Answer = "", Question = "" };
+    }
+
+    private async Task HandleEditSubmit()
+    {
+        if (cardToEdit == null) return;
+        
+        try
+        {
+            isEditSubmitting = true;
+            
+            var cardDto = new CreateCardDto
+            {
+                Question = editCard.Question.Trim(),
+                Answer = editCard.Answer.Trim()
+            };
+
+            await CardService.UpdateCardAsync(cardToEdit.CardId, cardDto);
+            
+            showEditModal = false;
+            cardToEdit = null;
+            editCard = new CreateCardDto() { Answer = "", Question = "" };
+            await LoadCards();
+            
+            Console.WriteLine("Карточка успешно обновлена");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка обновления карточки: {ex.Message}");
+        }
+        finally
+        {
+            isEditSubmitting = false;
+        }
+    }
+
+    private async Task DeleteCard(Card card)
+    {
+        if (!await JSRuntime.InvokeAsync<bool>("confirm", "Вы действительно хотите удалить эту карточку?"))
+            return;
+
+        try
+        {
+            await CardService.DeleteCardAsync(card.CardId);
+            await LoadCards();
+            Console.WriteLine("Карточка успешно удалена");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка удаления карточки: {ex.Message}");
+            await JSRuntime.InvokeVoidAsync("alert", "Произошла ошибка при удалении карточки");
+        }
     }
 
     private void GoBack()

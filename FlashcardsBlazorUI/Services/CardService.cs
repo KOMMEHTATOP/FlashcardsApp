@@ -36,6 +36,21 @@ namespace FlashcardsBlazorUI.Services
             return JsonSerializer.Deserialize<Card>(responseJson, _jsonOptions)!;
         }
 
+        public async Task<Card> UpdateCardAsync(Guid cardId, CreateCardDto cardDto)
+        {
+            var response = await PutAsJsonAsync($"api/cards/{cardId}", cardDto);
+            response.EnsureSuccessStatusCode();
+
+            var responseJson = await response.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<Card>(responseJson, _jsonOptions)!;
+        }
+
+        public async Task DeleteCardAsync(Guid cardId)
+        {
+            var response = await DeleteAsync($"api/cards/{cardId}");
+            response.EnsureSuccessStatusCode();
+        }
+
         public async Task<List<CardRating>> GetCardRatingsAsync(Guid cardId)
         {
             var response = await GetAsync($"api/cards/{cardId}/ratings");
