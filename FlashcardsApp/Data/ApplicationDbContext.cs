@@ -19,6 +19,7 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
     public DbSet<Card> Cards { get; set; }
     public DbSet<Group> Groups { get; set; }
     public DbSet<CardRating> CardRatings { get; set; }
+    public DbSet<StudySettings> StudySettings { get; set; }
 
     // Метод для настройки связей между таблицами
     protected override void OnModelCreating(ModelBuilder modelBuilder)
