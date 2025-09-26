@@ -1,10 +1,12 @@
-using FlashcardsAppContracts.DTOs.Responses;
+using FlashcardsApp.Services;
 using FlashcardsBlazorUI.Components;
 using FlashcardsBlazorUI.Services;
 using FlashcardsBlazorUI.Helpers;
 using FlashcardsBlazorUI.Interfaces;
 using Microsoft.AspNetCore.Components.Authorization;
 using System.Text.Json.Serialization;
+using CardService = FlashcardsBlazorUI.Services.CardService;
+using GroupService = FlashcardsBlazorUI.Services.GroupService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -48,13 +50,12 @@ builder.Services.AddHttpClient("FlashcardsAPI", client =>
 }).AddHttpMessageHandler<AuthenticationHandler>();
 
 // ===== Бизнес-сервисы =====
-// ✅ Singleton для уведомлений - должен быть первым
 builder.Services.AddSingleton<IGroupNotificationService, GroupNotificationService>();
-
 builder.Services.AddScoped<IGroupOrderService, GroupOrderService>();
 builder.Services.AddScoped<GroupService>();
+builder.Services.AddScoped<StudySettingsService>();
+builder.Services.AddScoped<CardService>();
 
-// ✅ GroupStore теперь зависит от IGroupNotificationService, поэтому регистрируем его после
 builder.Services.AddScoped<GroupStore>(serviceProvider =>
 {
     var httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
@@ -64,7 +65,6 @@ builder.Services.AddScoped<GroupStore>(serviceProvider =>
     return new GroupStore(httpClient, notificationService);
 });
 
-builder.Services.AddScoped<CardService>();
 
 // ===== CORS =====
 builder.Services.AddCors(options =>

@@ -3,6 +3,7 @@ using System;
 using FlashcardsApp.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FlashcardsApp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250926073337_AddLimitToPresetName")]
+    partial class AddLimitToPresetName
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -128,9 +131,6 @@ namespace FlashcardsApp.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<int>("CompletionThreshold")
-                        .HasColumnType("integer");
-
                     b.Property<Guid?>("GroupId")
                         .HasColumnType("uuid");
 
@@ -143,9 +143,6 @@ namespace FlashcardsApp.Migrations
                     b.Property<string>("PresetName")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
-
-                    b.Property<bool>("ShuffleOnRepeat")
-                        .HasColumnType("boolean");
 
                     b.Property<int>("StudyOrder")
                         .HasColumnType("integer");

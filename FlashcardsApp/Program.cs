@@ -65,6 +65,7 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 builder.Services.AddScoped<GroupService>();
 builder.Services.AddScoped<CardService>();
 builder.Services.AddScoped<CardRatingService>();
+builder.Services.AddScoped<StudySettingsService>();
 
 builder.Services.AddCors(options =>
 {

@@ -11,4 +11,8 @@ public class ResultSettingsDto
 
     public int MinRating { get; set; }
     public int MaxRating { get; set; }
+    
+    public int CompletionThreshold { get; set; } = 4;
+    
+    public bool ShuffleOnRepeat { get; set; } = true;
 }

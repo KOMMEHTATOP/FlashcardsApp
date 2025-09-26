@@ -1,12 +1,7 @@
 using FlashcardsAppContracts.DTOs.Requests;
-namespace FlashcardsBlazorUI.Services;
+using FlashcardsBlazorUI.Interfaces;
 
-public interface IGroupOrderService
-{
-    event Action OnGroupsReordered;
-    Task<bool> ReorderGroupsAsync(List<ReorderGroupDto> reorderList);
-    void NotifyGroupsReordered();
-}
+namespace FlashcardsBlazorUI.Services;
 
 public class GroupOrderService : IGroupOrderService
 {

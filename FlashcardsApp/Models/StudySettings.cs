@@ -15,6 +15,9 @@ public class StudySettings
 
     public int MinRating { get; set; }
     public int MaxRating { get; set; }
+    
+    public int CompletionThreshold { get; set; } = 5;
+    public bool ShuffleOnRepeat { get; set; } = true;
 
     public User? User { get; set; }
     public Group? Group { get; set; }

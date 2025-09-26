@@ -15,6 +15,8 @@ public static class SettingsMapper
             PresetName = studySettings.PresetName,
             MinRating = studySettings.MinRating,
             MaxRating = studySettings.MaxRating,
+            CompletionThreshold = studySettings.CompletionThreshold,
+            ShuffleOnRepeat = studySettings.ShuffleOnRepeat,
         };
     }
 }

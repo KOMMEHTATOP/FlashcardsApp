@@ -8,6 +8,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\FlashcardsAppContracts\FlashcardsAppContracts.csproj" />
+      <ProjectReference Include="..\FlashcardsApp\FlashcardsApp.csproj" />
     </ItemGroup>
 
     <ItemGroup>
