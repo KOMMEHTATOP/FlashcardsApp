@@ -16,7 +16,7 @@ public class CardRatingService
         _context = context;
     }
     
-    public async Task<ServiceResult<IEnumerable<ResultCardRating>>> GetCardRatingsAsync(Guid userId, Guid cardId)
+    public async Task<ServiceResult<IEnumerable<ResultCardRatingDto>>> GetCardRatingsAsync(Guid userId, Guid cardId)
     {
         var card = await _context.Cards
             .AsNoTracking()
@@ -25,19 +25,19 @@ public class CardRatingService
 
         if (card == null)
         {
-            return ServiceResult<IEnumerable<ResultCardRating>>.Failure("Card not found or access denied");
+            return ServiceResult<IEnumerable<ResultCardRatingDto>>.Failure("Card not found or access denied");
         }
 
         var ratings = card.Ratings?.Select(r => r.ToDto()) ?? [];
 
-        return ServiceResult<IEnumerable<ResultCardRating>>.Success(ratings);
+        return ServiceResult<IEnumerable<ResultCardRatingDto>>.Success(ratings);
     }
 
-    public async Task<ServiceResult<ResultCardRating>> CreateCardRatingAsync(Guid cardId, Guid userId, CreateCardRatingDto dto)
+    public async Task<ServiceResult<ResultCardRatingDto>> CreateCardRatingAsync(Guid cardId, Guid userId, CreateCardRatingDto dto)
     {
         if (dto.Rating is < 1 or > 5)
         {
-            return ServiceResult<ResultCardRating>.Failure("Rating must be between 1 and 5");
+            return ServiceResult<ResultCardRatingDto>.Failure("Rating must be between 1 and 5");
         }
         
         var card = await _context.Cards
@@ -45,7 +45,7 @@ public class CardRatingService
 
         if (card == null)
         {
-            return ServiceResult<ResultCardRating>.Failure("Card not found or access denied");
+            return ServiceResult<ResultCardRatingDto>.Failure("Card not found or access denied");
         }
 
         var newRating = new CardRating
@@ -59,6 +59,6 @@ public class CardRatingService
 
         _context.CardRatings.Add(newRating);
         await _context.SaveChangesAsync();
-        return ServiceResult<ResultCardRating>.Success(newRating.ToDto());
+        return ServiceResult<ResultCardRatingDto>.Success(newRating.ToDto());
     }
 }

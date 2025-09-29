@@ -1,6 +1,6 @@
 namespace FlashcardsAppContracts.DTOs.Responses;
 
-public class ResultCardRating
+public class ResultCardRatingDto
 {
     public Guid CardId { get; set; }
     public Guid UserId { get; set; }

@@ -5,9 +5,9 @@ namespace FlashcardsApp.Mapping;
 
 public static class CardRatingMapper
 {
-    public static ResultCardRating ToDto(this CardRating model)
+    public static ResultCardRatingDto ToDto(this CardRating model)
     {
-        return new ResultCardRating
+        return new ResultCardRatingDto
         {
             CardId = model.CardId, 
             UserId = model.UserId,

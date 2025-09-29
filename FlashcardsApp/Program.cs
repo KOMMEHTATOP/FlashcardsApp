@@ -66,12 +66,14 @@ builder.Services.AddScoped<GroupService>();
 builder.Services.AddScoped<CardService>();
 builder.Services.AddScoped<CardRatingService>();
 builder.Services.AddScoped<StudySettingsService>();
+builder.Services.AddScoped<StudySessionService>();
+
 
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(builder =>
+    options.AddDefaultPolicy(creator =>
     {
-        builder.WithOrigins("https://localhost:7255", "http://localhost:5081")
+        creator.WithOrigins("https://localhost:7255", "http://localhost:5081")
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials(); 
