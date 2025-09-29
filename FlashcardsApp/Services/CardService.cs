@@ -42,7 +42,20 @@ public class CardService
         var cards = await _context.Cards
             .AsNoTracking()
             .Where(c => c.GroupId == groupId && c.UserId == userId)
+            .Include(c => c.Ratings) 
             .OrderBy(c => c.CreatedAt)
+            .Select(c => new ResultCardDto
+            {
+                CardId = c.CardId,
+                GroupId = c.GroupId,
+                Question = c.Question,
+                Answer = c.Answer,
+                CreatedAt = c.CreatedAt,
+                UpdatedAt = c.UpdatedAt,
+                LastRating = c.Ratings != null && c.Ratings.Any()
+                    ? c.Ratings.OrderByDescending(r => r.CreatedAt).First().Rating
+                    : 0
+            })
             .ToListAsync();
 
         if (!cards.Any())
@@ -56,9 +69,9 @@ public class CardService
             }
         }
 
-        return ServiceResult<IEnumerable<ResultCardDto>>.Success(cards.Select(c => c.ToDto()));
+        return ServiceResult<IEnumerable<ResultCardDto>>.Success(cards);
     }
-
+    
     public async Task<ServiceResult<ResultCardDto>> GetCardAsync(Guid cardId, Guid userId)
     {
         var card = await _context.Cards

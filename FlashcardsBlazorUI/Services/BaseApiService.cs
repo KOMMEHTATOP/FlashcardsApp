@@ -19,7 +19,6 @@ namespace FlashcardsBlazorUI.Services
             };
         }
 
-        // Общий метод для обработки HTTP запросов
         protected async Task<HttpResponseMessage> SendRequestAsync(Func<Task<HttpResponseMessage>> request)
         {
             var response = await request();
@@ -32,7 +31,6 @@ namespace FlashcardsBlazorUI.Services
             return response;
         }
 
-        // HTTP методы - токен автоматически добавляется через AuthenticationHandler
         protected async Task<HttpResponseMessage> GetAsync(string requestUri)
         {
             return await SendRequestAsync(() => _httpClient.GetAsync(requestUri));
@@ -40,12 +38,12 @@ namespace FlashcardsBlazorUI.Services
 
         protected async Task<HttpResponseMessage> PostAsJsonAsync<T>(string requestUri, T value)
         {
-            return await SendRequestAsync(() => _httpClient.PostAsJsonAsync(requestUri, value));
+            return await SendRequestAsync(() => _httpClient.PostAsJsonAsync(requestUri, value, _jsonOptions));
         }
 
         protected async Task<HttpResponseMessage> PutAsJsonAsync<T>(string requestUri, T value)
         {
-            return await SendRequestAsync(() => _httpClient.PutAsJsonAsync(requestUri, value));
+            return await SendRequestAsync(() => _httpClient.PutAsJsonAsync(requestUri, value, _jsonOptions));
         }
 
         protected async Task<HttpResponseMessage> DeleteAsync(string requestUri)

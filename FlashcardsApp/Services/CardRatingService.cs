@@ -61,4 +61,24 @@ public class CardRatingService
         await _context.SaveChangesAsync();
         return ServiceResult<ResultCardRatingDto>.Success(newRating.ToDto());
     }
+    
+    public async Task<ServiceResult<bool>> DeleteCardRatingsAsync(Guid cardId, Guid userId)
+    {
+        var card = await _context.Cards
+            .Include(c => c.Ratings)
+            .FirstOrDefaultAsync(c => c.CardId == cardId && c.UserId == userId);
+
+        if (card == null)
+        {
+            return ServiceResult<bool>.Failure("Card not found");
+        }
+
+        if (card.Ratings != null && card.Ratings.Any())
+        {
+            _context.CardRatings.RemoveRange(card.Ratings);
+            await _context.SaveChangesAsync();
+        }
+
+        return ServiceResult<bool>.Success(true);
+    }
 }

@@ -103,7 +103,21 @@ else
             <div class="col-md-6 mb-3">
                 <div class="card h-100">
                     <div class="card-body">
-                        <h6 class="card-subtitle mb-2 text-muted">Вопрос:</h6>
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="card-subtitle text-muted">Вопрос:</h6>
+                            @if (card.LastRating > 0)
+                            {
+                                <span class="badge bg-warning text-dark">
+                                    <i class="bi bi-star-fill"></i> @card.LastRating
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">
+                                    <i class="bi bi-star"></i> Не оценена
+                                </span>
+                            }
+                        </div>
                         <h5 class="card-title">@card.Question</h5>
                         <h6 class="card-subtitle mb-2 text-muted">Ответ:</h6>
                         <p class="card-text">@card.Answer</p>
@@ -112,7 +126,7 @@ else
                     <div class="card-footer bg-light">
                         <button class="btn btn-outline-primary btn-sm me-2" 
                                 @onclick="() => ViewCard(card.CardId)">
-                            <span class="bi bi-eye"></span> Изучать
+                            <span class="bi bi-eye"></span> Посмотреть
                         </button>
                         <button class="btn btn-outline-secondary btn-sm me-2"
                                 @onclick="() => StartEditCard(card)">

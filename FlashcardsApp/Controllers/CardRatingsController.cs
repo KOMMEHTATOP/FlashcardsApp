@@ -49,6 +49,20 @@ namespace FlashcardsApp.Controllers
             return Ok(result.Data);
         }
 
+        [HttpDelete]
+        public async Task<IActionResult> DeleteRatings(Guid cardId)
+        {
+            var userId = GetCurrentUserId();
+            var result = await _cardRatingService.DeleteCardRatingsAsync(cardId, userId);
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result.Errors);
+            }
+
+            return NoContent();
+        }
+        
 
         private Guid GetCurrentUserId()
         {

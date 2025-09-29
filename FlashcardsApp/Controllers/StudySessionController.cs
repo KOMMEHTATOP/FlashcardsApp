@@ -22,10 +22,10 @@ namespace FlashcardsApp.Controllers
         }
 
         [HttpPost("start")]
-        public async Task<ActionResult<ResultStudySessionDto>> StartSession([FromQuery] Guid groupId)
+        public async Task<ActionResult<ResultStudySessionDto>> StartSession([FromQuery] Guid groupId, [FromQuery] bool useDefaultSettings = false)
         {
             var userId = GetCurrentUserId();
-            var result = await _studySessionService.StartSessionAsync(userId, groupId);
+            var result = await _studySessionService.StartSessionAsync(userId, groupId, useDefaultSettings);
 
             if (!result.IsSuccess)
             {
@@ -34,7 +34,7 @@ namespace FlashcardsApp.Controllers
 
             return Ok(result.Data);
         }
-
+        
         private Guid GetCurrentUserId()
         {
             var userId = _userManager.GetUserId(User);

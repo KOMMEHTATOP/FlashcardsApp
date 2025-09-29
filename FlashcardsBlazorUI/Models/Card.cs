@@ -9,5 +9,6 @@ namespace FlashcardsBlazorUI.Models
         public DateTime UpdatedAt { get; set; }
         public Guid GroupId { get; set; }
         public Guid UserId { get; set; }
+        public int LastRating { get; set; }
     }
 }

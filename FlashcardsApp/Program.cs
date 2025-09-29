@@ -10,6 +10,13 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        options.JsonSerializerOptions.PropertyNamingPolicy = null; 
+    });
+
 builder.Services.AddOpenApi();
 
 // Строка подключения к PostgreSQL
@@ -23,6 +30,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options
 builder.Services.AddIdentity<User, IdentityRole<Guid>>() //регистрирует все сервисы Identity (там много скрытых)
     .AddEntityFrameworkStores<ApplicationDbContext>() // говорит Identity использовать EF Core для хранения данных
     .AddDefaultTokenProviders(); // регистрирует провайдеры токенов для сброса пароля, подтверждения email
+
 
 // ------------------JWT------------------------ 
 var jwtKey = "your-super-secret-key-at-least-32-characters-long!";
@@ -57,11 +65,6 @@ builder.Services.AddAuthentication(options =>
         };
     });
 
-
-builder.Services.AddControllers().AddJsonOptions(options =>
-{
-    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-}); //регистрирует сервисы для работы с контроллерами MVC
 builder.Services.AddScoped<GroupService>();
 builder.Services.AddScoped<CardService>();
 builder.Services.AddScoped<CardRatingService>();
