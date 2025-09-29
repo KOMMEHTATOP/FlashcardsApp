@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using System.Text.Json.Serialization;
 using CardService = FlashcardsBlazorUI.Services.CardService;
 using GroupService = FlashcardsBlazorUI.Services.GroupService;
+using StudySessionService = FlashcardsBlazorUI.Services.StudySessionService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -54,6 +55,8 @@ builder.Services.AddSingleton<IGroupNotificationService, GroupNotificationServic
 builder.Services.AddScoped<IGroupOrderService, GroupOrderService>();
 builder.Services.AddScoped<GroupService>();
 builder.Services.AddScoped<CardService>();
+builder.Services.AddScoped<StudySessionService>();
+
 
 builder.Services.AddScoped<GroupStore>(serviceProvider =>
 {

@@ -53,6 +53,11 @@ else
                         <p class="card-text">
                             <small style="color: @GetTextColor(group.GroupColor); opacity: 0.8;">Создана: @group.CreatedAt.ToString("dd.MM.yyyy")</small>
                         </p>
+                        <button class="btn btn-success btn-sm mt-2" 
+                                @onclick='() => Navigation.NavigateTo($"/study/{group.Id}")'
+                                @onclick:stopPropagation="true">
+                            <span class="bi bi-play-circle"></span> Изучать
+                        </button>
                     </div>
                 </div>
             </div>

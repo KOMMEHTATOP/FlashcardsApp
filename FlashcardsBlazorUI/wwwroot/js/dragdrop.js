@@ -71,6 +71,10 @@
                     });
 
                     item.addEventListener('mouseup', function(e) {
+                        if (e.target.closest('button')) {
+                            return;
+                        }
+
                         const timeDiff = Date.now() - mouseDownTime;
                         const distance = Math.sqrt(
                             Math.pow(e.clientX - mouseDownPos.x, 2) +

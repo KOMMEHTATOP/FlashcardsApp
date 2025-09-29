@@ -43,20 +43,19 @@
                                 <div class="nav-link group-item nav-group-draggable"
                                      data-group-id="@group.Id"
                                      @key="@($"{group.Id}-{group.Order}")"
-                                     style="@GetGroupStyle(group)">
+                                     style="@GetGroupStyle(group); display:flex !important;">
                                     <span class="drag-handle" 
-                                          style="cursor:grab; padding:8px; display:inline-flex; align-items:center; min-width:24px; margin-right:4px;"
-                                          draggable="true">
+                                          style="cursor:grab; padding:4px; display:inline-flex; align-items:center; flex-shrink:0;">
                                         <i class="bi bi-grip-vertical"></i>
                                     </span>
                                     <span @onclick="() => OnGroupClick(group)" 
                                           @onclick:stopPropagation="true"
-                                          style="flex-grow:1; cursor:pointer; user-select:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                                          style="flex:1; min-width:0; cursor:pointer; user-select:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
                                         @group.GroupName
                                     </span>
-                                    <span style="display:inline-flex; align-items:center; flex-shrink:0; margin-left:8px;">
+                                    <span style="display:inline-flex; align-items:center; gap:4px; flex-shrink:0; margin-left:4px;">
                                         <span class="bi @(IsGroupExpanded(group.Id) ? "bi-chevron-down" : "bi-chevron-right")"
-                                              style="margin-right:8px; cursor:pointer; font-size:12px;"
+                                              style="cursor:pointer; font-size:12px;"
                                               @onclick="() => OnGroupClick(group)"
                                               @onclick:stopPropagation="true">
                                         </span>
