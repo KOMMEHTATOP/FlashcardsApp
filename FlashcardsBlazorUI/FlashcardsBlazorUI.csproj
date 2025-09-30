@@ -16,7 +16,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Components\Pages\GroupCards\" />
+      <_ContentIncludedByDefault Remove="Components\Pages\GroupCards\CardEditModal.razor" />
+      <_ContentIncludedByDefault Remove="Components\Pages\GroupCards\CardForm.razor" />
+      <_ContentIncludedByDefault Remove="Components\Pages\GroupCards\CardsList.razor" />
     </ItemGroup>
 
 </Project>
