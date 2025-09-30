@@ -36,7 +36,7 @@
     [Parameter] public bool ShouldLoad { get; set; }
     
     private List<Card> cards = new();
-    private bool isLoading = false;
+    private bool isLoading;
     private Guid lastLoadedGroupId = Guid.Empty;
 
     protected override async Task OnParametersSetAsync()

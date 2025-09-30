@@ -251,10 +251,6 @@
     
     private async Task SaveSettings()
     {
-        Console.WriteLine("=== НАЧАЛО СОХРАНЕНИЯ ===");
-        Console.WriteLine($"MinRating: {settingsDto.MinRating}, MaxRating: {settingsDto.MaxRating}");
-        Console.WriteLine($"GroupId: {settingsDto.GroupId?.ToString() ?? "NULL (глобальные)"}");
-    
         try
         {
             isSaving = true;
@@ -262,7 +258,6 @@
             saveSuccess = false;
         
             var success = await StudySessionService.SaveSettingsAsync(settingsDto);
-            Console.WriteLine($"Результат сохранения: {success}");
         
             if (success)
             {

@@ -22,8 +22,6 @@ public class StudySessionService : BaseApiService
                 var json = await response.Content.ReadAsStringAsync();
                 return System.Text.Json.JsonSerializer.Deserialize<ResultStudySessionDto>(json, _jsonOptions);
             }
-    
-            Console.WriteLine($"Ошибка запуска сессии: {response.StatusCode}");
             return null;
         }
         catch (Exception ex)
@@ -48,8 +46,6 @@ public class StudySessionService : BaseApiService
                 var json = await response.Content.ReadAsStringAsync();
                 return System.Text.Json.JsonSerializer.Deserialize<ResultSettingsDto>(json, _jsonOptions);
             }
-            
-            Console.WriteLine($"Ошибка получения настроек: {response.StatusCode}");
             return null;
         }
         catch (Exception ex)

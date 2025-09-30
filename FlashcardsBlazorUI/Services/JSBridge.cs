@@ -15,11 +15,8 @@ public static class JSBridge
     [JSInvokable]
     public static void NotifyGroupsReordered(string sourceContainer = "unknown")
     {
-        Console.WriteLine($"JS уведомил об изменении порядка групп из {sourceContainer}");
-        
         if (_serviceScopeFactory == null)
         {
-            Console.WriteLine("JSBridge не инициализирован");
             return;
         }
 
@@ -38,11 +35,8 @@ public static class JSBridge
     [JSInvokable]
     public static void NotifyGroupDeleted()
     {
-        Console.WriteLine("JS уведомил об удалении группы");
-        
         if (_serviceScopeFactory == null)
         {
-            Console.WriteLine("JSBridge не инициализирован");
             return;
         }
 

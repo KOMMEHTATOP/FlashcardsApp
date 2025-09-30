@@ -19,8 +19,6 @@ public class StudySessionService
 
 public async Task<ServiceResult<ResultStudySessionDto>> StartSessionAsync(Guid userId, Guid groupId, bool useDefaultSettings = false)
 {
-    Console.WriteLine($"=== START SESSION: useDefaultSettings={useDefaultSettings} ===");
-
     ServiceResult<ResultSettingsDto> settingsResult;
     
     if (useDefaultSettings)
@@ -38,23 +36,17 @@ public async Task<ServiceResult<ResultStudySessionDto>> StartSessionAsync(Guid u
     }
 
     var settings = settingsResult.Data;
-    Console.WriteLine($"Settings loaded: MinRating={settings.MinRating}, MaxRating={settings.MaxRating}, GroupId={settings.GroupId}");
 
     var cards = await _context.Cards
         .Where(c => c.UserId == userId && c.GroupId == groupId)
         .Include(c => c.Ratings!.OrderByDescending(r => r.CreatedAt).Take(1))
         .ToListAsync();
-
-    Console.WriteLine($"Total cards in group: {cards.Count}");
-
+    
     var filtredCards = cards.Where(card =>
     {
         var lastRating = card.Ratings?.FirstOrDefault()?.Rating ?? 0;
         return lastRating >= settings.MinRating && lastRating <= settings.MaxRating;
     }).ToList();
-    
-    Console.WriteLine($"Filtered cards: {filtredCards.Count}");
-
 
     List<Card> sortedCards;
 

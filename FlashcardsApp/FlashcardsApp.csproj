@@ -24,8 +24,4 @@
       <ProjectReference Include="..\FlashcardsAppContracts\FlashcardsAppContracts.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Constants\" />
-    </ItemGroup>
-
 </Project>

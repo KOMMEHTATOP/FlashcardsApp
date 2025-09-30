@@ -8,9 +8,9 @@ public class Card
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     
-    public Guid UserId { get; set; }  // Foreign key
-    public User? User { get; set; } // Navigation property
-    public required Guid GroupId { get; set; } //Foreign key
-    public Group? Group { get; set; } // Navigation Property - передаем сам объект
-    public List<CardRating>? Ratings { get; set; } //Navigation property
+    public Guid UserId { get; set; }  
+    public User? User { get; set; } 
+    public required Guid GroupId { get; set; } 
+    public Group? Group { get; set; } 
+    public List<CardRating>? Ratings { get; set; } 
 }

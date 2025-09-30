@@ -36,8 +36,8 @@ public class GroupService
         var groups = await _context.Groups
             .AsNoTracking()
             .Where(g => g.UserId == userId)
-            .OrderBy(g => g.Order) //  сортируем по очереди
-            .ThenBy(g => g.CreatedAt) //  второстепенная сортировка по времени
+            .OrderBy(g => g.Order) 
+            .ThenBy(g => g.CreatedAt) 
             .ToListAsync();
 
         var groupDtos = groups.Select(g => g.ToDto());

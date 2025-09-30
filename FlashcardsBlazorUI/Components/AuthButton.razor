@@ -21,7 +21,6 @@
 @code {
     private async Task Logout()
     {
-        Console.WriteLine("[AuthButton] Logout вызван");
         await AuthService.LogoutAsync();
         Navigation.NavigateTo("/login", forceLoad: true);
     }

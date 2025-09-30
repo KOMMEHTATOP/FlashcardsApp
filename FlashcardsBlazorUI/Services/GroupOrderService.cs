@@ -25,7 +25,6 @@ public class GroupOrderService : IGroupOrderService
 
     public void NotifyGroupsReordered() 
     {
-        Console.WriteLine($"GroupOrderService: NotifyGroupsReordered вызван. Подписчиков: {OnGroupsReordered?.GetInvocationList()?.Length ?? 0}");
         OnGroupsReordered?.Invoke();
     }
     

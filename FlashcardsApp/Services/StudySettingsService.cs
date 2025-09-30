@@ -25,7 +25,6 @@ public class StudySettingsService
 
         if (userSettings != null)
         {
-            Console.WriteLine($"Loaded UserPreset for GroupId={groupId}");
             return ServiceResult<ResultSettingsDto>.Success(userSettings.ToDto());
         }
 
@@ -36,7 +35,6 @@ public class StudySettingsService
 
         if (globalUserSettings != null)
         {
-            Console.WriteLine($"Loaded global UserPreset for GroupId={groupId}");
             return ServiceResult<ResultSettingsDto>.Success(globalUserSettings.ToDto());
         }
 
@@ -47,7 +45,6 @@ public class StudySettingsService
 
         if (defaultSettings == null)
         {
-            Console.WriteLine($"Creating new Default for GroupId={groupId}");
             defaultSettings = new StudySettings()
             {
                 StudySettingsId = Guid.NewGuid(),
@@ -70,7 +67,7 @@ public class StudySettingsService
     
     public async Task<ServiceResult<ResultSettingsDto>> SaveStudySettingsAsync(Guid userId, CreateSettingsDto dto)
     {
-        // НОВОЕ: Если сохраняем глобальные настройки, удаляем все групповые UserPreset
+        // Если сохраняем глобальные настройки, удаляем все групповые UserPreset
         if (dto.GroupId == null)
         {
             var groupPresets = await _context.StudySettings
@@ -80,7 +77,6 @@ public class StudySettingsService
             if (groupPresets.Any())
             {
                 _context.StudySettings.RemoveRange(groupPresets);
-                Console.WriteLine($"Удалено {groupPresets.Count} групповых UserPreset при сохранении глобальных настроек");
             }
         }
 
@@ -89,8 +85,6 @@ public class StudySettingsService
 
         if (existPreset != null)
         {
-            Console.WriteLine($"Updating existing UserPreset: GroupId={dto.GroupId}");
-        
             existPreset.MinRating = dto.MinRating;
             existPreset.MaxRating = dto.MaxRating;
             existPreset.StudyOrder = dto.StudyOrder;
@@ -99,13 +93,9 @@ public class StudySettingsService
 
             _context.StudySettings.Update(existPreset);
             await _context.SaveChangesAsync();
-        
-            Console.WriteLine($"Updated: MinRating={existPreset.MinRating}, MaxRating={existPreset.MaxRating}");
             return ServiceResult<ResultSettingsDto>.Success(existPreset.ToDto());
         }
-
-        Console.WriteLine($"Creating new UserPreset: GroupId={dto.GroupId}");
-    
+        
         var newUserPreset = new StudySettings()
         {
             StudySettingsId = Guid.NewGuid(),

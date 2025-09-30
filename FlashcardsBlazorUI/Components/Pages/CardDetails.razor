@@ -218,7 +218,6 @@ else
         {
             isLoading = true;
             card = await CardService.GetCardAsync(CardId);
-            Console.WriteLine($"Загружена карточка: {card?.Question ?? "null"}");
         }
         catch (Exception ex)
         {
@@ -249,12 +248,7 @@ else
         {
             selectedRating = rating;
             await CardService.RateCardAsync(CardId, rating);
-            Console.WriteLine($"Карточка оценена: {rating} звезд");
-
-            // Показываем уведомление об успешной оценке
             StateHasChanged();
-
-            // Можно добавить переход к следующей карточке или показать уведомление
         }
         catch (Exception ex)
         {

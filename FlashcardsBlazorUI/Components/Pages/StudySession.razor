@@ -328,7 +328,6 @@ else
             if (session?.Cards != null)
             {
                 cards = session.Cards.ToList();
-                Console.WriteLine($"Загружено {cards.Count} карточек для изучения");
             }
         }
         catch (Exception ex)
@@ -378,7 +377,6 @@ else
         {
             selectedRating = rating;
             await CardService.RateCardAsync(currentCard!.CardId, rating);
-            Console.WriteLine($"Карточка {currentCard.CardId} оценена: {rating} звезд");
 
             if (rating >= 4)
             {

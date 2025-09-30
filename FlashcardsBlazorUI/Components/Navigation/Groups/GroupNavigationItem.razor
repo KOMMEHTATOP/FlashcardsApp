@@ -51,7 +51,15 @@
 
     private string GetGroupStyle()
     {
-        return $"background-color:{GetColorCode(Group.GroupColor)}; margin:2px 0; border-radius:4px; color:white; display:flex; justify-content:space-between; align-items:center; padding:6px 8px; transition:transform 0.15s ease, opacity 0.15s ease; user-select:none; touch-action:manipulation;";
+        return $"background-color:{GetColorCode(Group.GroupColor)}; " +
+               $"margin:2px 0; " +
+               $"border-radius:4px; " +
+               $"color:white; display:flex; justify-content:space-between; " +
+               $"align-items:center; " +
+               $"padding:6px 8px; " +
+               $"transition:transform 0.15s ease, " +
+               $"opacity 0.15s ease; user-select:none; " +
+               $"touch-action:manipulation;";
     }
 
     private string GetColorCode(GroupColor color) => color switch

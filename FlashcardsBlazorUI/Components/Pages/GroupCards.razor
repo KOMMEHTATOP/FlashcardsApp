@@ -237,7 +237,6 @@ else
         {
             isLoading = true;
             cards = await CardService.GetCardsAsync(GroupId);
-            Console.WriteLine($"Загружено карточек: {cards?.Count ?? 0}");
         }
         catch (Exception ex)
         {
@@ -279,8 +278,6 @@ else
             showCreateForm = false;
             newCard = new CreateCardDto() { Answer = "", Question = "" };
             await LoadCards();
-            
-            Console.WriteLine("Карточка успешно создана");
         }
         catch (Exception ex)
         {
@@ -335,8 +332,6 @@ else
             cardToEdit = null;
             editCard = new CreateCardDto() { Answer = "", Question = "" };
             await LoadCards();
-            
-            Console.WriteLine("Карточка успешно обновлена");
         }
         catch (Exception ex)
         {
@@ -357,7 +352,6 @@ else
         {
             await CardService.DeleteCardAsync(card.CardId);
             await LoadCards();
-            Console.WriteLine("Карточка успешно удалена");
         }
         catch (Exception ex)
         {
