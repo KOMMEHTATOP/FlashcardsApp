@@ -15,11 +15,13 @@ namespace FlashcardsApp.Controllers
     {
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
+        private readonly IConfiguration _configuration;
 
-        public AuthController(UserManager<User> userManager, SignInManager<User> signInManager)
+        public AuthController(UserManager<User> userManager, SignInManager<User> signInManager, IConfiguration configuration)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _configuration = configuration;
         }
 
         [HttpPost("register")]
@@ -71,7 +73,12 @@ namespace FlashcardsApp.Controllers
         private string GenerateJwtToken(User user)
         {
             //Тот же самый секретный ключ что и в programs
-            var jwtKey = "your-super-secret-key-at-least-32-characters-long!"; // тот же ключ из Program.cs
+            var jwtKey = _configuration["Jwt:Key"]; 
+            if (string.IsNullOrEmpty(jwtKey))
+            {
+                throw new InvalidOperationException("JWT key is not configured");
+            }
+    
             var key = Encoding.ASCII.GetBytes(jwtKey);
 
             //НАстройка полей для токена - упаковывает данные пользователя

@@ -10,10 +10,12 @@ public class TokenStorageService : ITokenStorageService
     public void SetToken(string token)
     {
         _currentToken = token;
+        Console.WriteLine($"[TokenStorageService] Токен сохранен: {token.Substring(0, Math.Min(20, token.Length))}...");
     }
 
     public string? GetToken()
     {
+        Console.WriteLine($"[TokenStorageService] Запрос токена. Значение: {(_currentToken != null ? _currentToken.Substring(0, Math.Min(20, _currentToken.Length)) + "..." : "NULL")}");
         return _currentToken;
     }
 

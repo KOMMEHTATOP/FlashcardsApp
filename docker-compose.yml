@@ -1,0 +1,30 @@
+﻿version: '3.8'
+
+services:
+  webapp:
+    build:
+      context: .
+      dockerfile: FlashcardsApp/Dockerfile
+    image: flashcardsapp-image
+    ports:
+      - "5000:8080"        # Пробрасываем порт 8080 из контейнера на 5000 хоста
+    depends_on:
+      - postgres
+    environment:
+      - ConnectionStrings__DefaultConnection=${APP_DB_CONNECTION}
+      - Jwt__Key=${JWT__Key}
+
+  postgres:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT}:5432"
+
+volumes:
+  postgres_data:

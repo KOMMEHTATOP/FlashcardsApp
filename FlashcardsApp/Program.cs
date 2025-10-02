@@ -20,7 +20,7 @@ builder.Services.AddControllers()
 builder.Services.AddOpenApi();
 
 // Строка подключения к PostgreSQL
-var connectionString = "Host=localhost;Port=5432;Database=FlashcardsDb;Username=postgres;Password=123";
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 // Регистрируем DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options
@@ -33,35 +33,55 @@ builder.Services.AddIdentity<User, IdentityRole<Guid>>() //регистриру�
 
 
 // ------------------JWT------------------------ 
-var jwtKey = "your-super-secret-key-at-least-32-characters-long!";
+var jwtKey = builder.Configuration["Jwt:Key"];
+
+if (string.IsNullOrEmpty(jwtKey))
+{
+    throw new Exception("JWT key is not configured. Please set Jwt:Key in configuration.");
+}
+
 var key = Encoding.ASCII.GetBytes(jwtKey);
 
+Console.WriteLine($"JWT Key (first 10 chars): {jwtKey.Substring(0, 10)}...");
 builder.Services.AddAuthentication(options =>
     {
-        options.DefaultAuthenticateScheme =
-            JwtBearerDefaults.AuthenticationScheme; //говорит системе использовать JWT вместо cookies
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
         options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
     })
     .AddJwtBearer(options =>
     {
-        options.RequireHttpsMetadata = false; //Отключает требование HTTPS для JWT metadata.
-        //В production должно быть true! Сейчас false, потому что работаешь с localhost по HTTP
-        options.SaveToken = true; //Сохраняет JWT токен в HttpContext после валидации.
-        //Позволяет получить токен внутри контроллера через HttpContext.GetTokenAsync("access_token").
+        options.RequireHttpsMetadata = false;
+        options.SaveToken = true;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(key), //Проверяет подпись токена.
-            //Гарантирует, что токен создан именно твоим сервером, а не подделан
+            IssuerSigningKey = new SymmetricSecurityKey(key),
             ValidateIssuer = false,
-            ValidateAudience = false, //Отключает проверку издателя (кто создал токен)
-            //и аудитории (для кого предназначен). Для простого API можно отключить.
-
-            ValidateLifetime =
-                true, //Проверяет, не истек ли срок действия токена. Автоматически отклоняет просроченные токены.
-
-            ClockSkew = TimeSpan.Zero //Убирает временную погрешность при проверке срока действия.
-            //По умолчанию ASP.NET Core добавляет 5 минут "запаса" - эта настройка убирает его.
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero
+        };
+        
+        options.Events = new JwtBearerEvents
+        {
+            OnAuthenticationFailed = context =>
+            {
+                Console.WriteLine($"[JWT AUTH FAILED] {context.Exception.Message}");
+                if (context.Exception.InnerException != null)
+                    Console.WriteLine($"[JWT AUTH FAILED] Inner: {context.Exception.InnerException.Message}");
+                return Task.CompletedTask;
+            },
+            OnTokenValidated = context =>
+            {
+                Console.WriteLine("[JWT] Токен валидирован успешно");
+                return Task.CompletedTask;
+            },
+            OnMessageReceived = context =>
+            {
+                var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
+                Console.WriteLine($"[JWT] Authorization header: {authHeader?.Substring(0, Math.Min(50, authHeader?.Length ?? 0))}");
+                return Task.CompletedTask;
+            }
         };
     });
 

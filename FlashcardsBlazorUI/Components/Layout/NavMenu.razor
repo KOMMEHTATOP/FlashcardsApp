@@ -14,9 +14,18 @@
 @implements IDisposable
 @rendermode InteractiveServer
 
-<!-- Верхняя панель -->
 <div class="top-row ps-2 navbar navbar-dark">
-    <div class="container-fluid d-flex justify-content-between align-items-center">
+    <div class="container-fluid d-flex justify-content-between align-items-center w-100">
+        
+        <div class="d-flex align-items-center">
+            
+            <input type="checkbox" title="Navigation menu" class="navbar-toggler me-3" style="position:static !important; right: auto; top: auto;"/>
+
+            <a class="navbar-brand text-white text-decoration-none" href="/" style="font-weight: bold; font-size: 1.2rem; cursor: pointer;">
+                FlashcardsLoop
+            </a>
+        </div>
+
         <AuthorizeView>
             <Authorized>
                 <a href="study-settings" class="text-white text-decoration-none" title="Настройки изучения">
@@ -26,8 +35,6 @@
         </AuthorizeView>
     </div>
 </div>
-
-<input type="checkbox" title="Navigation menu" class="navbar-toggler"/>
 
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="flex-column">
@@ -113,7 +120,6 @@
         </AuthorizeView>
     </nav>
 </div>
-
 
 @code {
     private bool isGroupsMenuExpanded;
