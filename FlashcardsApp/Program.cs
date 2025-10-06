@@ -118,4 +118,13 @@ app.UseAuthentication(); //Кто ты?
 app.UseAuthorization(); // Что тебе можно?
 app.MapControllers(); //настраивает маршрутизацию к контроллерам
 
+//Настройка для миграций в Render - автоматически добавляет недостающие миграции
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    db.Database.Migrate();
+}
+
+
+
 app.Run();
