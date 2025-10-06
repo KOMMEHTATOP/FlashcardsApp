@@ -37,7 +37,7 @@ namespace FlashcardsApp.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateCard(Guid groupId, CreateCardDto dto)
+        public async Task<IActionResult> CreateCard(Guid groupId,[FromBody] CreateCardDto dto)
         {
             var userId = GetCurrentUserId();
             var newCard = await _cardService.CreateCardAsync(userId, groupId, dto);
