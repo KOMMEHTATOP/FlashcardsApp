@@ -7,6 +7,7 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @inject CardService CardService
 @inject GroupStore GroupStore
+@inject IConfiguration Configuration
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
 @inject IAuthService AuthService
@@ -191,14 +192,16 @@
         try
         {
             var token = await AuthService.GetTokenAsync();
-            
+        
             if (!string.IsNullOrEmpty(token))
             {
+                var backendUrl = Configuration["BackendUrl"] ?? "http://localhost:5153";
+            
                 await JSRuntime.InvokeVoidAsync("dragDropInterop.initializeDragDrop",
                     token,
                     "#nav-groups-container",
                     ".nav-group-draggable",
-                    "http://localhost:5153/api/group/reorder");
+                    $"{backendUrl}/api/group/reorder");
             }
         }
         catch (Exception ex)
@@ -206,7 +209,7 @@
             Console.WriteLine($"NavMenu: Ошибка реинициализации drag&drop: {ex.Message}");
         }
     }
-
+    
     private async Task ToggleGroupsMenu()
     {
         isGroupsMenuExpanded = !isGroupsMenuExpanded;

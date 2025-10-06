@@ -272,7 +272,7 @@
                     elementToRemove.style.opacity = '0.3';
                     elementToRemove.style.pointerEvents = 'none';
 
-                    fetch(`http://localhost:5153/api/group/${id}`, {
+                    fetch(`${apiEndpoint.replace('/reorder', '')}/${id}`, {
                         method: 'DELETE',
                         headers: { 'Authorization': 'Bearer ' + authToken }
                     }).then(r => {

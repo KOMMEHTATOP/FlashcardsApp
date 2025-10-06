@@ -6,6 +6,7 @@
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
 @inject GroupStore GroupStore     
+@inject IConfiguration Configuration
 @implements IDisposable
 @rendermode InteractiveServer
 
@@ -129,15 +130,17 @@ else
         {
             // Проверяем доступность JavaScript interop
             await JSRuntime.InvokeVoidAsync("eval", "null");
-        
+    
             var token = await AuthService.GetTokenAsync();
             if (!string.IsNullOrEmpty(token))
             {
+                var backendUrl = Configuration["BackendUrl"] ?? "http://localhost:5153";
+            
                 await JSRuntime.InvokeVoidAsync("dragDropInterop.initializeDragDrop",
                     token,
                     "#groups-container",
                     ".group-card",
-                    "http://localhost:5153/api/group/reorder",
+                    $"{backendUrl}/api/group/reorder",
                     ".trash-zone");
             }
         }
