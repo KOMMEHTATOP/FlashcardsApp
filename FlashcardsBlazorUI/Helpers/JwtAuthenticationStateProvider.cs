@@ -37,30 +37,12 @@ public class JwtAuthenticationStateProvider : AuthenticationStateProvider, IDisp
         _instanceId = Interlocked.Increment(ref _instanceCounter);
         _logger.LogInformation("JwtAuthenticationStateProvider создан, instance {InstanceId}", _instanceId);
     }
-    
-    // Статические поля для сохранения состояния между экземплярами
-    private static string? _staticToken;
-    private static ClaimsPrincipal? _staticUser;
-    private static readonly object _lock = new();
 
     
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
         _logger.LogInformation("GetAuthenticationStateAsync вызван в instance {InstanceId}, _cachedUser.IsAuthenticated = {IsAuth}", 
             _instanceId, _cachedUser.Identity?.IsAuthenticated);
-        
-        lock (_lock)
-        {
-            if (_staticUser?.Identity?.IsAuthenticated == true && !string.IsNullOrEmpty(_staticToken))
-            {
-                _cachedUser = _staticUser;
-                _currentToken = _staticToken;
-                _tokenStorage.SetToken(_staticToken);
-                StartTokenExpiryTimer(_staticToken);
-                _logger.LogInformation("Instance {InstanceId}: Восстановлено состояние из статического кеша", _instanceId);
-                return new AuthenticationState(_staticUser);
-            }
-        }
         
         // Проверяем, можем ли мы использовать JavaScript interop
         // Во время prerendering JavaScript недоступен
@@ -115,13 +97,7 @@ public class JwtAuthenticationStateProvider : AuthenticationStateProvider, IDisp
             // Сохраняем в instance переменные
             _cachedUser = user;
             _currentToken = token;
-        
-            // ВАЖНО: Сохраняем статически для других экземпляров
-            lock (_lock)
-            {
-                _staticToken = token;
-                _staticUser = user;
-            }
+            
         
             StartTokenExpiryTimer(token);
             NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(user)));
@@ -149,14 +125,7 @@ public class JwtAuthenticationStateProvider : AuthenticationStateProvider, IDisp
         
             _cachedUser = new ClaimsPrincipal(new ClaimsIdentity());
             _currentToken = null;
-        
-            // Очищаем статический кеш
-            lock (_lock)
-            {
-                _staticToken = null;
-                _staticUser = null;
-            }
-        
+
             NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(_cachedUser)));
         
             _logger.LogInformation("Пользователь успешно вышел из системы");
