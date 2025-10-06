@@ -1,47 +1,6 @@
 ﻿version: '3.8'
 
 services:
-  # Init-контейнер для миграций
-  migrations:
-    build:
-      context: .
-      dockerfile: FlashcardsApp/Dockerfile.migrations
-    depends_on:
-      postgres:
-        condition: service_healthy
-    environment:
-      - ConnectionStrings__DefaultConnection=${APP_DB_CONNECTION}
-    restart: "no"  # Не перезапускать после завершения
-
-  # Основное приложение
-  webapp:
-    build:
-      context: .
-      dockerfile: FlashcardsApp/Dockerfile
-    ports:
-      - "5000:8080"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      migrations:
-        condition: service_completed_successfully
-    environment:
-      - ConnectionStrings__DefaultConnection=${APP_DB_CONNECTION}
-      - Jwt__Key=${JWT__Key}
-
-  frontend:
-    build:
-      context: .
-      dockerfile: FlashcardsBlazorUI/Dockerfile
-    ports:
-      - "7255:8080"  # Фронтенд доступен на localhost:7255
-    depends_on:
-      - webapp
-    environment:
-      - BackendUrl=http://webapp:8080 
-
-
-  # База данных с healthcheck
   postgres:
     image: postgres:15
     restart: unless-stopped
@@ -58,6 +17,60 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - app-network
+
+  migrations:
+    build:
+      context: .
+      dockerfile: FlashcardsApp/Dockerfile.migrations
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - ConnectionStrings__DefaultConnection=${DB_CONNECTION_STRING}
+    restart: "no"
+    networks:
+      - app-network
+
+  webapp:
+    build:
+      context: .
+      dockerfile: FlashcardsApp/Dockerfile
+    ports:
+      - "5000:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
+    environment:
+      - ConnectionStrings__DefaultConnection=${DB_CONNECTION_STRING}
+      - Jwt__Key=${JWT_KEY}
+      - ASPNETCORE_URLS=http://+:8080
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ALLOWED_ORIGINS=${FRONTEND_URL}
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: FlashcardsBlazorUI/Dockerfile
+    ports:
+      - "7255:8080"
+    depends_on:
+      - webapp
+    environment:
+      - BackendUrl=${BACKEND_URL}
+      - ASPNETCORE_URLS=http://+:8080
+      - ASPNETCORE_ENVIRONMENT=Development
+    networks:
+      - app-network
 
 volumes:
   postgres_data:
+
+networks:
+  app-network:
+    driver: bridge

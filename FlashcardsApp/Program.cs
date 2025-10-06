@@ -17,22 +17,18 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.PropertyNamingPolicy = null; 
     });
 
-builder.Services.AddOpenApi();
-
 // Строка подключения к PostgreSQL
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 // Регистрируем DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options
-    => options.UseNpgsql(
-        connectionString)); //регистрирует контекст базы данных как Scoped сервис (один экземпляр на HTTP запрос)
+    => options.UseNpgsql(connectionString));
 
-builder.Services.AddIdentity<User, IdentityRole<Guid>>() //регистрирует все сервисы Identity (там много скрытых)
-    .AddEntityFrameworkStores<ApplicationDbContext>() // говорит Identity использовать EF Core для хранения данных
-    .AddDefaultTokenProviders(); // регистрирует провайдеры токенов для сброса пароля, подтверждения email
+builder.Services.AddIdentity<User, IdentityRole<Guid>>()
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders();
 
-
-// ------------------JWT------------------------ 
+// JWT
 var jwtKey = builder.Configuration["Jwt:Key"];
 
 if (string.IsNullOrEmpty(jwtKey))
@@ -42,7 +38,8 @@ if (string.IsNullOrEmpty(jwtKey))
 
 var key = Encoding.ASCII.GetBytes(jwtKey);
 
-Console.WriteLine($"JWT Key (first 10 chars): {jwtKey.Substring(0, 10)}...");
+Console.WriteLine($"[BACKEND] JWT Key configured (length: {jwtKey.Length})");
+
 builder.Services.AddAuthentication(options =>
     {
         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -91,12 +88,17 @@ builder.Services.AddScoped<CardRatingService>();
 builder.Services.AddScoped<StudySettingsService>();
 builder.Services.AddScoped<StudySessionService>();
 
+// CORS - читаем из переменной окружения
+var allowedOrigins = builder.Configuration["ALLOWED_ORIGINS"]?.Split(',') 
+    ?? new[] { "http://localhost:7255", "https://localhost:7255" };
+
+Console.WriteLine($"[BACKEND] Allowed CORS origins: {string.Join(", ", allowedOrigins)}");
 
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(creator =>
+    options.AddDefaultPolicy(policyBuilder =>
     {
-        creator.WithOrigins("https://localhost:7255", "http://localhost:5081")
+        policyBuilder.WithOrigins(allowedOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials(); 
@@ -105,26 +107,28 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// ---------------Тут начинается Middleware Pipeline---------------
-
-if (app.Environment.IsDevelopment())
+// Отключаем HTTPS redirect в Production (Docker/Render)
+if (!app.Environment.IsProduction())
 {
-    app.MapOpenApi();
+    app.UseHttpsRedirection();
 }
 
-app.UseHttpsRedirection(); //Перенаправляем HTTP запрос в HTTPS
 app.UseCors();
-app.UseAuthentication(); //Кто ты?
-app.UseAuthorization(); // Что тебе можно?
-app.MapControllers(); //настраивает маршрутизацию к контроллерам
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapControllers();
 
-//Настройка для миграций в Render - автоматически добавляет недостающие миграции
-using (var scope = app.Services.CreateScope())
+// Применяем миграции ТОЛЬКО если явно указано (для Render.com)
+var autoMigrate = builder.Configuration.GetValue<bool>("AutoMigrate", false);
+if (autoMigrate)
 {
+    using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    Console.WriteLine("[BACKEND] Auto-migration enabled. Applying migrations...");
     db.Database.Migrate();
+    Console.WriteLine("[BACKEND] Migrations applied successfully");
 }
 
-
+Console.WriteLine($"[BACKEND] Application started in {app.Environment.EnvironmentName} mode");
 
 app.Run();

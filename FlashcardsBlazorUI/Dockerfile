@@ -6,12 +6,10 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
-# Копируем только нужные .csproj файлы
 COPY ["FlashcardsBlazorUI/FlashcardsBlazorUI.csproj", "FlashcardsBlazorUI/"]
 COPY ["FlashcardsAppContracts/FlashcardsAppContracts.csproj", "FlashcardsAppContracts/"]
 RUN dotnet restore "FlashcardsBlazorUI/FlashcardsBlazorUI.csproj"
 
-# Копируем только нужные папки
 COPY ["FlashcardsBlazorUI/", "FlashcardsBlazorUI/"]
 COPY ["FlashcardsAppContracts/", "FlashcardsAppContracts/"]
 
@@ -25,4 +23,7 @@ RUN dotnet publish "FlashcardsBlazorUI.csproj" -c $BUILD_CONFIGURATION -o /app/p
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+
+ENV ASPNETCORE_URLS=http://+:8080
+
 ENTRYPOINT ["dotnet", "FlashcardsBlazorUI.dll"]
