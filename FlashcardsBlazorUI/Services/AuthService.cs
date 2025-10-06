@@ -20,7 +20,59 @@ public class AuthService : IAuthService
         _authStateProvider = authStateProvider;
         _logger = logger;
     }
+    
+    public async Task<RegisterUserDto> RegisterUserAsync(RegisterModel model)
+    {
+        try
+        {
+            _logger.LogInformation("Попытка регистрации пользователя: {Email}", model.Email);
 
+            // 1. Отправляем POST запрос на бэкенд
+            // PostAsJsonAsync автоматически превращает model в JSON и отправляет
+            var response = await _httpClient.PostAsJsonAsync("api/auth/register", model);
+        
+            // 2. Читаем ответ от сервера и превращаем JSON обратно в объект
+            // Это работает и для успеха (200 OK) и для ошибки (400 BadRequest)
+            var registerResponse = await response.Content.ReadFromJsonAsync<RegisterUserDto>();
+        
+            // 3. Если по какой-то причине не смогли прочитать ответ
+            if (registerResponse == null)
+            {
+                _logger.LogError("Пустой ответ от API регистрации");
+                return new RegisterUserDto
+                {
+                    IsSuccess = false,
+                    Message = "Ошибка связи с сервером"
+                };
+            }
+
+            // 4. Логируем результат
+            if (registerResponse.IsSuccess)
+            {
+                _logger.LogInformation("Пользователь {Email} успешно зарегистрирован", model.Email);
+            }
+            else
+            {
+                _logger.LogWarning("Неудачная регистрация для {Email}: {Message}", 
+                    model.Email, registerResponse.Message);
+            }
+
+            // 5. Возвращаем результат - он уже содержит всю информацию
+            // (IsSuccess, Message, Errors)
+            return registerResponse;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ошибка при регистрации пользователя {Email}", model.Email);
+            return new RegisterUserDto
+            {
+                IsSuccess = false,
+                Message = "Произошла ошибка при регистрации"
+            };
+        }
+    }
+    
+    
     public async Task<LoginResponse?> LoginAsync(string email, string password)
     {
         try

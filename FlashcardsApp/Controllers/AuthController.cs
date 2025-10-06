@@ -1,5 +1,6 @@
 using FlashcardsApp.Models;
 using FlashcardsAppContracts.DTOs.Requests;
+using FlashcardsAppContracts.DTOs.Responses;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -29,21 +30,30 @@ namespace FlashcardsApp.Controllers
         {
             var user = new User
             {
-                UserName = model.Email, Email = model.Email
+                UserName = model.Email, 
+                Email = model.Email
             };
+    
             var result = await _userManager.CreateAsync(user, model.Password);
 
             if (result.Succeeded)
             {
-                return Ok(new
+                return Ok(new RegisterUserDto
                 {
-                    Message = "User created successfully"
+                    IsSuccess = true,
+                    Message = "User created successfully!"
                 });
             }
 
-            return BadRequest(result.Errors);
+            return BadRequest(new RegisterUserDto
+            {
+                IsSuccess = false,
+                Message = "Registration failed",
+                Errors = result.Errors.Select(e => e.Description).ToList()
+            });
         }
-
+        
+        
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginModel model)
         {

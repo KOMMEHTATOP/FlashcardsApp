@@ -1,19 +1,47 @@
 ﻿version: '3.8'
 
 services:
+  # Init-контейнер для миграций
+  migrations:
+    build:
+      context: .
+      dockerfile: FlashcardsApp/Dockerfile.migrations
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - ConnectionStrings__DefaultConnection=${APP_DB_CONNECTION}
+    restart: "no"  # Не перезапускать после завершения
+
+  # Основное приложение
   webapp:
     build:
       context: .
       dockerfile: FlashcardsApp/Dockerfile
-    image: flashcardsapp-image
     ports:
-      - "5000:8080"        # Пробрасываем порт 8080 из контейнера на 5000 хоста
+      - "5000:8080"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
     environment:
       - ConnectionStrings__DefaultConnection=${APP_DB_CONNECTION}
       - Jwt__Key=${JWT__Key}
 
+  frontend:
+    build:
+      context: .
+      dockerfile: FlashcardsBlazorUI/Dockerfile
+    ports:
+      - "7255:8080"  # Фронтенд доступен на localhost:7255
+    depends_on:
+      - webapp
+    environment:
+      - BackendUrl=http://webapp:8080 
+
+
+  # База данных с healthcheck
   postgres:
     image: postgres:15
     restart: unless-stopped
@@ -25,6 +53,11 @@ services:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "${POSTGRES_PORT}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:

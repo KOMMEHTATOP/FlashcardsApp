@@ -1,4 +1,3 @@
-using FlashcardsApp.Services;
 using FlashcardsBlazorUI.Components;
 using FlashcardsBlazorUI.Services;
 using FlashcardsBlazorUI.Helpers;
@@ -38,16 +37,21 @@ builder.Services.AddScoped<AuthenticationStateProvider>(sp =>
 builder.Services.AddSingleton<ITokenStorageService, TokenStorageService>();
 builder.Services.AddTransient<AuthenticationHandler>();
 
+var backendUrl = builder.Configuration["BackendUrl"] ?? "http://localhost:5000";
+Console.WriteLine($"[FRONTEND] Using Backend URL: {backendUrl}");
+
+
+
 // HttpClient для AuthService (без AuthenticationHandler)
 builder.Services.AddHttpClient<IAuthService, AuthService>("AuthServiceClient", client =>
 {
-    client.BaseAddress = new Uri("http://localhost:5153/");
+    client.BaseAddress = new Uri(backendUrl);
 });
 
 // HttpClient для остальных API с токенами
 builder.Services.AddHttpClient("FlashcardsAPI", client =>
 {
-    client.BaseAddress = new Uri("http://localhost:5153/");
+    client.BaseAddress = new Uri(backendUrl);
 }).AddHttpMessageHandler<AuthenticationHandler>();
 
 // ===== Бизнес-сервисы =====
