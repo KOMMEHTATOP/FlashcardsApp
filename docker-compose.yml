@@ -49,24 +49,23 @@ services:
       - Jwt__Key=${JWT_KEY}
       - ASPNETCORE_URLS=http://+:8080
       - ASPNETCORE_ENVIRONMENT=Development
-      - ALLOWED_ORIGINS=${FRONTEND_URL}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
     networks:
       - app-network
 
-  frontend:
-    build:
-      context: .
-      dockerfile: FlashcardsBlazorUI/Dockerfile
-    ports:
-      - "7255:8080"
-    depends_on:
-      - webapp
-    environment:
-      - BackendUrl=${BACKEND_URL}
-      - ASPNETCORE_URLS=http://+:8080
-      - ASPNETCORE_ENVIRONMENT=Development
-    networks:
-      - app-network
+  # React frontend - добавит фронтенд разработчик
+  # frontend:
+  #   build:
+  #     context: ./FlashcardsReactUI
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "3000:3000"
+  #   depends_on:
+  #     - webapp
+  #   environment:
+  #     - REACT_APP_API_URL=http://localhost:5000
+  #   networks:
+  #     - app-network
 
 volumes:
   postgres_data:

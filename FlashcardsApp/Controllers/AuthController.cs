@@ -1,12 +1,10 @@
 using FlashcardsApp.Models;
+using FlashcardsApp.Services;
 using FlashcardsAppContracts.DTOs.Requests;
 using FlashcardsAppContracts.DTOs.Responses;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 
 namespace FlashcardsApp.Controllers
 {
@@ -16,13 +14,16 @@ namespace FlashcardsApp.Controllers
     {
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
-        private readonly IConfiguration _configuration;
+        private readonly TokenService _tokenService;
 
-        public AuthController(UserManager<User> userManager, SignInManager<User> signInManager, IConfiguration configuration)
+        public AuthController(
+            UserManager<User> userManager, 
+            SignInManager<User> signInManager,
+            TokenService tokenService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
-            _configuration = configuration;
+            _tokenService = tokenService;
         }
 
         [HttpPost("register")]
@@ -30,10 +31,10 @@ namespace FlashcardsApp.Controllers
         {
             var user = new User
             {
-                UserName = model.Email, 
+                UserName = model.Email,
                 Email = model.Email
             };
-    
+
             var result = await _userManager.CreateAsync(user, model.Password);
 
             if (result.Succeeded)
@@ -52,66 +53,101 @@ namespace FlashcardsApp.Controllers
                 Errors = result.Errors.Select(e => e.Description).ToList()
             });
         }
-        
-        
+
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginModel model)
         {
             var user = await _userManager.FindByEmailAsync(model.Email);
-
             if (user == null)
             {
                 return Unauthorized("Invalid email or password");
             }
 
             var passwordValid = await _signInManager.CheckPasswordSignInAsync(user, model.Password, false);
-
             if (!passwordValid.Succeeded)
             {
                 return Unauthorized("Invalid email or password");
             }
 
-            var token = GenerateJwtToken(user);
+            // Генерируем оба токена
+            var accessToken = _tokenService.GenerateAccessToken(user);
+            
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
+            var refreshToken = await _tokenService.GenerateRefreshToken(user.Id, ipAddress, userAgent);
+
+            // Устанавливаем Refresh Token в httpOnly cookie
+            SetRefreshTokenCookie(refreshToken.Token);
 
             return Ok(new
             {
-                token
+                accessToken
             });
         }
 
-
-        private string GenerateJwtToken(User user)
+        [HttpPost("refresh")]
+        public async Task<IActionResult> Refresh()
         {
-            //Тот же самый секретный ключ что и в programs
-            var jwtKey = _configuration["Jwt:Key"]; 
-            if (string.IsNullOrEmpty(jwtKey))
+            if (!Request.Cookies.TryGetValue("refreshToken", out var refreshTokenValue))
             {
-                throw new InvalidOperationException("JWT key is not configured");
+                return Unauthorized("Refresh token not found");
             }
-    
-            var key = Encoding.ASCII.GetBytes(jwtKey);
 
-            //НАстройка полей для токена - упаковывает данные пользователя
-            var claims = new[]
+            var refreshToken = await _tokenService.ValidateRefreshToken(refreshTokenValue);
+            if (refreshToken == null)
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()), 
-                new Claim(ClaimTypes.Email, user.Email!),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()) // уникальный ID токена
+                return Unauthorized("Invalid or expired refresh token");
+            }
+
+            var accessToken = _tokenService.GenerateAccessToken(refreshToken.User);
+
+            // Refresh Token Rotation
+            await _tokenService.RevokeRefreshToken(refreshTokenValue);
+            
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
+            var newRefreshToken = await _tokenService.GenerateRefreshToken(refreshToken.UserId, ipAddress, userAgent);
+            
+            SetRefreshTokenCookie(newRefreshToken.Token);
+
+            return Ok(new
+            {
+                accessToken
+            });
+        }
+
+        [HttpPost("logout")]
+        [Authorize]
+        public async Task<IActionResult> Logout()
+        {
+            if (Request.Cookies.TryGetValue("refreshToken", out var refreshTokenValue))
+            {
+                await _tokenService.RevokeRefreshToken(refreshTokenValue);
+            }
+
+            Response.Cookies.Delete("refreshToken", new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Path = "/"
+            });
+
+            return Ok(new { message = "Logged out successfully" });
+        }
+
+        private void SetRefreshTokenCookie(string refreshToken)
+        {
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = DateTimeOffset.UtcNow.AddDays(7),
+                Path = "/"
             };
 
-            //Описывает параметры токена
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(claims), // Кто владелец токена - упаковывает все claims (UserId, Email и т.д.)
-                Expires = DateTime.UtcNow.AddHours(1), // Время жизни токена
-                SigningCredentials = new SigningCredentials( // Как подписать токен для защиты от подделки
-                    new SymmetricSecurityKey(key), // Секретный ключ для создания цифровой подписи
-                    SecurityAlgorithms.HmacSha256) // Алгоритм шифрования подписи (HMAC-SHA256 - стандарт)
-            };
-
-            var tokenHandler = new JwtSecurityTokenHandler(); // Инструмент для создания и чтения JWT токенов
-            var token = tokenHandler.CreateToken(tokenDescriptor); // Создает токен по описанию выше
-            return tokenHandler.WriteToken(token); // Превращает токен в строку для отправки клиенту
+            Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
         }
     }
 }

@@ -16,10 +16,12 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
     }
 
     // DbSet для каждой таблицы
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
     public DbSet<Card> Cards { get; set; }
     public DbSet<Group> Groups { get; set; }
     public DbSet<CardRating> CardRatings { get; set; }
     public DbSet<StudySettings> StudySettings { get; set; }
+    
 
     // Метод для настройки связей между таблицами
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -28,6 +30,17 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
         // + настройки Identity при добавлении)
         base.OnModelCreating(modelBuilder);
 
+        // Настройка RefreshToken
+        modelBuilder.Entity<RefreshToken>(entity =>
+        {
+            entity.HasIndex(r => r.Token).IsUnique();
+    
+            entity.HasOne(r => r.User)
+                .WithMany() // У User нет навигационного свойства для RefreshTokens
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Cascade); // При удалении пользователя удаляем все его токены
+        });
+        
         // Настройка Group
         modelBuilder.Entity<Group>(entity =>
         {
