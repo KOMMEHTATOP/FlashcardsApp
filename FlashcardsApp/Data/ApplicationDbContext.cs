@@ -55,22 +55,20 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
                 c.UserId, c.Question
             }).IsUnique();
         });
-        
+
         // Настройка системы оценок карточек (от 1 до 5)
         modelBuilder.Entity<CardRating>(entity =>
         {
             entity.ToTable(t => t.HasCheckConstraint("CK_CardRating_Rating", "\"Rating\" >= 1 AND \"Rating\" <= 5"));
         });
-        
+
         //Настройка конфигураций связей Group->StudySettings
         modelBuilder.Entity<StudySettings>()
             .HasOne(s => s.Group)
-            .WithOne(g=>g.StudySettings)
+            .WithOne(g => g.StudySettings)
             .HasForeignKey<StudySettings>(s => s.GroupId)
             .OnDelete(DeleteBehavior.Cascade);
-            
-            
-        
+
         // Настройка конфигураций связей Card->Group
         modelBuilder.Entity<Card>()
             .HasOne(c => c.Group) // У карты одна группа
