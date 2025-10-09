@@ -86,7 +86,8 @@ namespace FlashcardsApp.Controllers
 
             return Ok(new
             {
-                accessToken
+                accessToken,
+                user.Email
             });
         }
 
