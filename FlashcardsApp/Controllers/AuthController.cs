@@ -15,17 +15,21 @@ namespace FlashcardsApp.Controllers
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
         private readonly TokenService _tokenService;
+        private readonly IConfiguration _configuration;
 
         public AuthController(
             UserManager<User> userManager, 
             SignInManager<User> signInManager,
-            TokenService tokenService)
+            TokenService tokenService,
+            IConfiguration configuration)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _tokenService = tokenService;
+            _configuration = configuration;
         }
 
+        [AllowAnonymous]
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterModel model)
         {
@@ -54,6 +58,7 @@ namespace FlashcardsApp.Controllers
             });
         }
 
+        [AllowAnonymous]
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginModel model)
         {
@@ -138,12 +143,14 @@ namespace FlashcardsApp.Controllers
 
         private void SetRefreshTokenCookie(string refreshToken)
         {
+            var expirationDays = _configuration.GetValue<double>("Jwt:RefreshTokenExpirationDays");
+
             var cookieOptions = new CookieOptions
             {
                 HttpOnly = true,
                 Secure = true,
                 SameSite = SameSiteMode.None,
-                Expires = DateTimeOffset.UtcNow.AddDays(7),
+                Expires = DateTimeOffset.UtcNow.AddDays(expirationDays),
                 Path = "/"
             };
 

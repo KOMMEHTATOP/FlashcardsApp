@@ -23,6 +23,8 @@ public class TokenService
     // Генерация Access Token (JWT, 30 минут)
     public string GenerateAccessToken(User user)
     {
+        var expirationMinutes = _configuration.GetValue<double>("Jwt:AccessTokenExpirationMinutes");
+
         var jwtKey = _configuration["Jwt:Key"];
         if (string.IsNullOrEmpty(jwtKey))
         {
@@ -40,8 +42,9 @@ public class TokenService
 
         var tokenDescriptor = new SecurityTokenDescriptor
         {
+            
             Subject = new ClaimsIdentity(claims),
-            Expires = DateTime.UtcNow.AddMinutes(30), 
+            Expires = DateTime.UtcNow.AddMinutes(expirationMinutes), 
             SigningCredentials = new SigningCredentials(
                 new SymmetricSecurityKey(key),
                 SecurityAlgorithms.HmacSha256)
@@ -55,12 +58,13 @@ public class TokenService
     // Генерация Refresh Token (случайная строка, 7 дней)
     public async Task<RefreshToken> GenerateRefreshToken(Guid userId, string? ipAddress, string? userAgent)
     {
+        var expirationDays = _configuration.GetValue<double>("Jwt:RefreshTokenExpirationDays");
         var refreshToken = new RefreshToken
         {
             Id = Guid.NewGuid(),
             UserId = userId,
             Token = GenerateRandomToken(),
-            ExpiresAt = DateTime.UtcNow.AddDays(7),
+            ExpiresAt = DateTime.UtcNow.AddDays(expirationDays),
             CreatedAt = DateTime.UtcNow,
             IsRevoked = false,
             IpAddress = ipAddress,
