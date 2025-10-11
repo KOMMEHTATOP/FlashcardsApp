@@ -47,20 +47,20 @@ namespace FlashcardsApp.Controllers
             if (result.Succeeded)
             {
                 // Создаем начальную статистику
-                await _statisticsService.CreateInitialStatisticsAsync(user.Id); // ← добавь эту строку
+                await _statisticsService.CreateInitialStatisticsAsync(user.Id);
         
                 return Ok(new RegisterUserDto
                 {
                     IsSuccess = true,
-                    Message = "User created successfully!"
+                    Message = "Пользователь успешно зарегистрирован!"
                 });
             }
 
             return BadRequest(new RegisterUserDto
             {
                 IsSuccess = false,
-                Message = "Registration failed",
-                Errors = result.Errors.Select(e => e.Description).ToList()
+                Message = "Ошибка регистрации",
+                Errors = result.Errors.Select(e => TranslateIdentityError(e.Code, e.Description)).ToList()
             });
         }
 
@@ -71,13 +71,13 @@ namespace FlashcardsApp.Controllers
             var user = await _userManager.FindByEmailAsync(model.Email);
             if (user == null)
             {
-                return Unauthorized("Invalid email or password");
+                return Unauthorized(new { message = "Неверный email или пароль" });
             }
 
             var passwordValid = await _signInManager.CheckPasswordSignInAsync(user, model.Password, false);
             if (!passwordValid.Succeeded)
             {
-                return Unauthorized("Invalid email or password");
+                return Unauthorized(new { message = "Неверный email или пароль" });
             }
 
             // Генерируем оба токена
@@ -102,13 +102,13 @@ namespace FlashcardsApp.Controllers
         {
             if (!Request.Cookies.TryGetValue("refreshToken", out var refreshTokenValue))
             {
-                return Unauthorized("Refresh token not found");
+                return Unauthorized(new { message = "Refresh токен не найден" });
             }
 
             var refreshToken = await _tokenService.ValidateRefreshToken(refreshTokenValue);
             if (refreshToken == null)
             {
-                return Unauthorized("Invalid or expired refresh token");
+                return Unauthorized(new { message = "Недействительный или истекший refresh токен" });
             }
 
             var accessToken = _tokenService.GenerateAccessToken(refreshToken.User);
@@ -145,7 +145,7 @@ namespace FlashcardsApp.Controllers
                 Path = "/"
             });
 
-            return Ok(new { message = "Logged out successfully" });
+            return Ok(new { message = "Выход выполнен успешно" });
         }
 
         private void SetRefreshTokenCookie(string refreshToken)
@@ -162,6 +162,33 @@ namespace FlashcardsApp.Controllers
             };
 
             Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
+        }
+
+        private string TranslateIdentityError(string code, string originalDescription)
+        {
+            return code switch
+            {
+                "DuplicateUserName" => "Пользователь с таким именем уже существует",
+                "DuplicateEmail" => "Пользователь с таким email уже зарегистрирован",
+                "InvalidEmail" => "Некорректный email адрес",
+                "InvalidUserName" => "Некорректное имя пользователя",
+                "PasswordTooShort" => "Пароль должен содержать минимум 6 символов",
+                "PasswordRequiresNonAlphanumeric" => "Пароль должен содержать специальные символы",
+                "PasswordRequiresDigit" => "Пароль должен содержать цифры",
+                "PasswordRequiresLower" => "Пароль должен содержать строчные буквы",
+                "PasswordRequiresUpper" => "Пароль должен содержать заглавные буквы",
+                "PasswordMismatch" => "Неверный пароль",
+                "UserAlreadyHasPassword" => "У пользователя уже установлен пароль",
+                "UserLockoutNotEnabled" => "Блокировка пользователя не включена",
+                "UserAlreadyInRole" => "Пользователь уже имеет эту роль",
+                "UserNotInRole" => "Пользователь не имеет этой роли",
+                "LoginAlreadyAssociated" => "Этот вход уже привязан к другому пользователю",
+                "InvalidToken" => "Недействительный токен",
+                "RecoveryCodeRedemptionFailed" => "Не удалось использовать код восстановления",
+                "ConcurrencyFailure" => "Ошибка параллельного доступа, попробуйте снова",
+                "DefaultError" => "Произошла неизвестная ошибка",
+                _ => originalDescription 
+            };
         }
     }
 }

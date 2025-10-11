@@ -58,7 +58,6 @@ builder.Services.AddAuthentication(options =>
     });
 
 // Регистрация сервисов
-
 builder.Services.AddSwaggerGen(options =>
 {
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -124,18 +123,27 @@ app.UseSwagger();
 app.UseSwaggerUI();
 app.MapControllers();
 
-// Auto-migration
+// Auto-migration and Seed
 var autoMigrate = builder.Configuration.GetValue<bool>("AutoMigrate", false);
 if (autoMigrate)
 {
+    Console.WriteLine("=== AUTO MIGRATION ENABLED ===");
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    
+    Console.WriteLine("Running migrations...");
     db.Database.Migrate();
+    Console.WriteLine("Migrations completed!");
     
     // Seed данные
+    Console.WriteLine("Starting seed...");
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
-    await DbSeeder.SeedAsync(db, userManager); 
-
+    await DbSeeder.SeedAsync(db, userManager);
+    Console.WriteLine("Seed completed!");
+}
+else
+{
+    Console.WriteLine("=== AUTO MIGRATION DISABLED ===");
 }
 
 app.Run();

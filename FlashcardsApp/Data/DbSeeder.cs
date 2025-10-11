@@ -9,18 +9,33 @@ public static class DbSeeder
 {
     public static async Task SeedAsync(ApplicationDbContext context, UserManager<User> userManager)
     {
+        var userId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+
         // 1. Создать тестового пользователя
-        if (!await context.Users.AnyAsync())
+        var testUser = await userManager.FindByEmailAsync("test@test.com");
+
+        if (testUser == null)
         {
-            var testUser = new User
+            testUser = new User
             {
-                Id = Guid.Parse("11111111-1111-1111-1111-111111111111"), // фиксированный ID
-                UserName = "test@test.com",
-                Email = "test@test.com",
-                EmailConfirmed = true
+                Id = userId, UserName = "test@test.com", Email = "test@test.com", EmailConfirmed = true
             };
 
-            await userManager.CreateAsync(testUser, "Test123!");
+            var result = await userManager.CreateAsync(testUser, "Test123!");
+
+            if (!result.Succeeded)
+            {
+                Console.WriteLine("Failed to create test user:");
+
+                foreach (var error in result.Errors)
+                {
+                    Console.WriteLine($"  - {error.Description}");
+                }
+
+                return; // Выходим если пользователь не создался
+            }
+
+            Console.WriteLine("Test user created successfully!");
 
             // Создать статистику для тестового пользователя
             var statistics = new UserStatistics
@@ -33,9 +48,9 @@ public static class DbSeeder
                 TotalStudyTime = TimeSpan.FromHours(2.5)
             };
             context.UserStatistics.Add(statistics);
+            await context.SaveChangesAsync();
+            Console.WriteLine("User statistics created!");
         }
-
-        var userId = Guid.Parse("11111111-1111-1111-1111-111111111111");
 
         // 2. Создать достижения
         if (!await context.Achievements.AnyAsync())
@@ -44,17 +59,11 @@ public static class DbSeeder
             {
                 new Achievement
                 {
-                    Id = Guid.NewGuid(),
-                    Name = "Первые шаги",
-                    Description = "Завершите свой первый урок",
-                    IconUrl = "🔥"
+                    Id = Guid.NewGuid(), Name = "Первые шаги", Description = "Завершите свой первый урок", IconUrl = "🔥"
                 },
                 new Achievement
                 {
-                    Id = Guid.NewGuid(),
-                    Name = "7 дней подряд",
-                    Description = "Занимайтесь 7 дней подряд",
-                    IconUrl = "⭐"
+                    Id = Guid.NewGuid(), Name = "7 дней подряд", Description = "Занимайтесь 7 дней подряд", IconUrl = "⭐"
                 },
                 new Achievement
                 {
@@ -72,10 +81,7 @@ public static class DbSeeder
                 },
                 new Achievement
                 {
-                    Id = Guid.NewGuid(),
-                    Name = "Король знаний",
-                    Description = "Достигните 10-го уровня",
-                    IconUrl = "👑"
+                    Id = Guid.NewGuid(), Name = "Король знаний", Description = "Достигните 10-го уровня", IconUrl = "👑"
                 },
                 new Achievement
                 {
@@ -87,38 +93,38 @@ public static class DbSeeder
             };
 
             context.Achievements.AddRange(achievements);
+            await context.SaveChangesAsync();
+            Console.WriteLine("Achievements created!");
 
             // Разблокировать первые 3 достижения для тестового пользователя
-            var firstAchievement = achievements[0];
-            var secondAchievement = achievements[1];
-            var thirdAchievement = achievements[2];
-
-            context.UserAchievements.AddRange(
+            var userAchievements = new List<UserAchievement>
+            {
                 new UserAchievement
                 {
-                    UserId = userId,
-                    AchievementId = firstAchievement.Id,
-                    UnlockedAt = DateTime.UtcNow.AddDays(-10)
+                    UserId = userId, AchievementId = achievements[0].Id, UnlockedAt = DateTime.UtcNow.AddDays(-10)
                 },
                 new UserAchievement
                 {
-                    UserId = userId,
-                    AchievementId = secondAchievement.Id,
-                    UnlockedAt = DateTime.UtcNow.AddDays(-3)
+                    UserId = userId, AchievementId = achievements[1].Id, UnlockedAt = DateTime.UtcNow.AddDays(-3)
                 },
                 new UserAchievement
                 {
-                    UserId = userId,
-                    AchievementId = thirdAchievement.Id,
-                    UnlockedAt = DateTime.UtcNow.AddDays(-1)
+                    UserId = userId, AchievementId = achievements[2].Id, UnlockedAt = DateTime.UtcNow.AddDays(-1)
                 }
-            );
+            };
+
+            context.UserAchievements.AddRange(userAchievements);
+            await context.SaveChangesAsync();
+            Console.WriteLine("User achievements unlocked!");
         }
 
         // 3. Создать группы
         if (!await context.Groups.AnyAsync())
         {
-            var colors = new[] { GroupColor.Red, GroupColor.Green, GroupColor.Yellow, GroupColor.Orange, GroupColor.Purple };
+            var colors = new[]
+            {
+                GroupColor.Red, GroupColor.Green, GroupColor.Yellow, GroupColor.Orange, GroupColor.Purple
+            };
             var groups = new List<Group>();
 
             for (int i = 1; i <= 5; i++)
@@ -136,12 +142,14 @@ public static class DbSeeder
             }
 
             context.Groups.AddRange(groups);
-            await context.SaveChangesAsync(); // Сохранить группы перед созданием карточек
+            await context.SaveChangesAsync();
+            Console.WriteLine("Groups created!");
 
             // 4. Создать карточки для каждой группы
             foreach (var group in groups)
             {
                 var cards = new List<Card>();
+
                 for (int j = 1; j <= 15; j++)
                 {
                     var card = new Card
@@ -156,10 +164,15 @@ public static class DbSeeder
                     };
                     cards.Add(card);
                 }
+
                 context.Cards.AddRange(cards);
             }
+
+            await context.SaveChangesAsync();
+            Console.WriteLine("Cards created!");
         }
 
-        await context.SaveChangesAsync();
+        Console.WriteLine("=== SEED COMPLETED SUCCESSFULLY ===");
     }
+
 }
