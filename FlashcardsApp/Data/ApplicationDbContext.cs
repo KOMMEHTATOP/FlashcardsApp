@@ -5,9 +5,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FlashcardsApp.Data;
 
-//Наследуемся от DbContext - получаем все возможности EF (для базового случая).
-//В нашем случае так как используем Identity, наследуемся от него и задаем параметры полей связей. Можно не указывать,
-//но тогда все поля для соединения таблиц должны быть string.
 public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 {
     // Конструктор для передачи настроек подключения
@@ -21,6 +18,9 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
     public DbSet<Group> Groups { get; set; }
     public DbSet<CardRating> CardRatings { get; set; }
     public DbSet<StudySettings> StudySettings { get; set; }
+    public DbSet<Achievement> Achievements { get; set; }
+    public DbSet<UserAchievement> UserAchievements { get; set; }
+    public DbSet<UserStatistics> UserStatistics { get; set; }
     
 
     // Метод для настройки связей между таблицами
@@ -119,5 +119,30 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
             .OnDelete(DeleteBehavior.Cascade);
         
         //Настройка конфигураций связей для User->Achievments
+        modelBuilder.Entity<UserStatistics>()
+            .HasKey(us => us.UserId);
+
+        modelBuilder.Entity<User>()
+            .HasOne(u => u.Statistics)
+            .WithOne(us => us.User)
+            .HasForeignKey<UserStatistics>(us => us.UserId);
+        
+        
+        // Настройка UserAchievement (составной ключ)
+        modelBuilder.Entity<UserAchievement>()
+            .HasKey(ua => new { ua.UserId, ua.AchievementId });
+
+        // Связь User -> UserAchievement
+        modelBuilder.Entity<UserAchievement>()
+            .HasOne(ua => ua.User)
+            .WithMany(u => u.UserAchievements)
+            .HasForeignKey(ua => ua.UserId);
+
+        // Связь Achievement -> UserAchievement
+        modelBuilder.Entity<UserAchievement>()
+            .HasOne(ua => ua.Achievement)
+            .WithMany(a => a.UserAchievements)
+            .HasForeignKey(ua => ua.AchievementId);
+        
     }
 }
