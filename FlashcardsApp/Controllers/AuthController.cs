@@ -16,17 +16,20 @@ namespace FlashcardsApp.Controllers
         private readonly SignInManager<User> _signInManager;
         private readonly TokenService _tokenService;
         private readonly IConfiguration _configuration;
-
+        private readonly UserStatisticsService _statisticsService;
+        
         public AuthController(
             UserManager<User> userManager, 
             SignInManager<User> signInManager,
             TokenService tokenService,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            UserStatisticsService statisticsService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _tokenService = tokenService;
             _configuration = configuration;
+            _statisticsService = statisticsService;
         }
 
         [AllowAnonymous]
@@ -43,6 +46,9 @@ namespace FlashcardsApp.Controllers
 
             if (result.Succeeded)
             {
+                // Создаем начальную статистику
+                await _statisticsService.CreateInitialStatisticsAsync(user.Id); // ← добавь эту строку
+        
                 return Ok(new RegisterUserDto
                 {
                     IsSuccess = true,

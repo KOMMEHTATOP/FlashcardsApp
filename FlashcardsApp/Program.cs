@@ -92,6 +92,8 @@ builder.Services.AddScoped<CardService>();
 builder.Services.AddScoped<CardRatingService>();
 builder.Services.AddScoped<StudySettingsService>();
 builder.Services.AddScoped<StudySessionService>();
+builder.Services.AddScoped<UserStatisticsService>();
+builder.Services.AddScoped<AchievementService>(); 
 
 // CORS
 var allowedOrigins = builder.Configuration["ALLOWED_ORIGINS"]?.Split(',') 
@@ -129,6 +131,11 @@ if (autoMigrate)
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     db.Database.Migrate();
+    
+    // Seed данные
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+    await DbSeeder.SeedAsync(db, userManager); 
+
 }
 
 app.Run();
