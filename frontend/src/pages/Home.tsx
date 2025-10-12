@@ -97,7 +97,6 @@ export function HomePage() {
             isCollapsed={isCollapsed}
           />
         </motion.div>
-
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StateCard
             icon={Clock}
@@ -127,9 +126,7 @@ export function HomePage() {
             gradient="from-purple-500 to-pink-500"
             delay={0.4}
           />
-          <h2>test</h2>
         </div>
-
         <div role="tablist" className="tabs tabs-border">
           <button
             role="tab"
@@ -199,7 +196,6 @@ export function HomePage() {
             )}
           </AnimatePresence>
         </div>
-
         <MotivationCard
           animated="rotate"
           animatedDelay={20}
