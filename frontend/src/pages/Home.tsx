@@ -127,6 +127,7 @@ export function HomePage() {
             gradient="from-purple-500 to-pink-500"
             delay={0.4}
           />
+          <h2>test</h2>
         </div>
 
         <div role="tablist" className="tabs tabs-border">
