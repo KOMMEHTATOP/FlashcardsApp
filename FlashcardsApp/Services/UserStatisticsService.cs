@@ -20,7 +20,6 @@ public class UserStatisticsService
     /// <summary>
     /// Получить статистику пользователя с расчетами для фронтенда
     /// </summary>
-// Services/UserStatisticsService.cs
     public async Task<ServiceResult<UserStatsDto>> GetUserStatsAsync(Guid userId)
     {
         var stats = await _context.UserStatistics
