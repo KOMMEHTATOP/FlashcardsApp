@@ -25,6 +25,7 @@ import SortableList from "../components/SortebleList";
 import useTitle from "../utils/useTitle";
 import { testBadgesData, testStudyData } from "../test/testData";
 import { getLevelMotivationText } from "../utils/getMotivationText";
+import formatTotalHour from "../utils/formatTotalHour";
 
 const modulePage = [
   {
@@ -36,7 +37,7 @@ const modulePage = [
 ];
 
 export function HomePage() {
-  const { userState } = useApp();
+  const { userState, achivment, userAchivment } = useApp();
   useTitle("Главная");
 
   const [modul, setModul] = useState<typeof modulePage>(modulePage);
@@ -45,9 +46,9 @@ export function HomePage() {
   const [badget, setBadget] = useState(testBadgesData);
   const [study, setStudy] = useState(testStudyData);
 
-  const currentXP = userState?.currentXP || 0;
-  const xpToNextLevel = userState?.xpToNextLevel || 0;
-  const level = userState?.level || 0;
+  const currentXP = userState?.XPProgressInCurrentLevel || 0;
+  const xpToNextLevel = userState?.XPRequiredForCurrentLevel || 0;
+  const level = userState?.Level || 0;
 
   const motivationText = useMemo(() => {
     return getLevelMotivationText(currentXP, xpToNextLevel);
@@ -72,6 +73,7 @@ export function HomePage() {
       setIsCollapsed(false);
     }
   });
+  console.log(userAchivment);
 
   return (
     <div className="w-full pb-10">
@@ -91,9 +93,9 @@ export function HomePage() {
           className="h-40"
         >
           <LevelCard
-            level={userState?.level || 0}
-            currentXP={userState?.currentXP || 0}
-            xpToNextLevel={userState?.xpToNextLevel || 0}
+            level={level}
+            currentXP={currentXP}
+            xpToNextLevel={xpToNextLevel}
             isCollapsed={isCollapsed}
           />
         </motion.div>
@@ -101,14 +103,14 @@ export function HomePage() {
           <StateCard
             icon={Clock}
             label="Общее время учебы"
-            value="2.5 часа"
+            value={`${formatTotalHour(userState?.TotalStudyTime || "0")} ч.`}
             gradient="from-blue-500 to-cyan-500"
             delay={0.1}
           />
           <StateCard
             icon={Zap}
             label="Ударный режим"
-            value="7 дней"
+            value={`${userState?.CurrentStreak || 0} дней`}
             gradient="from-orange-500 to-red-500"
             delay={0.2}
           />
@@ -181,14 +183,18 @@ export function HomePage() {
                 className="space-y-6"
               >
                 <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {badget.map((item, index) => (
+                  {achivment?.map((item, index) => (
                     <motion.div
-                      key={item.id}
+                      key={item.Id}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.1 }}
                     >
-                      <BadgeCard {...item} />
+                      <BadgeCard
+                        title={item.Name}
+                        description={item.Description}
+                        earned={true}
+                      />
                     </motion.div>
                   ))}
                 </div>

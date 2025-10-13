@@ -17,6 +17,7 @@ import Card from "../components/ui/card";
 import { useNavigate } from "react-router-dom";
 import useTitle from "../utils/useTitle";
 import { floatingIcons } from "../test/data";
+import apiFetch from "../utils/apiFetch";
 
 export default function LoginPage() {
   useTitle("Вход");
@@ -24,18 +25,73 @@ export default function LoginPage() {
     "login"
   );
 
+  const [login, setLogin] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+
   const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
   const navigation = useNavigate();
 
   const handleSelect = (block: string) => {
     setSelectedBlock(block as "login" | "register");
   };
 
-  const handleSubmit = () => {
+  const handleLogin = async () => {
     setLoading(true);
+
+    const data = {
+      email,
+      password,
+    };
+    console.log(data);
+    await apiFetch
+      .post("/Auth/login", data)
+      .then((res) => {
+        console.log(res);
+        const token = res.data.accessToken;
+        localStorage.setItem("accessToken", token);
+        apiFetch.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      })
+      .catch((err) => {
+        console.log(err);
+        setError(err.response.data.message);
+        setLoading(false);
+      });
+
     setTimeout(() => {
       setLoading(false);
       navigation("/");
+    }, 2000);
+  };
+
+  const handleRegister = async () => {
+    setLoading(true);
+
+    const data = {
+      Login: login,
+      Email: email,
+      Password: password,
+    };
+
+    await apiFetch
+      .post("/Auth/register", data)
+      .then((res) => {
+        console.log(res);
+        const accessToken = res.data.accessToken;
+        localStorage.setItem("accessToken", accessToken);
+      })
+      .catch((err) => {
+        console.log(err.response.data.Errors);
+
+        err.response.data.Errors.map((item: any) => setError(item));
+
+        setLoading(false);
+      });
+
+    setTimeout(() => {
+      setLoading(false);
+      handleSelect("login");
     }, 2000);
   };
 
@@ -105,7 +161,7 @@ export default function LoginPage() {
           <motion.div
             transition={{ duration: 0.4, ease: "easeInOut" }}
             className={`p-8 backdrop-blur-xl bg-white/80  border-2 border-purple-300 shadow-2xl rounded-xl overflow-hidden max-h-dvh transition-all duration-300 ${
-              selectedBlock === "login" ? "h-95" : "h-115"
+              selectedBlock === "login" ? "h-100" : "h-120"
             }`}
           >
             <div className="space-y-4">
@@ -151,13 +207,15 @@ export default function LoginPage() {
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: 20 }}
                         transition={{ duration: 0.3 }}
-                        onSubmit={handleSubmit}
+                        onSubmit={handleLogin}
                         className="space-y-4"
                       >
                         <Input
                           type="email"
                           name="Email"
                           icon={Mail}
+                          value={email}
+                          onChange={(val) => setEmail(val.target.value)}
                           placeholder="student@studyquest.com"
                           required={true}
                         />
@@ -166,13 +224,15 @@ export default function LoginPage() {
                           type="password"
                           name="Пароль"
                           icon={Lock}
+                          value={password}
+                          onChange={(val) => setPassword(val.target.value)}
                           placeholder="••••••••"
                           required={true}
                         />
 
                         <ConfrimBtn
                           loading={loading}
-                          handleSubmit={handleSubmit}
+                          handleSubmit={handleLogin}
                           icon={BowArrow}
                           iconRight={true}
                           iconLoading={Sparkles}
@@ -181,6 +241,9 @@ export default function LoginPage() {
                         <button className="w-full text-purple-600 hover:text-purple-700 text-subtitle hover:bg-purple-300/20 py-2 rounded-xl">
                           Забыли пароль?
                         </button>
+                        <span className="items-center text-center">
+                          {error && <p className="text-red-500">{error}</p>}
+                        </span>
                       </motion.form>
                     </div>
                   </Activity>
@@ -198,7 +261,7 @@ export default function LoginPage() {
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -20 }}
                         transition={{ duration: 0.3 }}
-                        onSubmit={handleSubmit}
+                        onSubmit={handleRegister}
                         className="space-y-4"
                       >
                         <Input
@@ -206,7 +269,9 @@ export default function LoginPage() {
                           name="Логин"
                           icon={User}
                           placeholder="Alex"
-                          required={true}
+                          required={false}
+                          value={login}
+                          onChange={(val) => setLogin(val.target.value)}
                         />
                         <Input
                           type="email"
@@ -214,6 +279,8 @@ export default function LoginPage() {
                           icon={Mail}
                           placeholder="student@studyquest.com"
                           required={true}
+                          value={email}
+                          onChange={(val) => setEmail(val.target.value)}
                         />
 
                         <Input
@@ -222,10 +289,12 @@ export default function LoginPage() {
                           icon={Lock}
                           placeholder="••••••••"
                           required={true}
+                          value={password}
+                          onChange={(val) => setPassword(val.target.value)}
                         />
                         <ConfrimBtn
                           loading={loading}
-                          handleSubmit={handleSubmit}
+                          handleSubmit={handleRegister}
                           icon={Rocket}
                           iconRight={true}
                           iconLoading={Sparkles}
@@ -236,6 +305,9 @@ export default function LoginPage() {
                           Регистрируясь, вы соглашаетесь с нашими Условиями
                           предоставления услуг и Политикой конфиденциальности
                         </p>
+                        <span className="items-center text-center">
+                          {error && <p className="text-red-500">{error}</p>}
+                        </span>
                       </motion.form>
                     </div>
                   </Activity>

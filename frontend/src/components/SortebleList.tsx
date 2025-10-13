@@ -16,6 +16,7 @@ import React, { useState } from "react";
 import StudyCard from "./cards/Study_card";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
+import type { GroupType } from "../types/types";
 
 export function SortableItem({
   id,
@@ -70,7 +71,11 @@ export function SortableItem({
   );
 }
 
-export default function SortableList({ initalItems }: { initalItems: any[] }) {
+export default function SortableList({
+  initalItems,
+}: {
+  initalItems: GroupType[];
+}) {
   const [items, setItems] = useState(initalItems);
   const { handleSelectLesson } = useApp();
   const navigate = useNavigate();
@@ -80,8 +85,8 @@ export default function SortableList({ initalItems }: { initalItems: any[] }) {
     if (!over) return;
     if (active.id !== over.id) {
       setItems((prev) => {
-        const oldIndex = prev.findIndex((x) => x.id === active.id);
-        const newIndex = prev.findIndex((x) => x.id === over.id);
+        const oldIndex = prev.findIndex((x) => x.Id === active.id);
+        const newIndex = prev.findIndex((x) => x.Id === over.id);
         return arrayMove(prev, oldIndex, newIndex);
       });
     }
@@ -92,8 +97,8 @@ export default function SortableList({ initalItems }: { initalItems: any[] }) {
     if (!over) return;
     if (active.id !== over.id) {
       setItems((prev) => {
-        const oldIndex = prev.findIndex((x) => x.id === active.id);
-        const newIndex = prev.findIndex((x) => x.id === over.id);
+        const oldIndex = prev.findIndex((x) => x.Id === active.id);
+        const newIndex = prev.findIndex((x) => x.Id === over.id);
         return arrayMove(prev, oldIndex, newIndex);
       });
     }
@@ -106,18 +111,18 @@ export default function SortableList({ initalItems }: { initalItems: any[] }) {
       onDragEnd={handleDragEnd}
     >
       <SortableContext
-        items={items.map((i) => i.id)}
+        items={items.map((i) => i.Id)}
         strategy={verticalListSortingStrategy}
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 space-y-1">
           {items.map((item, index) => (
-            <SortableItem key={item.id} id={item.id} index={index}>
-              <motion.div layout layoutId={`card-${item.id}`}>
+            <SortableItem key={item.Id} id={item?.Id || ""} index={index}>
+              <motion.div layout layoutId={`card-${item.Id}`}>
                 <StudyCard
                   {...item}
-                  onClick={() => navigate(`/study/${item.id}`)}
+                  onClick={() => navigate(`/study/${item.Id.toString()}`)}
                   onDelete={() => {}}
-                  onLessonPlayer={() => handleSelectLesson(item)}
+                  // onLessonPlayer={() => handleSelectLesson(item)}
                 />
               </motion.div>
             </SortableItem>

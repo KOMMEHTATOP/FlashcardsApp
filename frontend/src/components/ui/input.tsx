@@ -7,6 +7,8 @@ type InputProps = {
   placeholder?: string;
   className?: string;
   required: boolean;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  value?: string;
 };
 
 export default function Input({
@@ -16,6 +18,8 @@ export default function Input({
   placeholder,
   className,
   required,
+  onChange,
+  value,
 }: InputProps) {
   return (
     <div className="space-y-2">
@@ -27,6 +31,9 @@ export default function Input({
         <input
           id={name}
           type={type}
+          name={name}
+          onChange={onChange}
+          value={value}
           placeholder={placeholder}
           className={`pl-10 input input-bordered w-full rounded-xl bg-white/50 text-gray-900 ${className}`}
           required={required}

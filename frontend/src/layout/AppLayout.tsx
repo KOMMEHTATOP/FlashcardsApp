@@ -5,7 +5,7 @@ import { useApp } from "../context/AppContext";
 import LessonPlayer from "../pages/LessonPlayer";
 
 export default function AppLayout() {
-  const { currentLesson, handleCompliteLesson } = useApp();
+  const { currentLesson, handleCompliteLesson, user } = useApp();
 
   if (currentLesson) {
     return (
@@ -27,7 +27,7 @@ export default function AppLayout() {
 
   return (
     <div className="flex flex-col justify-center items-center min-h-screen bg-base-300">
-      <Header />
+      <Header user={user} />
 
       <main className="flex-1 w-full max-w-6xl pt-30 px-2 md:px-0">
         <Outlet />

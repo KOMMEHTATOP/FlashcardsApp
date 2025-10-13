@@ -2,17 +2,17 @@ import { motion } from "framer-motion";
 import { Check, Lock, type LucideIcon } from "lucide-react";
 
 interface BadgeCardProps {
-  icon: LucideIcon;
-  title: string;
-  description: string;
-  earned: boolean;
-  gradient: string;
+  // icon: LucideIcon;
+  title: String;
+  description: String;
+  earned?: boolean;
+  gradient?: String;
   onClick?: () => void;
   onDelete?: () => void;
 }
 
 export function BadgeCard({
-  icon: Icon,
+  // icon: Icon,
   title,
   description,
   earned,
@@ -48,11 +48,11 @@ export function BadgeCard({
               : "bg-gray-300 dark:bg-base-200"
           }`}
         >
-          <Icon
+          {/* <Icon
             className={`w-10 h-10 ${
               earned ? "text-white" : "text-gray-400 dark:text-gray-500"
             }`}
-          />
+          /> */}
         </div>
         <div>
           <h4

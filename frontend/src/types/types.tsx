@@ -1,14 +1,37 @@
 import type { LucideIcon } from "lucide-react";
 
 interface UserData {
-  login: String;
-  email: String;
+  Id: String;
+  UserName: String;
+  Email: String;
+  Login?: String;
 }
 
 interface UserState {
-  level: number;
-  currentXP: number;
-  xpToNextLevel: number;
+  Level: number;
+  TotalXP: number;
+  XPForNextLevel: number;
+  CurrentStreak: number;
+  BestStreak: number;
+  TotalStudyTime: String;
+  XPRequiredForCurrentLevel: number;
+  XPProgressInCurrentLevel: number;
+}
+
+interface AchievementsType {
+  Id: string;
+  Description: String;
+  IconUrl: String;
+  Name: String;
+  UUserAchievements?: any;
+}
+
+interface GroupType {
+  Id: string;
+  GroupName: String;
+  GroupColor: String;
+  CreatedAt: String;
+  Order: number;
 }
 
 interface SubjectDetailType {
@@ -50,4 +73,6 @@ export type {
   SubjectCardType,
   RatingValue,
   FlashCard,
+  AchievementsType,
+  GroupType,
 };

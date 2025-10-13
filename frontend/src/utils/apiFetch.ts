@@ -1,0 +1,75 @@
+import axios from "axios";
+
+const apiFetch = axios.create({
+    baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
+    withCredentials: true
+});
+
+let isRefreshing = false;
+let failedQueue: any = [];
+
+
+const proccesQuene = (error : any, token =null) => {
+    failedQueue.forEach((prom: any) => {
+        if (error) prom.reject(error);
+        else prom.resolve(token);
+    });
+    failedQueue = [];
+}
+
+apiFetch.interceptors.request.use((config) => {
+    const token = localStorage.getItem("accessToken");
+    if (token) config.headers["Authorization"] = `Bearer ${token}`;
+    return config;
+})
+
+apiFetch.interceptors.response.use((response) => 
+    response,
+    async (error) => {
+        const originalRequest = error.config;
+        
+        if (error.response && error.response.status === 401 && !originalRequest._retry) {
+            originalRequest._retry = true;
+            if (isRefreshing) {
+                return new Promise((resolve, reject) => {
+                    failedQueue.push({ resolve, reject });
+                })
+                .then((token) => {
+                    originalRequest.headers["Authorization"] = `Bearer ${token}`;
+                    return apiFetch(originalRequest);
+                })
+                .catch(Promise.reject);
+            }
+            isRefreshing = true;
+            try {
+                const response = await axios.post(
+                    `${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/Auth/refresh`,
+                    {},
+                    {withCredentials: true} 
+                );
+
+                const newToken = response?.data.accessToken;
+                localStorage.setItem("accessToken", newToken);
+
+                apiFetch.defaults.headers.common["Authorization"] = `Bearer ${newToken}`;
+
+
+                proccesQuene(null, newToken);
+                return apiFetch(originalRequest);
+            } catch (err) {
+                proccesQuene(err);
+                console.log("Ошибка получние данных! _407");
+
+                window.location.href = "/login";
+                return Promise.reject(err);
+            } finally {
+                isRefreshing = false;
+            }
+        }
+
+        return Promise.reject(error);
+}
+);
+
+
+export default apiFetch;

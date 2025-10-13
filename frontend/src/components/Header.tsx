@@ -1,8 +1,9 @@
 import { Brain, UserRound } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import type { UserData } from "../types/types";
 
-export default function Header() {
+export default function Header({ user }: { user: UserData | undefined }) {
   const navigate = useNavigate();
   return (
     <header className="navbar backdrop-blur-md bg-base-200/20 shadow-lg py-3 items-center justify-center fixed top-0 z-50">
@@ -34,6 +35,7 @@ export default function Header() {
           className="flex items-center gap-4"
           onClick={() => navigate("/login")}
         >
+          <span>{user?.UserName}</span>
           <UserRound className="h-7 w-7 text-base-content" />
         </motion.div>
       </div>
