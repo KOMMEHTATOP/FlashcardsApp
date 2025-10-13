@@ -34,6 +34,14 @@ public class AchievementsController : ControllerBase
         return Ok(result.Data);
     }
 
+    [HttpGet("all-with-status")]
+    public async Task<IActionResult> GetAllAchievementsWithStatus()
+    {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var result = await _achievementService.GetAllAchievementsWithStatusAsync(userId);
+        return Ok(result.Data);
+    }
+    
     // Проверить и разблокировать новые достижения
     [HttpPost("check and unlock")]
     public async Task<IActionResult> CheckAchievements()
