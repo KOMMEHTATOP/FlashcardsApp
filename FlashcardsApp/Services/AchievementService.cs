@@ -1,4 +1,5 @@
 using FlashcardsApp.Data;
+using FlashcardsApp.DTOs;
 using FlashcardsApp.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -24,15 +25,28 @@ public class AchievementService
     }
 
     // Получить достижения пользователя
-    public async Task<ServiceResult<IEnumerable<UserAchievement>>> GetUserAchievementsAsync(Guid userId)
+    public async Task<ServiceResult<IEnumerable<UserAchievementDto>>> GetUserAchievementsAsync(Guid userId)
     {
         var userAchievements = await _context.UserAchievements
             .AsNoTracking()
             .Include(ua => ua.Achievement)
             .Where(ua => ua.UserId == userId)
+            .Select(ua => new UserAchievementDto
+            {
+                UserId = ua.UserId,
+                AchievementId = ua.AchievementId,
+                UnlockedAt = ua.UnlockedAt,
+                Achievement = new AchievementDto
+                {
+                    Id = ua.Achievement.Id,
+                    Name = ua.Achievement.Name,
+                    Description = ua.Achievement.Description,
+                    IconUrl = ua.Achievement.IconUrl
+                }
+            })
             .ToListAsync();
 
-        return ServiceResult<IEnumerable<UserAchievement>>.Success(userAchievements);
+        return ServiceResult<IEnumerable<UserAchievementDto>>.Success(userAchievements);
     }
 
     // Разблокировать достижение

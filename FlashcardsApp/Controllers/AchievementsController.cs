@@ -35,7 +35,7 @@ public class AchievementsController : ControllerBase
     }
 
     // Проверить и разблокировать новые достижения
-    [HttpPost("check")]
+    [HttpPost("check and unlock")]
     public async Task<IActionResult> CheckAchievements()
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
