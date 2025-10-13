@@ -11,17 +11,22 @@ namespace FlashcardsApp.Controllers;
 public class UserStatisticsController : ControllerBase
 {
     private readonly UserStatisticsService _statisticsService;
+    private readonly GamificationService _gamificationService;
 
-    public UserStatisticsController(UserStatisticsService statisticsService)
+    public UserStatisticsController(
+        UserStatisticsService statisticsService,
+        GamificationService gamificationService)
     {
         _statisticsService = statisticsService;
+        _gamificationService = gamificationService;
     }
 
+    // Один эндпоинт для получения статистики
     [HttpGet]
-    public async Task<IActionResult> GetMyStatistics()
+    public async Task<IActionResult> GetUserStats()
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        var result = await _statisticsService.GetUserStatisticsAsync(userId);
+        var result = await _statisticsService.GetUserStatsAsync(userId);
 
         if (!result.IsSuccess)
         {
@@ -31,11 +36,11 @@ public class UserStatisticsController : ControllerBase
         return Ok(result.Data);
     }
 
-    [HttpPost("update")]
-    public async Task<IActionResult> UpdateStatistics([FromBody] UpdateStatisticsRequest request)
+    [HttpGet("motivational-message")]
+    public async Task<IActionResult> GetMotivationalMessage()
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        var result = await _statisticsService.UpdateStatisticsAsync(userId, request.XpGained, request.StudyTime);
+        var result = await _gamificationService.GetMotivationalMessageAsync(userId);
 
         if (!result.IsSuccess)
         {
@@ -44,10 +49,18 @@ public class UserStatisticsController : ControllerBase
 
         return Ok(result.Data);
     }
-}
 
-public class UpdateStatisticsRequest
-{
-    public int XpGained { get; set; }
-    public TimeSpan StudyTime { get; set; }
+    [HttpPost("initialize")]
+    public async Task<IActionResult> InitializeStats()
+    {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var result = await _statisticsService.CreateInitialStatisticsAsync(userId);
+
+        if (!result.IsSuccess)
+        {
+            return BadRequest(result.Errors);
+        }
+
+        return Ok();
+    }
 }

@@ -25,7 +25,7 @@ namespace FlashcardsApp.Controllers
         public async Task<ActionResult<ResultStudySessionDto>> StartSession([FromQuery] Guid groupId, [FromQuery] bool useDefaultSettings = false)
         {
             var userId = GetCurrentUserId();
-            var result = await _studySessionService.StartSessionAsync(userId, groupId, useDefaultSettings);
+            var result = await _studySessionService.StartSessionAsync(userId, groupId);
 
             if (!result.IsSuccess)
             {

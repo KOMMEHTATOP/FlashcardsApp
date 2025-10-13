@@ -15,5 +15,4 @@ public class Group
     
     public User? User { get; set; }
     public List<Card>? Cards { get; set; } 
-    public StudySettings? StudySettings { get; set; }
 }

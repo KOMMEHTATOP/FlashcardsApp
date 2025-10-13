@@ -3,6 +3,7 @@ using System;
 using FlashcardsApp.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FlashcardsApp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251013081552_AddGamificationFields")]
+    partial class AddGamificationFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -78,8 +81,7 @@ namespace FlashcardsApp.Migrations
                     b.HasIndex("GroupId");
 
                     b.HasIndex("UserId", "Question")
-                        .IsUnique()
-                        .HasDatabaseName("IX_Cards_User_Question");
+                        .IsUnique();
 
                     b.ToTable("Cards");
                 });
@@ -141,8 +143,7 @@ namespace FlashcardsApp.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("UserId", "GroupName")
-                        .IsUnique()
-                        .HasDatabaseName("IX_Groups_User_Name");
+                        .IsUnique();
 
                     b.ToTable("Groups");
                 });
@@ -179,8 +180,7 @@ namespace FlashcardsApp.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Token")
-                        .IsUnique()
-                        .HasDatabaseName("IX_RefreshTokens_Token");
+                        .IsUnique();
 
                     b.HasIndex("UserId");
 
@@ -212,8 +212,7 @@ namespace FlashcardsApp.Migrations
 
                     b.HasIndex("CardId");
 
-                    b.HasIndex("UserId", "CardId", "StudiedAt")
-                        .HasDatabaseName("IX_StudyHistory_User_Card_Date");
+                    b.HasIndex("UserId", "CardId", "StudiedAt");
 
                     b.ToTable("StudyHistory", t =>
                         {
@@ -230,11 +229,18 @@ namespace FlashcardsApp.Migrations
                     b.Property<int>("CompletionThreshold")
                         .HasColumnType("integer");
 
+                    b.Property<Guid?>("GroupId")
+                        .HasColumnType("uuid");
+
                     b.Property<int>("MaxRating")
                         .HasColumnType("integer");
 
                     b.Property<int>("MinRating")
                         .HasColumnType("integer");
+
+                    b.Property<string>("PresetName")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<bool>("ShuffleOnRepeat")
                         .HasColumnType("boolean");
@@ -247,9 +253,10 @@ namespace FlashcardsApp.Migrations
 
                     b.HasKey("StudySettingsId");
 
-                    b.HasIndex("UserId")
-                        .IsUnique()
-                        .HasDatabaseName("IX_StudySettings_UserId");
+                    b.HasIndex("GroupId")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("StudySettings");
                 });
@@ -579,11 +586,18 @@ namespace FlashcardsApp.Migrations
 
             modelBuilder.Entity("FlashcardsApp.Models.StudySettings", b =>
                 {
+                    b.HasOne("FlashcardsApp.Models.Group", "Group")
+                        .WithOne("StudySettings")
+                        .HasForeignKey("FlashcardsApp.Models.StudySettings", "GroupId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
                     b.HasOne("FlashcardsApp.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Group");
 
                     b.Navigation("User");
                 });
@@ -682,6 +696,8 @@ namespace FlashcardsApp.Migrations
             modelBuilder.Entity("FlashcardsApp.Models.Group", b =>
                 {
                     b.Navigation("Cards");
+
+                    b.Navigation("StudySettings");
                 });
 
             modelBuilder.Entity("FlashcardsApp.Models.User", b =>

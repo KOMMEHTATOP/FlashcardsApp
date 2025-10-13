@@ -1,6 +1,6 @@
 using FlashcardsApp.Data;
-using FlashcardsApp.DTOs;
 using FlashcardsApp.Models;
+using FlashcardsAppContracts.DTOs;
 using Microsoft.EntityFrameworkCore;
 
 namespace FlashcardsApp.Services;

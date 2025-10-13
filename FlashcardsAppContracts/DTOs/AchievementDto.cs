@@ -1,4 +1,4 @@
-namespace FlashcardsApp.DTOs;
+namespace FlashcardsAppContracts.DTOs;
 
 public class UserAchievementDto
 {

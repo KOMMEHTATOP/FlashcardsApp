@@ -93,6 +93,9 @@ builder.Services.AddScoped<StudySettingsService>();
 builder.Services.AddScoped<StudySessionService>();
 builder.Services.AddScoped<UserStatisticsService>();
 builder.Services.AddScoped<AchievementService>(); 
+builder.Services.AddScoped<GamificationService>();
+builder.Services.AddScoped<StudyService>();
+
 
 // CORS
 var allowedOrigins = builder.Configuration["ALLOWED_ORIGINS"]?.Split(',') 

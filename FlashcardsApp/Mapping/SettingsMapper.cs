@@ -9,10 +9,7 @@ public static class SettingsMapper
     {
         return new ResultSettingsDto()
         {
-            StudySettingsId = studySettings.StudySettingsId,
-            GroupId = studySettings.GroupId,
             StudyOrder = studySettings.StudyOrder,
-            PresetName = studySettings.PresetName,
             MinRating = studySettings.MinRating,
             MaxRating = studySettings.MaxRating,
             CompletionThreshold = studySettings.CompletionThreshold,

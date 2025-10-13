@@ -1,5 +1,7 @@
+// Services/UserStatisticsService.cs
 using FlashcardsApp.Data;
 using FlashcardsApp.Models;
+using FlashcardsAppContracts.DTOs.Responses;
 using Microsoft.EntityFrameworkCore;
 
 namespace FlashcardsApp.Services;
@@ -7,32 +9,69 @@ namespace FlashcardsApp.Services;
 public class UserStatisticsService
 {
     private readonly ApplicationDbContext _context;
+    private readonly GamificationService _gamificationService;
 
-    public UserStatisticsService(ApplicationDbContext context)
+    public UserStatisticsService(ApplicationDbContext context, GamificationService gamificationService)
     {
         _context = context;
+        _gamificationService = gamificationService;
     }
-
-    public async Task<ServiceResult<UserStatistics>> GetUserStatisticsAsync(Guid userId)
+    
+    /// <summary>
+    /// Получить статистику пользователя с расчетами для фронтенда
+    /// </summary>
+    public async Task<ServiceResult<UserStatsDto>> GetUserStatsAsync(Guid userId)
     {
-        var statistics = await _context.UserStatistics
+        var stats = await _context.UserStatistics
             .AsNoTracking()
-            .FirstOrDefaultAsync(s => s.UserId == userId);
+            .FirstOrDefaultAsync(us => us.UserId == userId);
 
-        if (statistics == null)
+        if (stats == null)
         {
-            return ServiceResult<UserStatistics>.Failure("Statistics not found");
+            return ServiceResult<UserStatsDto>.Failure("User statistics not found");
         }
 
-        return ServiceResult<UserStatistics>.Success(statistics);
+        // Рассчитываем XP для уровней
+        var xpForCurrentLevel = _gamificationService.CalculateXPForLevel(stats.Level);
+        var xpForNextLevel = _gamificationService.CalculateXPForLevel(stats.Level + 1);
+        
+        var xpNeeded = xpForNextLevel - stats.TotalXP;
+        var xpProgressInCurrentLevel = stats.TotalXP - xpForCurrentLevel;
+        var xpRequiredForCurrentLevel = xpForNextLevel - xpForCurrentLevel;
+
+        var dto = new UserStatsDto
+        {
+            TotalXP = stats.TotalXP,
+            Level = stats.Level,
+            XPForNextLevel = xpNeeded,
+            XPProgressInCurrentLevel = xpProgressInCurrentLevel,
+            XPRequiredForCurrentLevel = xpRequiredForCurrentLevel,
+            CurrentStreak = stats.CurrentStreak,
+            BestStreak = stats.BestStreak,
+            TotalStudyTime = stats.TotalStudyTime
+        };
+
+        return ServiceResult<UserStatsDto>.Success(dto);
     }
 
-    public async Task<ServiceResult<UserStatistics>> CreateInitialStatisticsAsync(Guid userId)
+    /// <summary>
+    /// Инициализировать статистику для нового пользователя
+    /// </summary>
+    public async Task<ServiceResult<bool>> CreateInitialStatisticsAsync(Guid userId)
     {
+        var existingStats = await _context.UserStatistics
+            .AnyAsync(us => us.UserId == userId);
+
+        if (existingStats)
+        {
+            return ServiceResult<bool>.Failure("User statistics already exist");
+        }
+
         var statistics = new UserStatistics
         {
             UserId = userId,
             TotalXP = 0,
+            Level = 1,
             CurrentStreak = 0,
             BestStreak = 0,
             LastStudyDate = DateTime.UtcNow,
@@ -42,48 +81,6 @@ public class UserStatisticsService
         _context.UserStatistics.Add(statistics);
         await _context.SaveChangesAsync();
 
-        return ServiceResult<UserStatistics>.Success(statistics);
-    }
-
-    public async Task<ServiceResult<UserStatistics>> UpdateStatisticsAsync(Guid userId, int xpGained, TimeSpan studyTime)
-    {
-        var statistics = await _context.UserStatistics
-            .FirstOrDefaultAsync(s => s.UserId == userId);
-
-        if (statistics == null)
-        {
-            return ServiceResult<UserStatistics>.Failure("Statistics not found");
-        }
-
-        statistics.TotalXP += xpGained;
-        statistics.TotalStudyTime += studyTime;
-
-        // Проверка streak
-        var today = DateTime.UtcNow.Date;
-        var lastStudy = statistics.LastStudyDate.Date;
-
-        if (today == lastStudy)
-        {
-            // Уже занимался сегодня, streak не меняется
-        }
-        else if (today == lastStudy.AddDays(1))
-        {
-            // Продолжение streak
-            statistics.CurrentStreak++;
-            if (statistics.CurrentStreak > statistics.BestStreak)
-            {
-                statistics.BestStreak = statistics.CurrentStreak;
-            }
-        }
-        else
-        {
-            // Streak прервался
-            statistics.CurrentStreak = 1;
-        }
-
-        statistics.LastStudyDate = DateTime.UtcNow;
-
-        await _context.SaveChangesAsync();
-        return ServiceResult<UserStatistics>.Success(statistics);
+        return ServiceResult<bool>.Success(true);
     }
 }

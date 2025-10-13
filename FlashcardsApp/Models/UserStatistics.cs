@@ -5,6 +5,7 @@ public class UserStatistics
     public Guid UserId { get; set; }  // PK и FK
     
     public int TotalXP { get; set; }
+    public int Level { get; set; }
     public int CurrentStreak { get; set; }
     public int BestStreak { get; set; }
     public DateTime LastStudyDate { get; set; }
