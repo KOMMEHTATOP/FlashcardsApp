@@ -4,6 +4,9 @@ namespace FlashcardsAppContracts.DTOs.Requests;
 
 public class RegisterModel
 {
+    [Required(ErrorMessage = "Login обязателен")]
+    public required string Login { get; set; }
+    
     [Required(ErrorMessage = "Email обязателен")]
     [EmailAddress(ErrorMessage = "Некорректный формат email")]
     public required string Email { get; set; }

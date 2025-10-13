@@ -38,6 +38,7 @@ namespace FlashcardsApp.Controllers
         {
             var user = new User
             {
+                Login = model.Login,
                 UserName = model.Email,
                 Email = model.Email
             };
@@ -93,6 +94,8 @@ namespace FlashcardsApp.Controllers
             return Ok(new
             {
                 accessToken,
+                user.Login,
+                user.UserName,
                 user.Email
             });
         }

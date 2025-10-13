@@ -18,7 +18,7 @@ public static class DbSeeder
         {
             testUser = new User
             {
-                Id = userId, UserName = "test@test.com", Email = "test@test.com", EmailConfirmed = true
+                Id = userId, Login = "testuser", UserName = "test@test.com", Email = "test@test.com", EmailConfirmed = true
             };
 
             var result = await userManager.CreateAsync(testUser, "Test123!");
