@@ -20,21 +20,34 @@ public class UserStatisticsService
     /// <summary>
     /// Получить статистику пользователя с расчетами для фронтенда
     /// </summary>
+// Services/UserStatisticsService.cs
     public async Task<ServiceResult<UserStatsDto>> GetUserStatsAsync(Guid userId)
     {
         var stats = await _context.UserStatistics
-            .AsNoTracking()
             .FirstOrDefaultAsync(us => us.UserId == userId);
 
+        // Автоматическая инициализация если статистики нет
         if (stats == null)
         {
-            return ServiceResult<UserStatsDto>.Failure("User statistics not found");
+            stats = new UserStatistics
+            {
+                UserId = userId,
+                TotalXP = 0,
+                Level = 1,
+                CurrentStreak = 0,
+                BestStreak = 0,
+                LastStudyDate = DateTime.UtcNow,
+                TotalStudyTime = TimeSpan.Zero
+            };
+
+            _context.UserStatistics.Add(stats);
+            await _context.SaveChangesAsync();
         }
 
-        // Рассчитываем XP для уровней
+        // Рассчитываем DTO
         var xpForCurrentLevel = _gamificationService.CalculateXPForLevel(stats.Level);
         var xpForNextLevel = _gamificationService.CalculateXPForLevel(stats.Level + 1);
-        
+    
         var xpNeeded = xpForNextLevel - stats.TotalXP;
         var xpProgressInCurrentLevel = stats.TotalXP - xpForCurrentLevel;
         var xpRequiredForCurrentLevel = xpForNextLevel - xpForCurrentLevel;
@@ -52,35 +65,5 @@ public class UserStatisticsService
         };
 
         return ServiceResult<UserStatsDto>.Success(dto);
-    }
-
-    /// <summary>
-    /// Инициализировать статистику для нового пользователя
-    /// </summary>
-    public async Task<ServiceResult<bool>> CreateInitialStatisticsAsync(Guid userId)
-    {
-        var existingStats = await _context.UserStatistics
-            .AnyAsync(us => us.UserId == userId);
-
-        if (existingStats)
-        {
-            return ServiceResult<bool>.Failure("User statistics already exist");
-        }
-
-        var statistics = new UserStatistics
-        {
-            UserId = userId,
-            TotalXP = 0,
-            Level = 1,
-            CurrentStreak = 0,
-            BestStreak = 0,
-            LastStudyDate = DateTime.UtcNow,
-            TotalStudyTime = TimeSpan.Zero
-        };
-
-        _context.UserStatistics.Add(statistics);
-        await _context.SaveChangesAsync();
-
-        return ServiceResult<bool>.Success(true);
     }
 }

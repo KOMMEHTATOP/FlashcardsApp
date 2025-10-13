@@ -49,18 +49,4 @@ public class UserStatisticsController : ControllerBase
 
         return Ok(result.Data);
     }
-
-    [HttpPost("initialize")]
-    public async Task<IActionResult> InitializeStats()
-    {
-        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        var result = await _statisticsService.CreateInitialStatisticsAsync(userId);
-
-        if (!result.IsSuccess)
-        {
-            return BadRequest(result.Errors);
-        }
-
-        return Ok();
-    }
 }

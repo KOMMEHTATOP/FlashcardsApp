@@ -47,9 +47,6 @@ namespace FlashcardsApp.Controllers
 
             if (result.Succeeded)
             {
-                // Создаем начальную статистику
-                await _statisticsService.CreateInitialStatisticsAsync(user.Id);
-        
                 return Ok(new RegisterUserDto
                 {
                     IsSuccess = true,
