@@ -65,9 +65,16 @@ builder.Services.AddAuthentication(options =>
 // Swagger
 builder.Services.AddSwaggerGen(options =>
 {
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "FlashcardsApp API",
+        Version = "v1",
+        Description = "API для приложения изучения карточек"
+    });
+
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Description = "JWT Authorization header using the Bearer scheme.",
+        Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.ApiKey,
@@ -105,20 +112,7 @@ builder.Services.AddScoped<StudyService>();
 // CORS Configuration
 var allowedOrigins = builder.Configuration
     .GetSection("Cors:AllowedOrigins")
-    .Get<string[]>() ?? [];
-
-// Если конфигурация пустая - берем из переменных окружения (для Docker)
-if (allowedOrigins.Length == 0)
-{
-    var envOrigins = Environment.GetEnvironmentVariable("ALLOWED_ORIGINS");
-    if (!string.IsNullOrEmpty(envOrigins))
-    {
-        allowedOrigins = envOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries)
-            .Select(o => o.Trim())
-            .ToArray();
-        Console.WriteLine("📦 Using CORS origins from environment variable");
-    }
-}
+    .Get<string[]>() ?? Array.Empty<string>();
 
 // Fallback для локальной разработки
 if (allowedOrigins.Length == 0 && builder.Environment.IsDevelopment())
@@ -150,8 +144,21 @@ if (allowedOrigins.Length > 0)
 }
 else
 {
-    Console.WriteLine("❌ ERROR: No CORS origins configured!");
-    throw new Exception("CORS origins must be configured for security reasons.");
+    // В Production ОБЯЗАТЕЛЬНО должны быть настроены CORS origins
+    if (builder.Environment.IsProduction())
+    {
+        Console.WriteLine("❌ ERROR: No CORS origins configured for Production!");
+        throw new Exception("CORS origins must be configured for Production.");
+    }
+    
+    Console.WriteLine("⚠️  WARNING: CORS is not configured, but continuing...");
+}
+
+// Фиксируем порт ТОЛЬКО для локальной разработки (не Docker)
+if (builder.Environment.IsDevelopment() && !IsRunningInDocker())
+{
+    builder.WebHost.UseUrls("http://localhost:5000");
+    Console.WriteLine("🔧 Port fixed to 5000 for local development");
 }
 
 var app = builder.Build();
@@ -200,3 +207,9 @@ else
 Console.WriteLine($"🚀 Application started in {app.Environment.EnvironmentName} mode");
 
 app.Run();
+
+// Метод для определения Docker окружения
+static bool IsRunningInDocker()
+{
+    return Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true";
+}

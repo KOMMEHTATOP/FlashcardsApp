@@ -3,6 +3,7 @@ using System;
 using FlashcardsApp.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FlashcardsApp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251013170146_AddColorsToAchievements")]
+    partial class AddColorsToAchievements
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -28,11 +31,15 @@ namespace FlashcardsApp.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Description")
+                    b.Property<string>("ColorEnd")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Gradient")
+                    b.Property<string>("ColorStart")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("text");
 

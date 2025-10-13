@@ -10,6 +10,9 @@ public class UserStatistics
     public int BestStreak { get; set; }
     public DateTime LastStudyDate { get; set; }
     public TimeSpan TotalStudyTime { get; set; }
-    
+    public int TotalCardsStudied { get; set; }  
+    public int TotalCardsCreated { get; set; }  
+    public int PerfectRatingsStreak { get; set; }  
+
     public User User { get; set; } 
 }

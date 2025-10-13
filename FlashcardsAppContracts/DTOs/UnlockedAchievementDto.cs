@@ -1,11 +1,10 @@
-namespace FlashcardsApp.Models;
+namespace FlashcardsAppContracts.DTOs;
 
-public class Achievement
+public class UnlockedAchievementDto
 {
     public Guid Id { get; set; }
     public required string Name { get; set; }
     public required string Description { get; set; }
     public required string IconUrl { get; set; }
-    public string Gradient { get; set; }
-    public List<UserAchievement>? UserAchievements { get; set; }
+    public required string Gradient { get; set; }
 }

@@ -24,35 +24,56 @@ public class AchievementService
         return ServiceResult<IEnumerable<Achievement>>.Success(achievements);
     }
 
-    // Получить достижения пользователя
-    public async Task<ServiceResult<IEnumerable<UserAchievementDto>>> GetUserAchievementsAsync(Guid userId)
+    // Получить ТОЛЬКО разблокированные достижения пользователя
+    public async Task<ServiceResult<IEnumerable<UnlockedAchievementDto>>> GetUserAchievementsAsync(Guid userId)
     {
         var userAchievements = await _context.UserAchievements
             .AsNoTracking()
             .Include(ua => ua.Achievement)
             .Where(ua => ua.UserId == userId)
-            .Select(ua => new UserAchievementDto
+            .Select(ua => new UnlockedAchievementDto
             {
-                UserId = ua.UserId,
-                AchievementId = ua.AchievementId,
-                UnlockedAt = ua.UnlockedAt,
-                Achievement = new AchievementDto
-                {
-                    Id = ua.Achievement.Id,
-                    Name = ua.Achievement.Name,
-                    Description = ua.Achievement.Description,
-                    IconUrl = ua.Achievement.IconUrl
-                }
+                Id = ua.Achievement.Id,
+                Name = ua.Achievement.Name,
+                Description = ua.Achievement.Description,
+                IconUrl = ua.Achievement.IconUrl,
+                Gradient = ua.Achievement.Gradient
             })
             .ToListAsync();
 
-        return ServiceResult<IEnumerable<UserAchievementDto>>.Success(userAchievements);
+        return ServiceResult<IEnumerable<UnlockedAchievementDto>>.Success(userAchievements);
+    }
+
+    // Получить все достижения со статусом разблокировки для юзера
+    public async Task<ServiceResult<IEnumerable<AchievementWithStatusDto>>> GetAllAchievementsWithStatusAsync(Guid userId)
+    {
+        var allAchievements = await _context.Achievements
+            .AsNoTracking()
+            .ToListAsync();
+
+        var unlockedAchievementIds = (await _context.UserAchievements
+            .AsNoTracking()
+            .Where(ua => ua.UserId == userId)
+            .Select(ua => ua.AchievementId)
+            .ToListAsync())
+            .ToHashSet();
+
+        var result = allAchievements.Select(a => new AchievementWithStatusDto
+        {
+            Id = a.Id,
+            Name = a.Name,
+            Description = a.Description,
+            IconUrl = a.IconUrl,
+            Gradient = a.Gradient,
+            IsUnlocked = unlockedAchievementIds.Contains(a.Id)
+        }).ToList();
+
+        return ServiceResult<IEnumerable<AchievementWithStatusDto>>.Success(result);
     }
 
     // Разблокировать достижение
     public async Task<ServiceResult<UserAchievement>> UnlockAchievementAsync(Guid userId, Guid achievementId)
     {
-        // Проверка существует ли уже это достижение у пользователя
         var exists = await _context.UserAchievements
             .AnyAsync(ua => ua.UserId == userId && ua.AchievementId == achievementId);
 
@@ -86,7 +107,7 @@ public class AchievementService
         }
 
         var allAchievements = await _context.Achievements.ToListAsync();
-        var userAchievements = await _context.UserAchievements
+        var userAchievementIds = await _context.UserAchievements
             .Where(ua => ua.UserId == userId)
             .Select(ua => ua.AchievementId)
             .ToListAsync();
@@ -95,16 +116,16 @@ public class AchievementService
 
         foreach (var achievement in allAchievements)
         {
-            // Пропустить уже разблокированные
-            if (userAchievements.Contains(achievement.Id))
+            if (userAchievementIds.Contains(achievement.Id))
                 continue;
 
-            // Здесь логика проверки условий достижений
             bool shouldUnlock = achievement.Name switch
             {
                 "Первые шаги" => statistics.TotalXP >= 10,
                 "7 дней подряд" => statistics.CurrentStreak >= 7,
-                "Высший балл" => false, // Это проверяется отдельно через CardRatings
+                "Неделя активности" => statistics.BestStreak >= 7,
+                "Король знаний" => statistics.Level >= 10,
+                "Восходящая звезда" => statistics.TotalXP >= 1000,
                 _ => false
             };
 
