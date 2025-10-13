@@ -5,6 +5,7 @@ using FlashcardsAppContracts.DTOs.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace FlashcardsApp.Controllers
 {
@@ -88,9 +89,39 @@ namespace FlashcardsApp.Controllers
             // Устанавливаем Refresh Token в httpOnly cookie
             SetRefreshTokenCookie(refreshToken.Token);
 
+            // Возвращаем ТОЛЬКО токен
             return Ok(new
             {
-                accessToken,
+                accessToken
+            });
+        }
+
+        /// <summary>
+        /// Получить данные текущего аутентифицированного пользователя
+        /// </summary>
+        [HttpGet("me")]
+        [Authorize]
+        public async Task<IActionResult> GetCurrentUser()
+        {
+            // Получаем ID пользователя из claims токена
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { message = "Пользователь не аутентифицирован" });
+            }
+
+            var user = await _userManager.FindByIdAsync(userId);
+            
+            if (user == null)
+            {
+                return NotFound(new { message = "Пользователь не найден" });
+            }
+
+            // Возвращаем только необходимые данные
+            return Ok(new
+            {
+                user.Id,
                 user.Login,
                 user.UserName,
                 user.Email
