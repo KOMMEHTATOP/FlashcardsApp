@@ -105,7 +105,7 @@ builder.Services.AddScoped<StudyService>();
 // CORS Configuration
 var allowedOrigins = builder.Configuration
     .GetSection("Cors:AllowedOrigins")
-    .Get<string[]>() ?? Array.Empty<string>();
+    .Get<string[]>() ?? [];
 
 // Если конфигурация пустая - берем из переменных окружения (для Docker)
 if (allowedOrigins.Length == 0)
