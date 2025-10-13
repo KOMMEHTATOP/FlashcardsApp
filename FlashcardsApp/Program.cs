@@ -20,6 +20,11 @@ builder.Services.AddControllers()
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
+if (string.IsNullOrEmpty(connectionString))
+{
+    throw new Exception("Connection string is not configured.");
+}
+
 builder.Services.AddDbContext<ApplicationDbContext>(options
     => options.UseNpgsql(connectionString));
 
@@ -57,7 +62,7 @@ builder.Services.AddAuthentication(options =>
         };
     });
 
-// Регистрация сервисов
+// Swagger
 builder.Services.AddSwaggerGen(options =>
 {
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -83,8 +88,9 @@ builder.Services.AddSwaggerGen(options =>
             Array.Empty<string>()
         }
     });
-    
 });
+
+// Регистрация сервисов
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<GroupService>();
 builder.Services.AddScoped<CardService>();
@@ -96,21 +102,57 @@ builder.Services.AddScoped<AchievementService>();
 builder.Services.AddScoped<GamificationService>();
 builder.Services.AddScoped<StudyService>();
 
+// CORS Configuration
+var allowedOrigins = builder.Configuration
+    .GetSection("Cors:AllowedOrigins")
+    .Get<string[]>() ?? Array.Empty<string>();
 
-// CORS
-var allowedOrigins = builder.Configuration["ALLOWED_ORIGINS"]?.Split(',') 
-    ?? new[] { "http://localhost:7255", "https://localhost:7255" };
-
-builder.Services.AddCors(options =>
+// Если конфигурация пустая - берем из переменных окружения (для Docker)
+if (allowedOrigins.Length == 0)
 {
-    options.AddDefaultPolicy(policyBuilder =>
+    var envOrigins = Environment.GetEnvironmentVariable("ALLOWED_ORIGINS");
+    if (!string.IsNullOrEmpty(envOrigins))
     {
-        policyBuilder.WithOrigins(allowedOrigins)
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials();
+        allowedOrigins = envOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .Select(o => o.Trim())
+            .ToArray();
+        Console.WriteLine("📦 Using CORS origins from environment variable");
+    }
+}
+
+// Fallback для локальной разработки
+if (allowedOrigins.Length == 0 && builder.Environment.IsDevelopment())
+{
+    Console.WriteLine("⚠️  WARNING: No CORS origins configured! Using defaults for development.");
+    allowedOrigins = new[] 
+    { 
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://localhost:7255",
+        "https://localhost:7255"
+    };
+}
+
+if (allowedOrigins.Length > 0)
+{
+    Console.WriteLine($"🌐 CORS enabled for: {string.Join(", ", allowedOrigins)}");
+    
+    builder.Services.AddCors(options =>
+    {
+        options.AddDefaultPolicy(policyBuilder =>
+        {
+            policyBuilder.WithOrigins(allowedOrigins)
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials();
+        });
     });
-});
+}
+else
+{
+    Console.WriteLine("❌ ERROR: No CORS origins configured!");
+    throw new Exception("CORS origins must be configured for security reasons.");
+}
 
 var app = builder.Build();
 
@@ -119,11 +161,17 @@ if (!app.Environment.IsProduction())
     app.UseHttpsRedirection();
 }
 
+// ВАЖНО: Порядок middleware
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseSwagger();
-app.UseSwaggerUI();
+
+if (!app.Environment.IsProduction())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
 app.MapControllers();
 
 // Auto-migration and Seed
@@ -148,5 +196,7 @@ else
 {
     Console.WriteLine("=== AUTO MIGRATION DISABLED ===");
 }
+
+Console.WriteLine($"🚀 Application started in {app.Environment.EnvironmentName} mode");
 
 app.Run();
