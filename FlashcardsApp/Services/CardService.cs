@@ -95,10 +95,6 @@ public class CardService
 
     public async Task<ServiceResult<ResultCardDto>> CreateCardAsync(Guid userId, Guid groupId, CreateCardDto dto)
     {
-        // ============================================
-        // ИСПРАВЛЕНИЕ 1: Валидация ДО сохранения
-        // ============================================
-        
         // Проверяем существование карточки с таким вопросом у пользователя
         var cardExists = await _context.Cards
             .AsNoTracking()
@@ -144,10 +140,6 @@ public class CardService
             return ServiceResult<ResultCardDto>.Failure("Failed to create card");
         }
 
-        // ============================================
-        // ИСПРАВЛЕНИЕ 2: Обновляем TotalCardsCreated
-        // ============================================
-        
         var userStats = await _context.UserStatistics
             .FirstOrDefaultAsync(s => s.UserId == userId);
 
@@ -161,11 +153,6 @@ public class CardService
                 userStats.TotalCardsCreated);
 
             await _context.SaveChangesAsync();
-            
-            // ============================================
-            // ИСПРАВЛЕНИЕ 3: Проверяем достижения
-            // ============================================
-            
             await _achievementService.CheckAndUnlockAchievementsAsync(userId);
         }
         else
@@ -187,10 +174,6 @@ public class CardService
         {
             return ServiceResult<ResultCardDto>.Failure("Card not found or access denied");
         }
-
-        // ============================================
-        // ИСПРАВЛЕНИЕ: Валидация ДО сохранения
-        // ============================================
         
         // Проверяем уникальность только если вопрос изменился
         if (card.Question != dto.Question)
