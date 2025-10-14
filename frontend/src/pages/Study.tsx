@@ -14,9 +14,10 @@ export default function StudyPage({}) {
   const { id } = useParams();
   const { handleSelectLesson } = useApp();
   const [group, setGroup] = useState<SubjectDetailType | null>(null);
-  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [isOpenAddModal, setIsOpenAddModal] = useState<boolean>(false);
 
   const [dataDetail, setDataDetail] = useState<SubjectCardType[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchCards = async () => {
@@ -25,9 +26,8 @@ export default function StudyPage({}) {
           apiFetch.get(`/Group/${id}`),
           apiFetch.get(`/groups/${id}/cards`),
         ]);
-        console.log(groupRes.data, cardsRes.data);
         setGroup(groupRes.data);
-        setDataDetail(cardsRes.data);
+        setDataDetail(cardsRes.data.reverse());
       } catch (err) {
         console.log(err);
       }
@@ -37,10 +37,10 @@ export default function StudyPage({}) {
   }, [id]);
 
   useTitle(group?.GroupName || "");
-  console.log(group);
 
   const handleAddCard = async (question: string, answer: string) => {
     try {
+      setLoading(true);
       const data = {
         question,
         answer,
@@ -49,9 +49,14 @@ export default function StudyPage({}) {
       if (res.status !== 200) {
         console.log("Ошибка добавления карточки!");
       }
-      console.log(res.data);
+      setDataDetail((prev) => [res.data, ...prev]);
     } catch (err) {
       console.log(err);
+    } finally {
+      setTimeout(() => {
+        setLoading(false);
+        setIsOpenAddModal(false);
+      }, 1000);
     }
   };
 
@@ -152,8 +157,9 @@ export default function StudyPage({}) {
           <div className="flex items-center gap-2 text-base-content/80">
             <AddFlashcardForm
               handleAddCard={handleAddCard}
-              isOpen={isOpen}
-              setIsOpen={setIsOpen}
+              isOpen={isOpenAddModal}
+              setIsOpen={setIsOpenAddModal}
+              loading={loading}
               subjectColor={"from-pink-400 to-rose-500"}
             />
             <Trophy className="w-5 h-5" />

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button, ButtonCircle } from "../ui/button";
-import { CheckCircle, Plus, Sparkles, X } from "lucide-react";
+import { CheckCircle, Plus, Sparkle, Sparkles, X } from "lucide-react";
 import Card from "../ui/card";
 
 interface AddFlashcardFormProps {
@@ -9,6 +9,7 @@ interface AddFlashcardFormProps {
   handleAddCard: (question: string, answer: string) => void;
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
+  loading: boolean;
 }
 
 export default function AddFlashcardForm({
@@ -16,6 +17,7 @@ export default function AddFlashcardForm({
   handleAddCard,
   isOpen,
   setIsOpen,
+  loading,
 }: AddFlashcardFormProps) {
   const [question, setQuestion] = useState<string>("");
   const [answer, setAnswer] = useState<string>("");
@@ -184,10 +186,14 @@ export default function AddFlashcardForm({
                 <Button
                   type="button"
                   onClick={handleSubmit}
-                  disabled={!question.trim() || !answer.trim()}
-                  className={`flex-1 bg-gradient-to-r ${subjectColor} text-white rounded-xl border-none shadow-lg`}
+                  disabled={!question.trim() || !answer.trim() || loading}
+                  className={`flex-1 bg-gradient-to-r ${subjectColor} disabled:opacity-50 text-white rounded-xl border-none shadow-lg`}
                 >
-                  <CheckCircle className="w-4 h-4 mr-2" />
+                  {loading ? (
+                    <Sparkle className={`w-4 h-4 mr-2 animate-spin`} />
+                  ) : (
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                  )}
                   Добавить карточку
                 </Button>
               </div>
