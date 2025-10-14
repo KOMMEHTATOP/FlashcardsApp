@@ -1,19 +1,23 @@
+using FlashcardsApp.Configuration;
 using FlashcardsApp.Data;
-using FlashcardsAppContracts.DTOs.Responses;
+using FlashcardsApp.Interfaces;
+using FlashcardsAppContracts.DTOs.Statistics.Responses;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace FlashcardsApp.Services;
 
-public class GamificationService
+public class GamificationService : IGamificationService
 {
     private readonly ApplicationDbContext _context;
+    private readonly RewardSettings _settings;
 
-    // Константы для баланса (потом вынесешь в appsettings.json)
-    private const int BASE_XP = 10;
-
-    public GamificationService(ApplicationDbContext context)
+    public GamificationService(
+        ApplicationDbContext context,
+        IOptions<RewardSettings> settingsOptions)
     {
         _context = context;
+        _settings = settingsOptions.Value;
     }
 
     /// <summary>
@@ -21,21 +25,25 @@ public class GamificationService
     /// </summary>
     public async Task<int> CalculateXPForCardAsync(Guid userId, Guid cardId, int rating)
     {
-        // 1. Рассчитываем сложность карточки (на основе истории)
+        // 1. Базовое XP из конфига
+        var baseXP = _settings.Base.XPPerCard;
+
+        // 2. Рассчитываем множитель сложности карточки (на основе истории)
         var difficultyMultiplier = await CalculateDifficultyMultiplierAsync(userId, cardId);
 
-        // 2. Рассчитываем множитель качества (оценка пользователя)
+        // 3. Рассчитываем множитель качества (оценка пользователя)
         var qualityMultiplier = CalculateQualityMultiplier(rating);
 
-        // 3. Получаем streak пользователя для бонуса
+        // 4. Получаем streak пользователя для бонуса
         var userStats = await _context.UserStatistics
             .AsNoTracking()
             .FirstOrDefaultAsync(us => us.UserId == userId);
         
         var streakBonus = CalculateStreakBonus(userStats?.CurrentStreak ?? 0);
 
-        // 4. Итоговый расчет
-        var xp = (int)(BASE_XP * difficultyMultiplier * qualityMultiplier * streakBonus);
+        // 5. Итоговый расчет по формуле:
+        // XP = BaseXP × Difficulty × Quality × Streak
+        var xp = (int)Math.Round(baseXP * difficultyMultiplier * qualityMultiplier * streakBonus);
 
         return xp;
     }
@@ -54,16 +62,16 @@ public class GamificationService
             .ToListAsync();
 
         if (!recentRatings.Any())
-            return 1.0; // Средняя сложность для новой карточки
+            return _settings.Multipliers.Difficulty.Medium; // Средняя сложность для новой карточки
 
         var averageRating = recentRatings.Average();
 
         // Чем ниже средняя оценка, тем сложнее карточка → больше XP
         return averageRating switch
         {
-            >= 4.0 => 0.8,   // Легкая карточка
-            >= 2.5 => 1.0,   // Средняя
-            _ => 1.5         // Сложная
+            >= 4.0 => _settings.Multipliers.Difficulty.Easy,   // Легкая карточка
+            >= 2.5 => _settings.Multipliers.Difficulty.Medium, // Средняя
+            _ => _settings.Multipliers.Difficulty.Hard         // Сложная
         };
     }
 
@@ -74,12 +82,12 @@ public class GamificationService
     {
         return rating switch
         {
-            5 => 1.5,  // Отлично знаю
-            4 => 1.2,
-            3 => 1.0,  // Нормально
-            2 => 0.7,
-            1 => 0.5,  // Совсем не знаю
-            _ => 1.0
+            5 => _settings.Multipliers.Quality.Rating5,
+            4 => _settings.Multipliers.Quality.Rating4,
+            3 => _settings.Multipliers.Quality.Rating3,
+            2 => _settings.Multipliers.Quality.Rating2,
+            1 => _settings.Multipliers.Quality.Rating1,
+            _ => _settings.Multipliers.Quality.Rating3 // По умолчанию средний
         };
     }
 
@@ -90,10 +98,10 @@ public class GamificationService
     {
         return currentStreak switch
         {
-            >= 30 => 1.5,   // Месяц подряд!
-            >= 14 => 1.25,  // Две недели
-            >= 7 => 1.1,    // Неделя
-            _ => 1.0        // Нет бонуса
+            >= 30 => _settings.Multipliers.StreakBonus.Days30Plus,  // Месяц подряд!
+            >= 14 => _settings.Multipliers.StreakBonus.Days14Plus,  // Две недели
+            >= 7 => _settings.Multipliers.StreakBonus.Days7Plus,    // Неделя
+            _ => _settings.Multipliers.StreakBonus.Default          // Нет бонуса
         };
     }
     
@@ -119,7 +127,7 @@ public class GamificationService
         // Близко к новому уровню (менее 200 XP)
         if (xpNeeded < 200)
         {
-            var cardsNeeded = (int)Math.Ceiling(xpNeeded / 10.0);
+            var cardsNeeded = (int)Math.Ceiling(xpNeeded / (double)_settings.Base.XPPerCard);
             message = new MotivationalMessageDto
             {
                 Message = $"Почти там! Изучи еще {cardsNeeded} карточек для уровня {userStats.Level + 1}!",
@@ -182,6 +190,7 @@ public class GamificationService
 
     /// <summary>
     /// Рассчитывает сколько XP нужно для достижения уровня
+    /// Формула прогрессии: уровни становятся сложнее с ростом
     /// </summary>
     public int CalculateXPForLevel(int level)
     {

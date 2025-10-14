@@ -1,4 +1,6 @@
 using FlashcardsApp.Services;
+using FlashcardsAppContracts.DTOs.Groups.Requests;
+using FlashcardsAppContracts.DTOs.Groups.Responses;
 using FlashcardsAppContracts.DTOs.Requests;
 using FlashcardsAppContracts.DTOs.Responses;
 

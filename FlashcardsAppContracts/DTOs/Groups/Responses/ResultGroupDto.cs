@@ -1,12 +1,10 @@
-using FlashcardsAppContracts.Constants;
-
-namespace FlashcardsAppContracts.DTOs.Responses;
+namespace FlashcardsAppContracts.DTOs.Groups.Responses;
 
 public class ResultGroupDto
 {
     public Guid Id {get; set;}
     public required string GroupName  {get; set;}
-    public required GroupColor GroupColor { get; set; } = GroupColor.Green;
+    public required string GroupColor { get; set; }
     public DateTime CreatedAt { get; set; }
     public int Order { get; set; }
 }

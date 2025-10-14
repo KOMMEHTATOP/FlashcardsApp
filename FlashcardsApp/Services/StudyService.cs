@@ -1,20 +1,32 @@
 using FlashcardsApp.Data;
+using FlashcardsApp.Interfaces;
+using FlashcardsApp.Interfaces.Achievements;
 using FlashcardsApp.Models;
+using FlashcardsAppContracts.DTOs.Achievements.Responses;
 using FlashcardsAppContracts.DTOs.Requests;
 using FlashcardsAppContracts.DTOs.Responses;
+using FlashcardsAppContracts.DTOs.Study.Responses;
 using Microsoft.EntityFrameworkCore;
 
 namespace FlashcardsApp.Services;
 
-public class StudyService
+public class StudyService : IStudyService
 {
     private readonly ApplicationDbContext _context;
-    private readonly GamificationService _gamificationService;
+    private readonly IGamificationService _gamificationService;
+    private readonly IAchievementService _achievementService;
+    private readonly ILogger<StudyService> _logger;
 
-    public StudyService(ApplicationDbContext context, GamificationService gamificationService)
+    public StudyService(
+        ApplicationDbContext context, 
+        IGamificationService gamificationService,
+        IAchievementService achievementService,
+        ILogger<StudyService> logger)
     {
         _context = context;
         _gamificationService = gamificationService;
+        _achievementService = achievementService;
+        _logger = logger;
     }
 
     /// <summary>
@@ -69,9 +81,8 @@ public class StudyService
 
             var streakIncreased = streakResult.Data;
 
-            // 5. Получаем актуальную статистику пользователя
+            // 5. Обновляем статистику карточек
             var userStats = await _context.UserStatistics
-                .AsNoTracking()
                 .FirstOrDefaultAsync(us => us.UserId == userId);
 
             if (userStats == null)
@@ -80,18 +91,67 @@ public class StudyService
                 return ServiceResult<StudyRewardDto>.Failure("User statistics not found");
             }
 
+            userStats.TotalCardsStudied++;
+            
+            // Обновляем Perfect Ratings Streak
+            if (dto.Rating == 5)
+            {
+                userStats.PerfectRatingsStreak++;
+            }
+            else
+            {
+                userStats.PerfectRatingsStreak = 0;
+            }
+
+            await _context.SaveChangesAsync();
+
+            // 6. Проверяем достижения (после сохранения статистики)
+            var achievementResult = await _achievementService.CheckAndUnlockAchievementsAsync(userId);
+            
+            var newAchievements = achievementResult.IsSuccess 
+                ? achievementResult.Data 
+                : new List<AchievementDto>();
+
+            if (newAchievements.Any())
+            {
+                _logger.LogInformation(
+                    "{Count} new achievements unlocked for user {UserId}: {Achievements}",
+                    newAchievements.Count, 
+                    userId, 
+                    string.Join(", ", newAchievements.Select(a => a.Name)));
+            }
+
+            // 7. Получаем актуальную статистику пользователя (после всех обновлений)
+            var updatedStats = await _context.UserStatistics
+                .AsNoTracking()
+                .FirstOrDefaultAsync(us => us.UserId == userId);
+
+            if (updatedStats == null)
+            {
+                await transaction.RollbackAsync();
+                return ServiceResult<StudyRewardDto>.Failure("User statistics not found");
+            }
+
             await transaction.CommitAsync();
 
-            // 6. Формируем ответ
+            // 8. Формируем ответ
             var reward = new StudyRewardDto
             {
                 XPEarned = xpEarned,
-                TotalXP = userStats.TotalXP,
-                CurrentLevel = userStats.Level,
+                TotalXP = updatedStats.TotalXP,
+                CurrentLevel = updatedStats.Level,
                 LeveledUp = leveledUp,
                 NewLevel = newLevel,
                 StreakIncreased = streakIncreased,
-                CurrentStreak = userStats.CurrentStreak
+                CurrentStreak = updatedStats.CurrentStreak,
+                NewAchievements = newAchievements.Select(a => new AchievementUnlockedDto
+                {
+                    Id = a.Id,
+                    Name = a.Name,
+                    Description = a.Description,
+                    IconUrl = a.IconUrl,
+                    Rarity = a.Rarity
+                }).ToList()
             };
 
             return ServiceResult<StudyRewardDto>.Success(reward);
@@ -99,6 +159,7 @@ public class StudyService
         catch (Exception ex)
         {
             await transaction.RollbackAsync();
+            _logger.LogError(ex, "Error recording study session for user {UserId}", userId);
             return ServiceResult<StudyRewardDto>.Failure($"Error recording study session: {ex.Message}");
         }
     }
