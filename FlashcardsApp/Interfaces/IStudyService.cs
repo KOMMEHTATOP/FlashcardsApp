@@ -1,6 +1,7 @@
 using FlashcardsApp.Services;
 using FlashcardsAppContracts.DTOs.Requests;
 using FlashcardsAppContracts.DTOs.Responses;
+using FlashcardsAppContracts.DTOs.Study.Requests;
 using FlashcardsAppContracts.DTOs.Study.Responses;
 
 namespace FlashcardsApp.Interfaces;

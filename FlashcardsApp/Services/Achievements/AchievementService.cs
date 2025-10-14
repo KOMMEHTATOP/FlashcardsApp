@@ -1,6 +1,8 @@
 using FlashcardsApp.Data;
+using FlashcardsApp.Interfaces;
 using FlashcardsApp.Interfaces.Achievements;
 using FlashcardsApp.Models;
+using FlashcardsApp.Models.Notifications;
 using FlashcardsAppContracts.DTOs.Achievements.Responses;
 using FlashcardsAppContracts.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -15,15 +17,18 @@ public class AchievementService : IAchievementService
     private readonly ApplicationDbContext _context;
     private readonly ILogger<AchievementService> _logger;
     private readonly IAchievementRewardService _rewardService;
+    private readonly INotificationService _notificationService;
 
     public AchievementService(
         ApplicationDbContext context,
         ILogger<AchievementService> logger,
-        IAchievementRewardService rewardService)
+        IAchievementRewardService rewardService,
+        INotificationService notificationService)
     {
         _context = context;
         _logger = logger;
         _rewardService = rewardService;
+        _notificationService = notificationService;
     }
 
     /// <summary>
@@ -136,6 +141,9 @@ public class AchievementService : IAchievementService
     /// <summary>
     /// Разблокировать конкретное достижение для пользователя вручную
     /// </summary>
+    /// <summary>
+    /// Разблокировать конкретное достижение для пользователя вручную
+    /// </summary>
     public async Task<ServiceResult<UserAchievementDto>> UnlockAchievementAsync(Guid userId, Guid achievementId)
     {
         try
@@ -160,18 +168,23 @@ public class AchievementService : IAchievementService
             }
 
             // Разблокируем достижение
+            var unlockedAt = DateTime.UtcNow;
             var userAchievement = new UserAchievement
             {
                 UserId = userId,
                 AchievementId = achievementId,
-                UnlockedAt = DateTime.UtcNow
+                UnlockedAt = unlockedAt
             };
 
             _context.UserAchievements.Add(userAchievement);
             await _context.SaveChangesAsync();
 
             // Начисляем награду за достижение
-            await _rewardService.AwardBonusForAchievementAsync(userId, achievementId);
+            var rewardResult = await _rewardService.AwardBonusForAchievementAsync(userId, achievementId);
+            var bonusXP = rewardResult.IsSuccess ? rewardResult.Data.XPAwarded : 0;
+
+            // ОТПРАВЛЯЕМ УВЕДОМЛЕНИЕ через SignalR
+            await SendAchievementNotificationAsync(userId, achievement, unlockedAt, bonusXP);
 
             _logger.LogInformation(
                 "Achievement {AchievementName} unlocked for user {UserId}",
@@ -232,6 +245,7 @@ public class AchievementService : IAchievementService
 
             // Проверяем условия для каждого достижения
             var newlyUnlocked = new List<AchievementDto>();
+            var unlockedAt = DateTime.UtcNow; // ← Единое время для всех
 
             foreach (var achievement in lockedAchievements)
             {
@@ -244,7 +258,7 @@ public class AchievementService : IAchievementService
                     {
                         UserId = userId,
                         AchievementId = achievement.Id,
-                        UnlockedAt = DateTime.UtcNow
+                        UnlockedAt = unlockedAt
                     };
 
                     _context.UserAchievements.Add(userAchievement);
@@ -272,11 +286,32 @@ public class AchievementService : IAchievementService
             {
                 await _context.SaveChangesAsync();
 
-                // Начисляем награды за каждое достижение
-                foreach (var achievement in newlyUnlocked)
+                // ✅ ОТПРАВЛЯЕМ УВЕДОМЛЕНИЯ через SignalR
+                // Начисляем награды и собираем информацию о бонусах
+                var notifications = new List<AchievementUnlockedNotification>();
+
+                foreach (var achievementDto in newlyUnlocked)
                 {
-                    await _rewardService.AwardBonusForAchievementAsync(userId, achievement.Id);
+                    var rewardResult = await _rewardService.AwardBonusForAchievementAsync(
+                        userId, achievementDto.Id);
+                    
+                    var bonusXP = rewardResult.IsSuccess ? rewardResult.Data.XPAwarded : 0;
+
+                    notifications.Add(new AchievementUnlockedNotification
+                    {
+                        AchievementId = achievementDto.Id,
+                        Name = achievementDto.Name,
+                        Description = achievementDto.Description,
+                        IconUrl = achievementDto.IconUrl,
+                        Gradient = achievementDto.Gradient,
+                        Rarity = achievementDto.Rarity.ToString(),
+                        UnlockedAt = unlockedAt,
+                        BonusXP = bonusXP
+                    });
                 }
+
+                // Отправляем массовое уведомление
+                await _notificationService.SendMultipleAchievementsUnlockedAsync(userId, notifications);
 
                 _logger.LogInformation(
                     "{Count} new achievements unlocked for user {UserId}",
@@ -326,4 +361,41 @@ public class AchievementService : IAchievementService
             _ => false
         };
     }
+    
+    /// <summary>
+    /// ✅ ВСПОМОГАТЕЛЬНЫЙ МЕТОД для отправки уведомления
+    /// Инкапсулирует создание объекта уведомления
+    /// </summary>
+    private async Task SendAchievementNotificationAsync(
+        Guid userId, 
+        Achievement achievement, 
+        DateTime unlockedAt, 
+        int bonusXP)
+    {
+        try
+        {
+            var notification = new AchievementUnlockedNotification
+            {
+                AchievementId = achievement.Id,
+                Name = achievement.Name,
+                Description = achievement.Description,
+                IconUrl = achievement.IconUrl,
+                Gradient = achievement.Gradient,
+                Rarity = achievement.Rarity.ToString(),
+                UnlockedAt = unlockedAt,
+                BonusXP = bonusXP
+            };
+
+            await _notificationService.SendAchievementUnlockedAsync(userId, notification);
+        }
+        catch (Exception ex)
+        {
+            // Логируем, но НЕ пробрасываем исключение
+            // Ошибка уведомления не должна ломать основную логику
+            _logger.LogError(ex, 
+                "Failed to send achievement notification for achievement {AchievementId} to user {UserId}",
+                achievement.Id, userId);
+        }
+    }
+
 }

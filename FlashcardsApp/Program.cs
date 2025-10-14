@@ -1,5 +1,6 @@
 using FlashcardsApp.Configuration;
 using FlashcardsApp.Data;
+using FlashcardsApp.Hubs; 
 using FlashcardsApp.Interfaces;
 using FlashcardsApp.Interfaces.Achievements;
 using FlashcardsApp.Models;
@@ -75,7 +76,35 @@ builder.Services.AddAuthentication(options =>
             ValidateLifetime = true,
             ClockSkew = TimeSpan.Zero
         };
+
+        // Добавляем поддержку JWT для SignalR
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                // Читаем токен из query string для SignalR соединений
+                var accessToken = context.Request.Query["access_token"];
+
+                // Если запрос идет к нашему Hub'у
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs/notifications"))
+                {
+                    context.Token = accessToken;
+                }
+
+                return Task.CompletedTask;
+            }
+        };
     });
+
+// РЕГИСТРИРУЕМ SignalR
+builder.Services.AddSignalR(options =>
+{
+    // Настройки для production
+    options.EnableDetailedErrors = builder.Environment.IsDevelopment();
+    options.KeepAliveInterval = TimeSpan.FromSeconds(15);
+    options.ClientTimeoutInterval = TimeSpan.FromSeconds(30);
+});
 
 // Swagger
 builder.Services.AddSwaggerGen(options =>
@@ -117,9 +146,9 @@ builder.Services.Configure<RewardSettings>(
     builder.Configuration.GetSection("RewardSettings"));
 
 // Регистрация сервисов
-builder.Services.AddScoped<TokenService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IGroupService, GroupService>();
-builder.Services.AddScoped<CardService>();
+builder.Services.AddScoped<ICardService, CardService>();
 builder.Services.AddScoped<CardRatingService>();
 builder.Services.AddScoped<StudySettingsService>();
 builder.Services.AddScoped<StudySessionService>();
@@ -129,10 +158,20 @@ builder.Services.AddScoped<UserStatisticsService>();
 builder.Services.AddScoped<IGamificationService, GamificationService>();
 builder.Services.AddScoped<IStudyService, StudyService>();
 
+// NotificationService
+builder.Services.AddScoped<INotificationService, SignalRNotificationService>();
+
 // Achievement services
 builder.Services.AddScoped<IAchievementService, AchievementService>();
 builder.Services.AddScoped<IAchievementRewardService, AchievementRewardService>();
 builder.Services.AddScoped<IAchievementLeaderboardService, AchievementLeaderboardService>();
+
+// Базовые сервисы (не зависят от других Achievement сервисов)
+builder.Services.AddScoped<IAchievementProgressService, AchievementProgressService>();
+builder.Services.AddScoped<IAchievementMotivationService, AchievementMotivationService>();
+builder.Services.AddScoped<IAchievementEstimationService, AchievementEstimationService>();
+// Оркестратор (зависит от всех трех выше)
+builder.Services.AddScoped<IAchievementRecommendationService, AchievementRecommendationService>();
 
 // CORS Configuration
 var allowedOrigins = builder.Configuration
@@ -162,7 +201,7 @@ if (allowedOrigins.Length > 0)
             policyBuilder.WithOrigins(allowedOrigins)
                 .AllowAnyHeader()
                 .AllowAnyMethod()
-                .AllowCredentials();
+                .AllowCredentials(); 
         });
     });
 }
@@ -192,7 +231,7 @@ if (!app.Environment.IsProduction())
 }
 
 // Middleware
-app.UseCors();
+app.UseCors(); 
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -227,6 +266,11 @@ else
 logger.LogInformation("🚀 Application started in {Environment} mode", app.Environment.EnvironmentName);
 
 app.MapControllers();
+
+// SignalR Hub
+app.MapHub<NotificationHub>("/hubs/notifications");
+logger.LogInformation("📡 SignalR Hub mapped to /hubs/notifications");
+
 app.Run();
 
 // Метод для определения Docker окружения

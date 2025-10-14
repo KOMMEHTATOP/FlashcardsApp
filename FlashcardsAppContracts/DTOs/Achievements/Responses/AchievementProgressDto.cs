@@ -1,13 +1,69 @@
+using FlashcardsAppContracts.Enums;
+
 namespace FlashcardsAppContracts.DTOs.Achievements.Responses;
 
+/// <summary>
+/// Прогресс выполнения достижения
+/// </summary>
 public class AchievementProgressDto
 {
+    /// <summary>
+    /// ID достижения
+    /// </summary>
     public Guid AchievementId { get; set; }
-    public required string Name { get; set; }
-    public required string Description { get; set; }
-    public int CurrentProgress { get; set; }     // Текущее значение (например, 5 дней streak)
-    public int RequiredProgress { get; set; }    // Требуемое значение (например, 7 дней)
-    public int ProgressPercentage { get; set; }  // Процент выполнения (71%)
-    public bool IsUnlocked { get; set; }         // Уже разблокировано или нет
-
+    
+    /// <summary>
+    /// Название достижения
+    /// </summary>
+    public string Name { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// Описание достижения
+    /// </summary>
+    public string Description { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// URL иконки (эмодзи)
+    /// </summary>
+    public string IconUrl { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// Gradient для UI (Tailwind CSS классы)
+    /// </summary>
+    public string Gradient { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// Тип условия достижения
+    /// </summary>
+    public AchievementConditionType ConditionType { get; set; }
+    
+    /// <summary>
+    /// Редкость достижения
+    /// </summary>
+    public AchievementRarity Rarity { get; set; }
+    
+    /// <summary>
+    /// Требуемое значение для разблокировки
+    /// </summary>
+    public int ConditionValue { get; set; }
+    
+    /// <summary>
+    /// Текущее значение пользователя
+    /// </summary>
+    public int CurrentValue { get; set; }
+    
+    /// <summary>
+    /// Процент выполнения (0-100)
+    /// </summary>
+    public int ProgressPercentage { get; set; }
+    
+    /// <summary>
+    /// Достижение разблокировано?
+    /// </summary>
+    public bool IsUnlocked { get; set; }
+    
+    /// <summary>
+    /// Дата разблокировки (если разблокировано)
+    /// </summary>
+    public DateTime? UnlockedAt { get; set; }
 }

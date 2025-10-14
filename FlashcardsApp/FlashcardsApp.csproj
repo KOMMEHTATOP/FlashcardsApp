@@ -25,7 +25,11 @@
     <ItemGroup>
       <ProjectReference Include="..\FlashcardsAppContracts\FlashcardsAppContracts.csproj" />
     </ItemGroup>
-
+    <ItemGroup>
+        <None Update="Data\Seeds\achievements.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
     <ItemGroup>
       <Content Include="..\.dockerignore">
         <Link>.dockerignore</Link>
