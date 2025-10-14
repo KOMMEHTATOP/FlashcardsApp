@@ -347,6 +347,7 @@ public static class DbSeeder
                     Id = Guid.NewGuid(),
                     UserId = userId,
                     GroupName = groupsData[i].Name,
+                    GroupIcon = "",
                     GroupColor = groupsData[i].Color,
                     CreatedAt = DateTime.UtcNow.AddDays(-(i + 1)),
                     Order = i + 1

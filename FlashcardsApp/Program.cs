@@ -134,6 +134,14 @@ builder.Services.AddScoped<IAchievementService, AchievementService>();
 builder.Services.AddScoped<IAchievementRewardService, AchievementRewardService>();
 builder.Services.AddScoped<IAchievementLeaderboardService, AchievementLeaderboardService>();
 
+// Базовые сервисы (не зависят от других Achievement сервисов)
+builder.Services.AddScoped<IAchievementProgressService, AchievementProgressService>();
+builder.Services.AddScoped<IAchievementMotivationService, AchievementMotivationService>();
+builder.Services.AddScoped<IAchievementEstimationService, AchievementEstimationService>();
+// Оркестратор (зависит от всех трех выше)
+builder.Services.AddScoped<IAchievementRecommendationService, AchievementRecommendationService>();
+
+
 // CORS Configuration
 var allowedOrigins = builder.Configuration
     .GetSection("Cors:AllowedOrigins")

@@ -4,7 +4,8 @@ using FlashcardsAppContracts.DTOs.Achievements.Responses;
 namespace FlashcardsApp.Interfaces.Achievements;
 
 /// <summary>
-/// Сервис для вычисления прогресса достижений (будущая функциональность)
+/// Сервис для вычисления прогресса достижений
+/// Отвечает ТОЛЬКО за расчет прогресса (текущее значение, требуемое значение, процент)
 /// </summary>
 public interface IAchievementProgressService
 {
@@ -13,14 +14,13 @@ public interface IAchievementProgressService
     /// </summary>
     /// <param name="userId">ID пользователя</param>
     /// <param name="achievementId">ID достижения</param>
-    /// <returns>Процент выполнения (0-100)</returns>
+    /// <returns>Прогресс выполнения достижения</returns>
     Task<ServiceResult<AchievementProgressDto>> CalculateAchievementProgressAsync(Guid userId, Guid achievementId);
 
     /// <summary>
-    /// Получить рекомендации: какие достижения пользователь скоро получит
+    /// Получить прогресс по всем достижениям
     /// </summary>
     /// <param name="userId">ID пользователя</param>
-    /// <param name="count">Количество рекомендаций</param>
-    /// <returns>Список рекомендуемых достижений</returns>
-    Task<ServiceResult<IEnumerable<AchievementRecommendationDto>>> GetAchievementRecommendationsAsync(Guid userId, int count = 3);
+    /// <returns>Список прогресса всех достижений</returns>
+    Task<ServiceResult<IEnumerable<AchievementProgressDto>>> GetAllAchievementsProgressAsync(Guid userId);
 }
