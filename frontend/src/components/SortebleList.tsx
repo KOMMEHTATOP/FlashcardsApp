@@ -17,6 +17,8 @@ import StudyCard from "./cards/Study_card";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import type { GroupType } from "../types/types";
+import { Star } from "lucide-react";
+import GroupForm from "./modal/GroupForm";
 
 export function SortableItem({
   id,
@@ -119,7 +121,11 @@ export default function SortableList({
             <SortableItem key={item.Id} id={item?.Id || ""} index={index}>
               <motion.div layout layoutId={`card-${item.Id}`}>
                 <StudyCard
-                  {...item}
+                  gradient={"from-green-400 to-emerald-500"}
+                  streak={4}
+                  progress={21}
+                  icon={Star}
+                  title={item.GroupName}
                   onClick={() => navigate(`/study/${item.Id.toString()}`)}
                   onDelete={() => {}}
                   // onLessonPlayer={() => handleSelectLesson(item)}
@@ -127,6 +133,7 @@ export default function SortableList({
               </motion.div>
             </SortableItem>
           ))}
+          <GroupForm />
         </div>
       </SortableContext>
     </DndContext>

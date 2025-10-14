@@ -29,7 +29,7 @@ export function Button({
     secondary: "btn-secondary",
     accent: "btn-accent",
     ghost: "btn-ghost",
-    outline: "btn-outline",
+    outline: "btn-outline border-base-100/30 hover:bg-base-100/10",
     link: "btn-link text-primary hover:underline",
     error: "btn-error text-white",
   };
@@ -48,7 +48,8 @@ export function Button({
   );
 }
 
-interface ButtonCircleProps {
+interface ButtonCircleProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   className?: string;
   size?: string;
   children?: React.ReactNode;

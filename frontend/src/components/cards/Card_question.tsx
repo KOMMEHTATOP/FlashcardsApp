@@ -1,118 +1,79 @@
-import { CheckCircle, ClockFading, Edit, Lock, Play, Zap } from "lucide-react";
+import { CheckCircle, Edit, Play, Star } from "lucide-react";
 import type { SubjectCardType } from "../../types/types";
 import { ButtonCircle } from "../ui/button";
 
 type CardProps = {
   item: SubjectCardType;
-  last?: boolean;
   onClick?: () => void;
 };
 
-export default function CardQuestion({ item, last, onClick }: CardProps) {
-  const showAnimatedBorder = item.completed || last;
+export default function CardQuestion({ item, onClick }: CardProps) {
+  const isCompleted = item.LastRating > 0;
 
   return (
     <div
       className={`relative rounded-xl transition-all shadow-lg group ${
-        showAnimatedBorder
-          ? "p-[2px] shadow-gradient-success-r "
-          : "border border-base-300 "
+        isCompleted
+          ? "p-[2px] shadow-gradient-success-r"
+          : "border border-base-300"
       }`}
     >
-      {showAnimatedBorder && (
-        <>
-          <div
-            className={`absolute inset-0 rounded-xl bg-[length:200%_200%]  ${
-              last ? "border-gradient-primary " : "border-gradient-success-r "
-            }`}
-          ></div>
-        </>
+      {/* Градиентная подсветка для завершённых */}
+      {isCompleted && (
+        <div className="absolute inset-0 rounded-xl bg-[length:200%_200%] border-gradient-success-r animate-[shine_3s_linear_infinite]" />
       )}
 
-      <div
-        className={`relative z-10 rounded-[10px] p-6 shadow-lg transition-all ${
-          item.completed
-            ? "bg-base-100"
-            : last
-            ? "bg-gradient-to-r from-base-100 to-base-200"
-            : "bg-base-100"
-        }`}
-      >
+      <div className="relative z-10 rounded-[10px] p-6 shadow-lg transition-all bg-base-100">
         <div className="flex items-center gap-4">
           {/* Иконка */}
           <div
-            className={`shrink-0 w-12 h-12 rounded-full flex items-center justify-center ${
-              item.completed
-                ? "bg-gradient-to-br from-green-400 to-emerald-500"
-                : last
-                ? "bg-gradient-to-br from-purple-500 to-pink-500"
-                : "bg-base-300"
+            className={`shrink-0 w-12 h-12 rounded-full flex items-center justify-center transition-all ${
+              isCompleted
+                ? "bg-gradient-to-br from-green-400 to-emerald-500 animate-pulse"
+                : "bg-gray-400/70 hover:bg-green-400/80"
             }`}
           >
-            {item.completed ? (
+            {isCompleted ? (
               <CheckCircle className="w-6 h-6 text-white" />
-            ) : last ? (
-              <Play className="w-6 h-6 text-white" />
             ) : (
-              <Lock className="w-6 h-6 text-base-content/60" />
+              <Play className="w-6 h-6 text-white" />
             )}
           </div>
 
-          {/* Текст */}
+          {/* Вопрос и рейтинг */}
           <div className="flex-1">
             <h3
-              className={`mb-1 ${
-                item.completed || last ? "text-base-content" : "text-gray-400"
+              className={`mb-1 text-base font-medium ${
+                isCompleted ? "text-base-content" : "text-gray-400"
               }`}
             >
-              {item.title}
+              {item.Question}
             </h3>
-            <div className="flex items-center gap-4 text-sm truncate">
-              <span
-                className={
-                  item.completed || last
-                    ? "text-gray-600 dark:text-gray-400"
-                    : "text-gray-400 dark:text-gray-500"
-                }
-              >
-                <span className="flex gap-1 items-center">
-                  <ClockFading className="w-4 h-4 text-base-content" />{" "}
-                  {item.duration}
-                </span>
-              </span>
-              <span
-                className={`flex items-center gap-1 truncate ${
-                  item.completed || last
-                    ? "text-yellow-600 dark:text-yellow-400"
-                    : "text-gray-400 dark:text-gray-500"
-                }`}
-              >
-                <Zap className="w-4 h-4" />
-                {item.xp} XP
-              </span>
+
+            <div className="flex items-center gap-1">
+              {[...Array(5)].map((_, i) => (
+                <Star
+                  key={i}
+                  className={`w-5 h-5 transition-colors ${
+                    i < item.LastRating
+                      ? "text-yellow-500 fill-yellow-500"
+                      : "text-gray-300 dark:text-gray-600"
+                  }`}
+                />
+              ))}
             </div>
           </div>
 
-          {/* <ButtonCircle>
-            <Trash className="w-6 h-6 text-error" />
-          </ButtonCircle> */}
-          <ButtonCircle className="">
+          <ButtonCircle>
             <Edit className="w-6 h-6 text-base-content" />
           </ButtonCircle>
 
-          {/* кнопка */}
+          {/* Кнопка “Обзор */}
           <button
-            disabled={!item.completed && !last}
             onClick={onClick}
-            className={`px-4 py-2 rounded w-30 text-base ${
-              item.completed
-                ? "bg-green-500 hover:bg-green-600 text-white"
-                : last
-                ? "bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
-                : "btn btn-neutral"
-            }`}
+            className={`px-4 py-2 rounded text-base font-medium ${"bg-green-500 hover:bg-green-600 text-white"}`}
           >
-            {item.completed ? "Обзор" : last ? "Начало урока" : "Закрыт"}
+            Обзор
           </button>
         </div>
       </div>

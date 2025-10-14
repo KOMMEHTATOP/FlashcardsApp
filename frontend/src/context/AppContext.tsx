@@ -22,6 +22,19 @@ type AppContextType = {
 
 const AppContext = createContext<AppContextType | null>(null);
 
+const fetchAllUserData = async () => {
+  const [user, stats, allAch, myAch, groups, setting] = await Promise.all([
+    apiFetch.get("/Auth/me"),
+    apiFetch.get("/UserStatistics"),
+    apiFetch.get("/Achievements/all"),
+    apiFetch.get("/Achievements/my"),
+    apiFetch.get("/Group"),
+    apiFetch.get("/StudySettings"),
+  ]);
+
+  return { user, stats, allAch, myAch, groups, setting };
+};
+
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserData>();
   const [userState, setUserState] = useState<UserState>();
@@ -31,82 +44,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [groups, setGroups] = useState<GroupType[]>([]);
 
   useEffect(() => {
-    fetchUserData();
-    fetchUserStatistic();
-    fetchAcihments();
-    fetchUserAchiments();
-    fetchGroups();
+    fetchAllUserData().then(
+      ({ user, stats, allAch, myAch, groups, setting }) => {
+        setUser(user.data);
+        setUserState(stats.data);
+        setAchivment(allAch.data);
+        setUserAchivment(myAch.data);
+        setGroups(groups.data);
+        console.log("AppProvider, ", user, groups);
+      }
+    );
   }, []);
 
-  const fetchUserData = async () => {
-    try {
-      const res = await apiFetch.get("/Auth/me", {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      if (res.status !== 200) {
-        console.log("Ошибка получние данных!");
-      }
-      setUser(res.data);
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
-  const fetchUserStatistic = async () => {
-    try {
-      const res = await apiFetch.get("/UserStatistics");
-      if (res.status !== 200) {
-        console.log("Ошибка получние данных!");
-      }
-      setUserState(res.data);
-      // console.log(res.data);
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
-  const fetchAcihments = async () => {
-    try {
-      const res = await apiFetch.get("/Achievements/all");
-      if (res.status !== 200) {
-        console.log("Ошибка получние данных!");
-      }
-      setAchivment(res.data);
-      console.log("all aschimn ", res.data);
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
-  const fetchUserAchiments = async () => {
-    try {
-      const res = await apiFetch.get("/Achievements/my");
-      if (res.status !== 200) {
-        console.log("Ошибка получние данных!");
-      }
-
-      setUserAchivment(res.data);
-      console.log("my aschimn ", res.data);
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
-  const fetchGroups = async () => {
-    try {
-      const res = await apiFetch.get("/Group");
-      if (res.status !== 200) {
-        console.log("Ошибка получние данных!");
-      }
-      console.log(res.data);
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
   const handleSelectLesson = (subject: SubjectDetailType) => {
+    console.log(subject);
     setCurrentLesson(subject);
   };
 

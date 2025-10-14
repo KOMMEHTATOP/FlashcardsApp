@@ -1,77 +1,64 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import type { SubjectCardType, SubjectDetailType } from "../types/types";
-import { testStudyData } from "../test/testData";
-import { ArrowLeft, BowArrowIcon, Flame, Trophy } from "lucide-react";
+import { ArrowLeft, BowArrowIcon, Trophy } from "lucide-react";
 import { motion } from "framer-motion";
 import MotivationCard from "../components/cards/Motivation_card";
 import CardQuestion from "../components/cards/Card_question";
 import { useApp } from "../context/AppContext";
 import useTitle from "../utils/useTitle";
-
-const testDataDetail = [
-  {
-    id: 1,
-    title: "Введение в основы",
-    duration: 15,
-    xp: 50,
-    completed: true,
-  },
-  {
-    id: 2,
-    title: "Основные концепции",
-    duration: 20,
-    xp: 75,
-    completed: true,
-  },
-  {
-    id: 3,
-    title: "Передовые методы",
-    duration: 25,
-    xp: 100,
-    completed: true,
-  },
-  {
-    id: 4,
-    title: "Практические упражнения",
-    duration: 30,
-    xp: 125,
-    completed: false,
-  },
-  {
-    id: 5,
-    title: "Бросайте вызов проблемам",
-    duration: 35,
-    xp: 150,
-    completed: false,
-  },
-  {
-    id: 6,
-    title: "Окончательная оценка",
-    duration: 40,
-    xp: 200,
-    completed: false,
-  },
-];
+import apiFetch from "../utils/apiFetch";
+import AddFlashcardForm from "../components/modal/AddFlashcardForm";
 
 export default function StudyPage({}) {
   const { id } = useParams();
   const { handleSelectLesson } = useApp();
-  const [data, setData] = useState<SubjectDetailType | null>(null);
+  const [group, setGroup] = useState<SubjectDetailType | null>(null);
+  const [isOpen, setIsOpen] = useState<boolean>(false);
 
-  const [dataDetail, setDataDetail] =
-    useState<SubjectCardType[]>(testDataDetail);
+  const [dataDetail, setDataDetail] = useState<SubjectCardType[]>([]);
 
   useEffect(() => {
-    setData(testStudyData.find((item) => item.id === Number(id)) || null);
+    const fetchCards = async () => {
+      try {
+        const [groupRes, cardsRes] = await Promise.all([
+          apiFetch.get(`/Group/${id}`),
+          apiFetch.get(`/groups/${id}/cards`),
+        ]);
+        console.log(groupRes.data, cardsRes.data);
+        setGroup(groupRes.data);
+        setDataDetail(cardsRes.data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    fetchCards();
   }, [id]);
 
-  useTitle(data?.title || "");
+  useTitle(group?.GroupName || "");
+  console.log(group);
+
+  const handleAddCard = async (question: string, answer: string) => {
+    try {
+      const data = {
+        question,
+        answer,
+      };
+      const res = await apiFetch.post(`/groups/${id}/cards`, data);
+      if (res.status !== 200) {
+        console.log("Ошибка добавления карточки!");
+      }
+      console.log(res.data);
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   return (
     <div className="min-h-screen">
       <div
-        className={`relative bg-gradient-to-br ${data?.gradient} px-4 sm:px-6 lg:px-8 py-12 overflow-hidden rounded-2xl shadow-xl`}
+        className={`relative bg-gradient-to-br ${group?.GroupColor} px-4 sm:px-6 lg:px-8 py-12 overflow-hidden rounded-2xl shadow-xl`}
       >
         <div
           className="absolute inset-0 bg-white/10"
@@ -97,13 +84,13 @@ export default function StudyPage({}) {
               transition={{ type: "spring", stiffness: 200 }}
               className="bg-white/20 backdrop-blur-sm p-6 rounded-3xl"
             >
-              {data?.icon && <data.icon className="w-12 h-12 text-white" />}
+              {/* {group?.icon && <group.icon className="w-12 h-12 text-white" />} */}
             </motion.div>
 
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-4xl text-white">{data?.title}</h1>
-                {Number(data?.streak) > 0 && (
+                <h1 className="text-4xl text-white">{group?.GroupName}</h1>
+                {/* {Number(group?.streak) > 0 && (
                   <motion.div
                     animate={{ rotate: [0, 10, -10, 0] }}
                     transition={{
@@ -113,48 +100,48 @@ export default function StudyPage({}) {
                     }}
                     className="bg-orange-500 text-white px-3 py-2 rounded-full flex items-center gap-1 text-subtitle"
                   >
-                    <Flame className="w-5 h-5 text-yellow" /> {data?.streak}{" "}
+                    <Flame className="w-5 h-5 text-yellow" /> {group?.streak}{" "}
                     дней подряд
                   </motion.div>
-                )}
+                )} */}
               </div>
               <p className="text-white/90 text-lg mb-4">
                 Овладейте основами и раскройте свой потенциал
               </p>
 
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 <div className="flex justify-between text-white/80 text-sm">
                   <span className="text-subtitle">Общий прогресс</span>
-                  <span className="text-number">{data?.progress}%</span>
+                  <span className="text-number">{group?.progress}%</span>
                 </div>
                 <div className="relative z-10 w-full h-2 bg-white/10">
                   <motion.div
                     initial={{ width: 0 }}
-                    animate={{ width: `${data?.progress || 0}%` }}
+                    animate={{ width: `${group?.progress || 0}%` }}
                     transition={{ duration: 1, ease: "easeOut" }}
                     className="h-full bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-full"
                   />
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {data?.stats.map((stat, index) => (
+            {/* {dataDetail.map((stat, index) => (
               <motion.div
-                key={stat.label}
+                key={stat.Question}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
                 className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 text-center"
               >
                 <div className="text-2xl text-white mb-1 text-number">
-                  {stat.value}
+                  {stat.UpdatedAt}
                 </div>
                 <div className="text-white/80 text-sm text-subtitle">
-                  {stat.label}
+                  {stat.Question}
                 </div>
               </motion.div>
-            ))}
+            ))} */}
           </div>
         </div>
       </div>
@@ -163,6 +150,12 @@ export default function StudyPage({}) {
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl text-base-content/80">Путь обучения</h2>
           <div className="flex items-center gap-2 text-base-content/80">
+            <AddFlashcardForm
+              handleAddCard={handleAddCard}
+              isOpen={isOpen}
+              setIsOpen={setIsOpen}
+              subjectColor={"from-pink-400 to-rose-500"}
+            />
             <Trophy className="w-5 h-5" />
             <span>
               Завершено {dataDetail.filter((item) => item.completed).length} из{" "}
@@ -181,9 +174,8 @@ export default function StudyPage({}) {
             >
               <CardQuestion
                 item={item}
-                last={index === testDataDetail.length - 1}
                 onClick={() => {
-                  handleSelectLesson(data!);
+                  handleSelectLesson(group!);
                 }}
               />
             </motion.div>
@@ -199,7 +191,7 @@ export default function StudyPage({}) {
             dataDetail.filter((item) => !item.completed).length
           } урока, чтобы получить итоговую оценку и заработать 500 бонусных очков опыта!`}
           textIcon={BowArrowIcon}
-          gradient={data?.gradient || ""}
+          gradient={group?.GroupColor || ""}
           delay={0.6}
           className="mt-8"
         />

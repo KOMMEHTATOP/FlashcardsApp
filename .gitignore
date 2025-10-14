@@ -7,3 +7,4 @@ riderModule.iml
 appsettings.Production.json
 appsettings.Development.json
 .env
+docker-compose.yml

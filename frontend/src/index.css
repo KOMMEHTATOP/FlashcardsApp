@@ -134,6 +134,14 @@
   animation: gradientMove 4s linear infinite;
 }
 
+@keyframes shine {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
 
 @keyframes gradientMove {
   0% { background-position: 0% 50%; }

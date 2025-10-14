@@ -28,20 +28,20 @@ interface AchievementsType {
 
 interface GroupType {
   Id: string;
-  GroupName: String;
-  GroupColor: String;
-  CreatedAt: String;
+  GroupName: string;
+  GroupColor: string;
+  CreatedAt: string;
   Order: number;
 }
 
 interface SubjectDetailType {
-  id: number;
-  icon: LucideIcon;
-  title: string;
-  progress: number;
-  streak: number;
-  gradient: string;
-  stats: SubjectStatsType[];
+  Id: string;
+  // icon: LucideIcon;
+  GroupName: string;
+  GroupColor: string;
+  CreatedAt: string;
+  Order: number;
+  // stats: SubjectStatsType[];
 }
 
 interface SubjectStatsType {
@@ -50,10 +50,12 @@ interface SubjectStatsType {
 }
 
 interface SubjectCardType {
-  id: number;
-  title: String;
-  duration: number;
-  xp: number;
+  CardId: string;
+  CreatedAt: string;
+  GroupId: string;
+  LastRating: number;
+  Question: string;
+  UpdatedAt: string;
   completed: boolean;
 }
 

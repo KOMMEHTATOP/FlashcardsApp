@@ -11,13 +11,7 @@ import {
 import LevelCard from "../components/cards/Level_card";
 import StateCard from "../components/cards/State_card";
 import { useApp } from "../context/AppContext";
-import {
-  motion,
-  AnimatePresence,
-  useTransform,
-  useScroll,
-  useMotionValueEvent,
-} from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import MotivationCard from "../components/cards/Motivation_card";
 import { useMemo, useState } from "react";
 import { BadgeCard } from "../components/cards/Badge_card";
@@ -37,7 +31,7 @@ const modulePage = [
 ];
 
 export function HomePage() {
-  const { userState, achivment, userAchivment } = useApp();
+  const { userState, achivment, userAchivment, groups } = useApp();
   useTitle("Главная");
 
   const [modul, setModul] = useState<typeof modulePage>(modulePage);
@@ -59,46 +53,31 @@ export function HomePage() {
     const index = modul.findIndex((item) => item.name === name);
     setCurrentModul(index);
   };
-  const { scrollY } = useScroll();
-  const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
+  // const { scrollY } = useScroll();
+  // const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
 
-  const scale = useTransform(scrollY, [0, 200], [1, 1]);
-  const opacity = useTransform(scrollY, [0, 200], [1, 0.9]);
-  const y = useTransform(scrollY, [0, 200], [0, 90]);
+  // const scale = useTransform(scrollY, [0, 200], [1, 1]);
+  // const opacity = useTransform(scrollY, [0, 200], [1, 0.9]);
+  // const y = useTransform(scrollY, [0, 200], [0, 90]);
 
-  useMotionValueEvent(scrollY, "change", (latest) => {
-    if (latest > 120 && !isCollapsed) {
-      setIsCollapsed(true);
-    } else if (latest <= 120 && isCollapsed) {
-      setIsCollapsed(false);
-    }
-  });
-  console.log(userAchivment);
+  // useMotionValueEvent(scrollY, "change", (latest) => {
+  //   if (latest > 120 && !isCollapsed) {
+  //     setIsCollapsed(true);
+  //   } else if (latest <= 120 && isCollapsed) {
+  //     setIsCollapsed(false);
+  //   }
+  // });
 
   return (
     <div className="w-full pb-10">
       <div className="space-y-8">
-        <motion.div
-          style={{
-            position: "sticky",
-            top: 0,
-            zIndex: 30,
-            scale,
-            opacity,
-            y,
-          }}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="h-40"
-        >
+        <div>
           <LevelCard
             level={level}
             currentXP={currentXP}
             xpToNextLevel={xpToNextLevel}
-            isCollapsed={isCollapsed}
           />
-        </motion.div>
+        </div>
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StateCard
             icon={Clock}
@@ -171,7 +150,9 @@ export function HomePage() {
                     <PlusSquareIcon className="w-8 h-8 text-success z-10" />
                   </div>
                 </div>
-                <SortableList initalItems={study} />
+                {groups && groups.length > 0 && (
+                  <SortableList initalItems={groups} />
+                )}
               </motion.div>
             ) : (
               <motion.div
@@ -193,7 +174,7 @@ export function HomePage() {
                       <BadgeCard
                         title={item.Name}
                         description={item.Description}
-                        earned={true}
+                        earned={userAchivment?.some((x) => x.Id === item.Id)}
                       />
                     </motion.div>
                   ))}

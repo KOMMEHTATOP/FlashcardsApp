@@ -1,4 +1,16 @@
-import { BookHeart, Brain, Sparkles, Star, Trophy, Zap } from "lucide-react";
+import {
+  Beaker,
+  BookHeart,
+  BookOpen,
+  Brain,
+  Calculator,
+  Globe,
+  Palette,
+  Sparkles,
+  Star,
+  Trophy,
+  Zap,
+} from "lucide-react";
 const floatingIcons = [
   { icon: Trophy, color: "text-yellow-400", delay: 0, x: "10%", y: "20%" },
   { icon: Star, color: "text-pink-400", delay: 0.2, x: "85%", y: "15%" },
@@ -67,10 +79,44 @@ const colorRatingCard = {
   5: "bg-yellow-300",
 };
 
+const availableColors = [
+  { id: 1, gradient: "from-blue-400 to-cyan-500", name: "Синий океан" },
+  { id: 2, gradient: "from-purple-400 to-pink-500", name: "Пурпурно-розовый" },
+  { id: 3, gradient: "from-yellow-400 to-orange-500", name: "Закат" },
+  { id: 4, gradient: "from-green-400 to-emerald-500", name: "Лесной зеленый" },
+  { id: 5, gradient: "from-red-400 to-pink-500", name: "Розово-красный" },
+  {
+    id: 6,
+    gradient: "from-indigo-400 to-purple-500",
+    name: "Темно-фиолетовый",
+  },
+  { id: 7, gradient: "from-cyan-400 to-blue-500", name: "Небесно-голубой" },
+  {
+    id: 8,
+    gradient: "from-amber-400 to-orange-500",
+    name: "Янтарное свечение",
+  },
+  { id: 9, gradient: "from-teal-400 to-green-500", name: "Бирюзовый сон" },
+  { id: 10, gradient: "from-pink-400 to-rose-500", name: "Розовая роза" },
+  { id: 11, gradient: "from-violet-400 to-purple-500", name: "Фиолетовый" },
+  { id: 12, gradient: "from-lime-400 to-green-500", name: "Зеленый лайм" },
+];
+
+const availableIcons = [
+  { icon: BookOpen, name: "Книга" },
+  { icon: Brain, name: "Ум" },
+  { icon: Calculator, name: "Калькулятор" },
+  { icon: Beaker, name: "Химия" },
+  { icon: Globe, name: "Глобус" },
+  { icon: Palette, name: "Палитра" },
+];
+
 export {
   floatingIcons,
   recallRatingInfo,
   motivationTexts,
   colorRatingCard,
   levelMotivationVariants,
+  availableColors,
+  availableIcons,
 };
