@@ -1,4 +1,5 @@
 using FlashcardsApp.Data;
+using FlashcardsApp.Interfaces;
 using FlashcardsApp.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -9,7 +10,7 @@ using System.Text;
 
 namespace FlashcardsApp.Services;
 
-public class TokenService
+public class TokenService : ITokenService
 {
     private readonly IConfiguration _configuration;
     private readonly ApplicationDbContext _context;
@@ -20,7 +21,6 @@ public class TokenService
         _context = context;
     }
 
-    // Генерация Access Token (JWT, 30 минут)
     public string GenerateAccessToken(User user)
     {
         var expirationMinutes = _configuration.GetValue<double>("Jwt:AccessTokenExpirationMinutes");
@@ -42,7 +42,6 @@ public class TokenService
 
         var tokenDescriptor = new SecurityTokenDescriptor
         {
-            
             Subject = new ClaimsIdentity(claims),
             Expires = DateTime.UtcNow.AddMinutes(expirationMinutes), 
             SigningCredentials = new SigningCredentials(
@@ -55,7 +54,6 @@ public class TokenService
         return tokenHandler.WriteToken(token);
     }
 
-    // Генерация Refresh Token (случайная строка, 7 дней)
     public async Task<RefreshToken> GenerateRefreshToken(Guid userId, string? ipAddress, string? userAgent)
     {
         var expirationDays = _configuration.GetValue<double>("Jwt:RefreshTokenExpirationDays");
@@ -77,16 +75,6 @@ public class TokenService
         return refreshToken;
     }
 
-    // Генерация криптографически стойкой случайной строки
-    private string GenerateRandomToken()
-    {
-        var randomBytes = new byte[64];
-        using var rng = RandomNumberGenerator.Create();
-        rng.GetBytes(randomBytes);
-        return Convert.ToBase64String(randomBytes);
-    }
-
-    // Валидация Refresh Token
     public async Task<RefreshToken?> ValidateRefreshToken(string token)
     {
         var refreshToken = await _context.RefreshTokens
@@ -100,7 +88,6 @@ public class TokenService
         return refreshToken;
     }
 
-    // Отзыв Refresh Token
     public async Task<bool> RevokeRefreshToken(string token)
     {
         var refreshToken = await _context.RefreshTokens
@@ -113,7 +100,6 @@ public class TokenService
         return true;
     }
 
-    // Очистка старых токенов (можно запускать по расписанию)
     public async Task CleanupExpiredTokens()
     {
         var expiredTokens = await _context.RefreshTokens
@@ -122,5 +108,14 @@ public class TokenService
 
         _context.RefreshTokens.RemoveRange(expiredTokens);
         await _context.SaveChangesAsync();
+    }
+
+    // Приватный метод - не входит в интерфейс, т.к. это деталь реализации
+    private string GenerateRandomToken()
+    {
+        var randomBytes = new byte[64];
+        using var rng = RandomNumberGenerator.Create();
+        rng.GetBytes(randomBytes);
+        return Convert.ToBase64String(randomBytes);
     }
 }

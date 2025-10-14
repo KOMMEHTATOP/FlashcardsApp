@@ -77,7 +77,7 @@ builder.Services.AddAuthentication(options =>
             ClockSkew = TimeSpan.Zero
         };
 
-        // ✅ ВАЖНО: Добавляем поддержку JWT для SignalR
+        // Добавляем поддержку JWT для SignalR
         options.Events = new JwtBearerEvents
         {
             OnMessageReceived = context =>
@@ -97,7 +97,7 @@ builder.Services.AddAuthentication(options =>
         };
     });
 
-// ✅ РЕГИСТРИРУЕМ SignalR
+// РЕГИСТРИРУЕМ SignalR
 builder.Services.AddSignalR(options =>
 {
     // Настройки для production
@@ -146,9 +146,9 @@ builder.Services.Configure<RewardSettings>(
     builder.Configuration.GetSection("RewardSettings"));
 
 // Регистрация сервисов
-builder.Services.AddScoped<TokenService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IGroupService, GroupService>();
-builder.Services.AddScoped<CardService>();
+builder.Services.AddScoped<ICardService, CardService>();
 builder.Services.AddScoped<CardRatingService>();
 builder.Services.AddScoped<StudySettingsService>();
 builder.Services.AddScoped<StudySessionService>();
@@ -158,7 +158,7 @@ builder.Services.AddScoped<UserStatisticsService>();
 builder.Services.AddScoped<IGamificationService, GamificationService>();
 builder.Services.AddScoped<IStudyService, StudyService>();
 
-// ✅ РЕГИСТРИРУЕМ NotificationService
+// NotificationService
 builder.Services.AddScoped<INotificationService, SignalRNotificationService>();
 
 // Achievement services
@@ -201,7 +201,7 @@ if (allowedOrigins.Length > 0)
             policyBuilder.WithOrigins(allowedOrigins)
                 .AllowAnyHeader()
                 .AllowAnyMethod()
-                .AllowCredentials(); // ✅ ВАЖНО для SignalR
+                .AllowCredentials(); 
         });
     });
 }
@@ -231,7 +231,7 @@ if (!app.Environment.IsProduction())
 }
 
 // Middleware
-app.UseCors(); // ✅ ВАЖНО: должен быть ДО Authentication
+app.UseCors(); 
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -267,7 +267,7 @@ logger.LogInformation("🚀 Application started in {Environment} mode", app.Envi
 
 app.MapControllers();
 
-// ✅ РЕГИСТРИРУЕМ SignalR Hub
+// SignalR Hub
 app.MapHub<NotificationHub>("/hubs/notifications");
 logger.LogInformation("📡 SignalR Hub mapped to /hubs/notifications");
 

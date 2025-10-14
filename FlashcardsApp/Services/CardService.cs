@@ -1,4 +1,5 @@
 using FlashcardsApp.Data;
+using FlashcardsApp.Interfaces;
 using FlashcardsApp.Interfaces.Achievements;
 using FlashcardsApp.Mapping;
 using FlashcardsApp.Models;
@@ -8,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FlashcardsApp.Services;
 
-public class CardService
+public class CardService : ICardService
 {
     private readonly ApplicationDbContext _context;
     private readonly IAchievementService _achievementService;
