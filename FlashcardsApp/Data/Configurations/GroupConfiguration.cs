@@ -10,11 +10,11 @@ public class GroupConfiguration : IEntityTypeConfiguration<Group>
     {
         // Настройка свойств
         builder.Property(g => g.GroupName)
-            .HasMaxLength(100)
+            .HasMaxLength(200)
             .IsRequired();
 
         builder.Property(g => g.GroupColor)
-            .HasMaxLength(20);
+            .HasMaxLength(100);
 
         // Уникальный индекс
         builder.HasIndex(g => new { g.UserId, g.GroupName })
