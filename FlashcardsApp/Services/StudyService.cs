@@ -5,6 +5,7 @@ using FlashcardsApp.Models;
 using FlashcardsAppContracts.DTOs.Achievements.Responses;
 using FlashcardsAppContracts.DTOs.Requests;
 using FlashcardsAppContracts.DTOs.Responses;
+using FlashcardsAppContracts.DTOs.Study.Requests;
 using FlashcardsAppContracts.DTOs.Study.Responses;
 using Microsoft.EntityFrameworkCore;
 

@@ -1,4 +1,3 @@
-// Services/UserStatisticsService.cs
 using FlashcardsApp.Data;
 using FlashcardsApp.Interfaces;
 using FlashcardsApp.Models;
@@ -17,7 +16,7 @@ public class UserStatisticsService
         _context = context;
         _gamificationService = gamificationService;
     }
-    
+
     /// <summary>
     /// Получить статистику пользователя с расчетами для фронтенда
     /// </summary>
@@ -37,7 +36,10 @@ public class UserStatisticsService
                 CurrentStreak = 0,
                 BestStreak = 0,
                 LastStudyDate = DateTime.UtcNow,
-                TotalStudyTime = TimeSpan.Zero
+                TotalStudyTime = TimeSpan.Zero,
+                TotalCardsStudied = 0, 
+                TotalCardsCreated = 0, 
+                PerfectRatingsStreak = 0 
             };
 
             _context.UserStatistics.Add(stats);
@@ -47,7 +49,7 @@ public class UserStatisticsService
         // Рассчитываем DTO
         var xpForCurrentLevel = _gamificationService.CalculateXPForLevel(stats.Level);
         var xpForNextLevel = _gamificationService.CalculateXPForLevel(stats.Level + 1);
-    
+
         var xpNeeded = xpForNextLevel - stats.TotalXP;
         var xpProgressInCurrentLevel = stats.TotalXP - xpForCurrentLevel;
         var xpRequiredForCurrentLevel = xpForNextLevel - xpForCurrentLevel;
@@ -61,7 +63,10 @@ public class UserStatisticsService
             XPRequiredForCurrentLevel = xpRequiredForCurrentLevel,
             CurrentStreak = stats.CurrentStreak,
             BestStreak = stats.BestStreak,
-            TotalStudyTime = stats.TotalStudyTime
+            TotalStudyTime = stats.TotalStudyTime,
+            TotalCardsStudied = stats.TotalCardsStudied,
+            TotalCardsCreated = stats.TotalCardsCreated,
+            PerfectRatingsStreak = stats.PerfectRatingsStreak
         };
 
         return ServiceResult<UserStatsDto>.Success(dto);

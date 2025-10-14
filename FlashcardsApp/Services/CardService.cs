@@ -1,20 +1,27 @@
 using FlashcardsApp.Data;
+using FlashcardsApp.Interfaces.Achievements;
 using FlashcardsApp.Mapping;
 using FlashcardsApp.Models;
 using FlashcardsAppContracts.DTOs.Requests;
 using FlashcardsAppContracts.DTOs.Responses;
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
 
 namespace FlashcardsApp.Services;
 
 public class CardService
 {
     private readonly ApplicationDbContext _context;
+    private readonly IAchievementService _achievementService;
+    private readonly ILogger<CardService> _logger;
 
-    public CardService(ApplicationDbContext context)
+    public CardService(
+        ApplicationDbContext context,
+        IAchievementService achievementService,
+        ILogger<CardService> logger)
     {
         _context = context;
+        _achievementService = achievementService;
+        _logger = logger;
     }
 
     public async Task<ServiceResult<IEnumerable<ResultCardDto>>> GetAllCardsAsync(Guid userId, int? targetRating)
@@ -88,6 +95,25 @@ public class CardService
 
     public async Task<ServiceResult<ResultCardDto>> CreateCardAsync(Guid userId, Guid groupId, CreateCardDto dto)
     {
+        // ============================================
+        // ИСПРАВЛЕНИЕ 1: Валидация ДО сохранения
+        // ============================================
+        
+        // Проверяем существование карточки с таким вопросом у пользователя
+        var cardExists = await _context.Cards
+            .AsNoTracking()
+            .AnyAsync(c => c.UserId == userId && c.Question == dto.Question);
+
+        if (cardExists)
+        {
+            _logger.LogWarning(
+                "User {UserId} attempted to create duplicate card with question: {Question}", 
+                userId, 
+                dto.Question);
+            return ServiceResult<ResultCardDto>.Failure("You already have a card with this question");
+        }
+
+        // Создаем карточку
         var card = new Card
         {
             CardId = Guid.NewGuid(),
@@ -104,10 +130,49 @@ public class CardService
         try
         {
             await _context.SaveChangesAsync();
+            
+            _logger.LogInformation(
+                "Card {CardId} created successfully for user {UserId}", 
+                card.CardId, 
+                userId);
         }
-        catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex))
+        catch (Exception ex)
         {
-            return ServiceResult<ResultCardDto>.Failure("You already have a card with this question");
+            _logger.LogError(ex, 
+                "Error saving card for user {UserId}", 
+                userId);
+            return ServiceResult<ResultCardDto>.Failure("Failed to create card");
+        }
+
+        // ============================================
+        // ИСПРАВЛЕНИЕ 2: Обновляем TotalCardsCreated
+        // ============================================
+        
+        var userStats = await _context.UserStatistics
+            .FirstOrDefaultAsync(s => s.UserId == userId);
+
+        if (userStats != null)
+        {
+            userStats.TotalCardsCreated++;
+            
+            _logger.LogInformation(
+                "User {UserId} TotalCardsCreated updated: {Total}", 
+                userId, 
+                userStats.TotalCardsCreated);
+
+            await _context.SaveChangesAsync();
+            
+            // ============================================
+            // ИСПРАВЛЕНИЕ 3: Проверяем достижения
+            // ============================================
+            
+            await _achievementService.CheckAndUnlockAchievementsAsync(userId);
+        }
+        else
+        {
+            _logger.LogWarning(
+                "UserStatistics not found for user {UserId} after card creation", 
+                userId);
         }
 
         return ServiceResult<ResultCardDto>.Success(card.ToDto());
@@ -123,6 +188,31 @@ public class CardService
             return ServiceResult<ResultCardDto>.Failure("Card not found or access denied");
         }
 
+        // ============================================
+        // ИСПРАВЛЕНИЕ: Валидация ДО сохранения
+        // ============================================
+        
+        // Проверяем уникальность только если вопрос изменился
+        if (card.Question != dto.Question)
+        {
+            var questionExists = await _context.Cards
+                .AsNoTracking()
+                .AnyAsync(c => 
+                    c.UserId == userId && 
+                    c.Question == dto.Question && 
+                    c.CardId != cardId);
+
+            if (questionExists)
+            {
+                _logger.LogWarning(
+                    "User {UserId} attempted to update card {CardId} with duplicate question: {Question}", 
+                    userId, 
+                    cardId, 
+                    dto.Question);
+                return ServiceResult<ResultCardDto>.Failure("You already have a card with this question");
+            }
+        }
+
         card.Question = dto.Question;
         card.Answer = dto.Answer;
         card.UpdatedAt = DateTime.UtcNow;
@@ -130,10 +220,19 @@ public class CardService
         try
         {
             await _context.SaveChangesAsync();
+            
+            _logger.LogInformation(
+                "Card {CardId} updated successfully for user {UserId}", 
+                cardId, 
+                userId);
         }
-        catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex))
+        catch (Exception ex)
         {
-            return ServiceResult<ResultCardDto>.Failure("You already have a card with this question");
+            _logger.LogError(ex, 
+                "Error updating card {CardId} for user {UserId}", 
+                cardId, 
+                userId);
+            return ServiceResult<ResultCardDto>.Failure("Failed to update card");
         }
 
         return ServiceResult<ResultCardDto>.Success(card.ToDto());
@@ -150,16 +249,25 @@ public class CardService
         }
 
         _context.Cards.Remove(card);
-        await _context.SaveChangesAsync();
-        return ServiceResult<bool>.Success(true);
-    }
-
-    private bool IsUniqueConstraintViolation(DbUpdateException exception)
-    {
-        if (exception.InnerException is PostgresException postgresEx)
+        
+        try
         {
-            return postgresEx.SqlState == "23505";
+            await _context.SaveChangesAsync();
+            
+            _logger.LogInformation(
+                "Card {CardId} deleted successfully for user {UserId}", 
+                cardId, 
+                userId);
         }
-        return false;
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, 
+                "Error deleting card {CardId} for user {UserId}", 
+                cardId, 
+                userId);
+            return ServiceResult<bool>.Failure("Failed to delete card");
+        }
+
+        return ServiceResult<bool>.Success(true);
     }
 }
