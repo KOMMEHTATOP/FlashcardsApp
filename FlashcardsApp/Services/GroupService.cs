@@ -2,6 +2,8 @@ using FlashcardsApp.Data;
 using FlashcardsApp.Interfaces;
 using FlashcardsApp.Mapping;
 using FlashcardsApp.Models;
+using FlashcardsAppContracts.DTOs.Groups.Requests;
+using FlashcardsAppContracts.DTOs.Groups.Responses;
 using FlashcardsAppContracts.DTOs.Requests;
 using FlashcardsAppContracts.DTOs.Responses;
 using Microsoft.EntityFrameworkCore;

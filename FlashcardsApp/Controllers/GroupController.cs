@@ -1,5 +1,6 @@
 using FlashcardsApp.Interfaces;
 using FlashcardsApp.Models;
+using FlashcardsAppContracts.DTOs.Groups.Requests;
 using FlashcardsAppContracts.DTOs.Requests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;

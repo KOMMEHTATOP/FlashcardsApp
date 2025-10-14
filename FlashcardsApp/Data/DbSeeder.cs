@@ -331,11 +331,11 @@ public static class DbSeeder
         {
             var groupsData = new[]
             {
-                new { Name = "Английский язык", Color = GroupColor.Red },
-                new { Name = "Программирование", Color = GroupColor.Green },
-                new { Name = "История", Color = GroupColor.Yellow },
-                new { Name = "Математика", Color = GroupColor.Orange },
-                new { Name = "Биология", Color = GroupColor.Purple }
+                new { Name = "Английский язык", Color = "" },
+                new { Name = "Программирование", Color = "" },
+                new { Name = "История", Color = "" },
+                new { Name = "Математика", Color = "" },
+                new { Name = "Биология", Color = "" }
             };
 
             var groups = new List<Group>();
