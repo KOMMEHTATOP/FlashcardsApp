@@ -1,5 +1,6 @@
 // Services/UserStatisticsService.cs
 using FlashcardsApp.Data;
+using FlashcardsApp.Interfaces;
 using FlashcardsApp.Models;
 using FlashcardsAppContracts.DTOs.Responses;
 using Microsoft.EntityFrameworkCore;
@@ -9,9 +10,9 @@ namespace FlashcardsApp.Services;
 public class UserStatisticsService
 {
     private readonly ApplicationDbContext _context;
-    private readonly GamificationService _gamificationService;
+    private readonly IGamificationService _gamificationService;
 
-    public UserStatisticsService(ApplicationDbContext context, GamificationService gamificationService)
+    public UserStatisticsService(ApplicationDbContext context, IGamificationService gamificationService)
     {
         _context = context;
         _gamificationService = gamificationService;

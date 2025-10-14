@@ -1,6 +1,7 @@
 using FlashcardsApp.Models;
 using FlashcardsAppContracts.DTOs.Responses;
 using FlashcardsAppContracts.Constants;
+using FlashcardsAppContracts.DTOs.Groups.Responses;
 
 namespace FlashcardsApp.Mapping;
 
