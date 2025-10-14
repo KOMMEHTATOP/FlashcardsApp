@@ -11,14 +11,19 @@ public interface IAchievementLeaderboardService
     /// <summary>
     /// Получить топ пользователей по количеству достижений
     /// </summary>
-    /// <param name="count">Количество пользователей в топе</param>
-    /// <returns>Список лидеров</returns>
     Task<ServiceResult<IEnumerable<LeaderboardEntryDto>>> GetTopUsersByAchievementsAsync(int count = 10);
 
     /// <summary>
     /// Получить позицию пользователя в таблице лидеров
     /// </summary>
-    /// <param name="userId">ID пользователя</param>
-    /// <returns>Позиция в рейтинге</returns>
     Task<ServiceResult<int>> GetUserLeaderboardPositionAsync(Guid userId);
+
+    /// <summary>
+    /// Получить таблицу лидеров с позицией текущего пользователя
+    /// Если пользователь не в топе, он будет добавлен в конец списка с флагом IsCurrentUser
+    /// </summary>
+    /// <param name="userId">ID текущего пользователя</param>
+    /// <param name="topCount">Количество пользователей в топе</param>
+    /// <returns>Топ пользователей + текущий пользователь (если не в топе)</returns>
+    Task<ServiceResult<IEnumerable<LeaderboardEntryDto>>> GetLeaderboardWithUserAsync(Guid userId, int topCount = 10);
 }

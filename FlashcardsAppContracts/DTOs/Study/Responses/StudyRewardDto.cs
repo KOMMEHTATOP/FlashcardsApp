@@ -1,4 +1,6 @@
-namespace FlashcardsAppContracts.DTOs.Responses;
+using FlashcardsAppContracts.DTOs.Achievements.Responses;
+
+namespace FlashcardsAppContracts.DTOs.Study.Responses;
 
 public class StudyRewardDto
 {
@@ -9,4 +11,9 @@ public class StudyRewardDto
     public int? NewLevel { get; set; }
     public bool StreakIncreased { get; set; }
     public int CurrentStreak { get; set; }
+    
+    /// <summary>
+    /// Список новых разблокированных достижений
+    /// </summary>
+    public List<AchievementUnlockedDto> NewAchievements { get; set; } = new();
 }

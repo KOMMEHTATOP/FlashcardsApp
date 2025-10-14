@@ -4,15 +4,17 @@ using FlashcardsAppContracts.DTOs.Achievements.Responses;
 namespace FlashcardsApp.Interfaces.Achievements;
 
 /// <summary>
-/// Сервис для начисления бонусов за достижения (будущая функциональность)
+/// Сервис для начисления наград за достижения
 /// </summary>
 public interface IAchievementRewardService
 {
     /// <summary>
-    /// Начислить бонус за разблокировку достижения
+    /// Начислить награду за выполнение достижения (XP + монеты).
     /// </summary>
-    /// <param name="userId">ID пользователя</param>
-    /// <param name="achievementId">ID достижения</param>
-    /// <returns>Количество начисленного бонуса (XP, валюта и т.д.)</returns>
     Task<ServiceResult<AchievementRewardDto>> AwardBonusForAchievementAsync(Guid userId, Guid achievementId);
+
+    /// <summary>
+    /// Получить историю наград пользователя.
+    /// </summary>
+    Task<ServiceResult<IEnumerable<AchievementRewardDto>>> GetUserRewardHistoryAsync(Guid userId);
 }

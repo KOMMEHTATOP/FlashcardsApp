@@ -1,3 +1,5 @@
+using FlashcardsAppContracts.Enums;
+
 namespace FlashcardsAppContracts.DTOs.Achievements.Responses;
 
 public class AchievementDto
@@ -6,5 +8,20 @@ public class AchievementDto
     public required string Name { get; set; }
     public required string Description { get; set; }
     public required string IconUrl { get; set; }
-    public required string Gradient { get; set; }  
+    public string? Gradient { get; set; }
+    
+    /// <summary>
+    /// Тип условия для разблокировки
+    /// </summary>
+    public AchievementConditionType ConditionType { get; set; }
+    
+    /// <summary>
+    /// Значение условия
+    /// </summary>
+    public int ConditionValue { get; set; }
+    
+    /// <summary>
+    /// Редкость достижения
+    /// </summary>
+    public AchievementRarity Rarity { get; set; }
 }

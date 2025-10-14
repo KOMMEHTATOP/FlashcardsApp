@@ -1,3 +1,4 @@
+using FlashcardsApp.Interfaces;
 using FlashcardsApp.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,11 +12,11 @@ namespace FlashcardsApp.Controllers;
 public class UserStatisticsController : ControllerBase
 {
     private readonly UserStatisticsService _statisticsService;
-    private readonly GamificationService _gamificationService;
+    private readonly IGamificationService _gamificationService;
 
     public UserStatisticsController(
         UserStatisticsService statisticsService,
-        GamificationService gamificationService)
+        IGamificationService gamificationService)
     {
         _statisticsService = statisticsService;
         _gamificationService = gamificationService;

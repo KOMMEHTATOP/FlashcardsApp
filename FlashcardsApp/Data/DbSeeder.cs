@@ -1,5 +1,6 @@
 using FlashcardsApp.Models;
 using FlashcardsAppContracts.Constants;
+using FlashcardsAppContracts.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -48,98 +49,281 @@ public static class DbSeeder
                 CurrentStreak = 7,
                 BestStreak = 10,
                 LastStudyDate = DateTime.UtcNow,
-                TotalStudyTime = TimeSpan.FromHours(12.5)
+                TotalStudyTime = TimeSpan.FromHours(12.5),
+                TotalCardsStudied = 45,
+                TotalCardsCreated = 25,
+                PerfectRatingsStreak = 3
             };
             context.UserStatistics.Add(statistics);
             await context.SaveChangesAsync();
             Console.WriteLine("✅ User statistics created!");
         }
 
-        // 2. Создать достижения с Tailwind градиентами
+        // 2. Создать достижения
         if (!await context.Achievements.AnyAsync())
         {
             var achievements = new List<Achievement>
             {
+                // === КАРТОЧКИ - ИЗУЧЕНИЕ ===
                 new Achievement
                 {
-                    Id = Guid.NewGuid(), 
-                    Name = "7 дней подряд", 
-                    Description = "Занимайтесь 7 дней подряд", 
-                    IconUrl = "🔥",
-                    Gradient = "from-orange-400 to-red-500"
-                },
-                new Achievement
-                {
-                    Id = Guid.NewGuid(), 
-                    Name = "Первые шаги", 
-                    Description = "Завершите свой первый урок", 
+                    Id = Guid.NewGuid(),
+                    Name = "Первые шаги",
+                    Description = "Изучите 10 карточек",
                     IconUrl = "⭐",
-                    Gradient = "from-yellow-400 to-orange-500"
+                    Gradient = "from-yellow-400 to-orange-500",
+                    ConditionType = AchievementConditionType.TotalCardsStudied,
+                    ConditionValue = 10,
+                    Rarity = AchievementRarity.Common,
+                    DisplayOrder = 1,
+                    IsActive = true
                 },
                 new Achievement
                 {
                     Id = Guid.NewGuid(),
-                    Name = "Высший балл",
-                    Description = "Получите 100% выигрыша в викторине",
-                    IconUrl = "🎯",
-                    Gradient = "from-green-400 to-emerald-500"
+                    Name = "Ученик",
+                    Description = "Изучите 50 карточек",
+                    IconUrl = "📚",
+                    Gradient = "from-blue-400 to-blue-600",
+                    ConditionType = AchievementConditionType.TotalCardsStudied,
+                    ConditionValue = 50,
+                    Rarity = AchievementRarity.Rare,
+                    DisplayOrder = 2,
+                    IsActive = true
                 },
+                new Achievement
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "Мастер обучения",
+                    Description = "Изучите 100 карточек",
+                    IconUrl = "🎓",
+                    Gradient = "from-indigo-400 to-purple-600",
+                    ConditionType = AchievementConditionType.TotalCardsStudied,
+                    ConditionValue = 100,
+                    Rarity = AchievementRarity.Epic,
+                    DisplayOrder = 3,
+                    IsActive = true
+                },
+                
+                // === КАРТОЧКИ - СОЗДАНИЕ ===
+                new Achievement
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "Создатель",
+                    Description = "Создайте 20 карточек",
+                    IconUrl = "✍️",
+                    Gradient = "from-green-400 to-teal-500",
+                    ConditionType = AchievementConditionType.TotalCardsCreated,
+                    ConditionValue = 20,
+                    Rarity = AchievementRarity.Common,
+                    DisplayOrder = 10,
+                    IsActive = true
+                },
+                new Achievement
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "Архитектор знаний",
+                    Description = "Создайте 50 карточек",
+                    IconUrl = "🏗️",
+                    Gradient = "from-emerald-400 to-green-600",
+                    ConditionType = AchievementConditionType.TotalCardsCreated,
+                    ConditionValue = 50,
+                    Rarity = AchievementRarity.Rare,
+                    DisplayOrder = 11,
+                    IsActive = true
+                },
+                
+                // === STREAK ===
+                new Achievement
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "7 дней подряд",
+                    Description = "Занимайтесь 7 дней подряд",
+                    IconUrl = "🔥",
+                    Gradient = "from-orange-400 to-red-500",
+                    ConditionType = AchievementConditionType.CurrentStreak,
+                    ConditionValue = 7,
+                    Rarity = AchievementRarity.Rare,
+                    DisplayOrder = 20,
+                    IsActive = true
+                },
+                new Achievement
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "Месяц силы",
+                    Description = "Занимайтесь 30 дней подряд",
+                    IconUrl = "🔥",
+                    Gradient = "from-red-500 to-red-700",
+                    ConditionType = AchievementConditionType.CurrentStreak,
+                    ConditionValue = 30,
+                    Rarity = AchievementRarity.Epic,
+                    DisplayOrder = 21,
+                    IsActive = true
+                },
+                new Achievement
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "Легенда постоянства",
+                    Description = "Лучший streak 30 дней",
+                    IconUrl = "🏆",
+                    Gradient = "from-amber-400 to-orange-600",
+                    ConditionType = AchievementConditionType.BestStreak,
+                    ConditionValue = 30,
+                    Rarity = AchievementRarity.Epic,
+                    DisplayOrder = 22,
+                    IsActive = true
+                },
+                
+                // === УРОВЕНЬ ===
                 new Achievement
                 {
                     Id = Guid.NewGuid(),
                     Name = "Быстро обучающийся",
-                    Description = "Пройдите 10 уроков за один день",
+                    Description = "Достигните 5 уровня",
                     IconUrl = "🏅",
-                    Gradient = "from-blue-400 to-purple-500"
+                    Gradient = "from-blue-400 to-purple-500",
+                    ConditionType = AchievementConditionType.Level,
+                    ConditionValue = 5,
+                    Rarity = AchievementRarity.Common,
+                    DisplayOrder = 30,
+                    IsActive = true
                 },
                 new Achievement
                 {
-                    Id = Guid.NewGuid(), 
-                    Name = "Король знаний", 
-                    Description = "Достигните 10-го уровня", 
+                    Id = Guid.NewGuid(),
+                    Name = "Король знаний",
+                    Description = "Достигните 10 уровня",
                     IconUrl = "👑",
-                    Gradient = "from-purple-400 to-pink-500"
+                    Gradient = "from-purple-400 to-pink-500",
+                    ConditionType = AchievementConditionType.Level,
+                    ConditionValue = 10,
+                    Rarity = AchievementRarity.Epic,
+                    DisplayOrder = 31,
+                    IsActive = true
+                },
+                new Achievement
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "Гроссмейстер",
+                    Description = "Достигните 25 уровня",
+                    IconUrl = "💎",
+                    Gradient = "from-cyan-400 to-blue-600",
+                    ConditionType = AchievementConditionType.Level,
+                    ConditionValue = 25,
+                    Rarity = AchievementRarity.Legendary,
+                    DisplayOrder = 32,
+                    IsActive = true
+                },
+                
+                // === XP ===
+                new Achievement
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "Высший балл",
+                    Description = "Наберите 500 XP",
+                    IconUrl = "🎯",
+                    Gradient = "from-green-400 to-emerald-500",
+                    ConditionType = AchievementConditionType.TotalXP,
+                    ConditionValue = 500,
+                    Rarity = AchievementRarity.Common,
+                    DisplayOrder = 40,
+                    IsActive = true
                 },
                 new Achievement
                 {
                     Id = Guid.NewGuid(),
                     Name = "Восходящая звезда",
-                    Description = "Заработайте 1000 очков опыта",
+                    Description = "Наберите 1000 XP",
                     IconUrl = "🚀",
-                    Gradient = "from-cyan-400 to-blue-500"
+                    Gradient = "from-cyan-400 to-blue-500",
+                    ConditionType = AchievementConditionType.TotalXP,
+                    ConditionValue = 1000,
+                    Rarity = AchievementRarity.Rare,
+                    DisplayOrder = 41,
+                    IsActive = true
+                },
+                new Achievement
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "Мастер опыта",
+                    Description = "Наберите 5000 XP",
+                    IconUrl = "⚡",
+                    Gradient = "from-yellow-400 to-orange-500",
+                    ConditionType = AchievementConditionType.TotalXP,
+                    ConditionValue = 5000,
+                    Rarity = AchievementRarity.Epic,
+                    DisplayOrder = 42,
+                    IsActive = true
+                },
+                
+                // === ПЕРФЕКЦИОНИЗМ ===
+                new Achievement
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "Перфекционист",
+                    Description = "10 карточек подряд с оценкой 5",
+                    IconUrl = "💯",
+                    Gradient = "from-pink-400 to-rose-500",
+                    ConditionType = AchievementConditionType.PerfectRatingsStreak,
+                    ConditionValue = 10,
+                    Rarity = AchievementRarity.Rare,
+                    DisplayOrder = 50,
+                    IsActive = true
+                },
+                new Achievement
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "Безупречность",
+                    Description = "25 карточек подряд с оценкой 5",
+                    IconUrl = "✨",
+                    Gradient = "from-purple-400 to-pink-600",
+                    ConditionType = AchievementConditionType.PerfectRatingsStreak,
+                    ConditionValue = 25,
+                    Rarity = AchievementRarity.Epic,
+                    DisplayOrder = 51,
+                    IsActive = true
                 }
             };
 
             context.Achievements.AddRange(achievements);
             await context.SaveChangesAsync();
-            Console.WriteLine("✅ Achievements created!");
+            Console.WriteLine($"✅ {achievements.Count} achievements created!");
 
-            // Разблокировать первые 3 достижения для тестового пользователя
-            var userAchievements = new List<UserAchievement>
+            // Разблокировать достижения для тестового пользователя на основе его статистики
+            var stats = await context.UserStatistics.FirstAsync(s => s.UserId == userId);
+            var unlockedAchievements = new List<UserAchievement>();
+
+            foreach (var achievement in achievements)
             {
-                new UserAchievement
+                bool shouldUnlock = achievement.ConditionType switch
                 {
-                    UserId = userId, 
-                    AchievementId = achievements[0].Id, // 7 дней подряд
-                    UnlockedAt = DateTime.UtcNow.AddDays(-10)
-                },
-                new UserAchievement
-                {
-                    UserId = userId, 
-                    AchievementId = achievements[1].Id, // Первые шаги
-                    UnlockedAt = DateTime.UtcNow.AddDays(-3)
-                },
-                new UserAchievement
-                {
-                    UserId = userId, 
-                    AchievementId = achievements[2].Id, // Высший балл
-                    UnlockedAt = DateTime.UtcNow.AddDays(-1)
-                }
-            };
+                    AchievementConditionType.TotalCardsStudied => stats.TotalCardsStudied >= achievement.ConditionValue,
+                    AchievementConditionType.TotalCardsCreated => stats.TotalCardsCreated >= achievement.ConditionValue,
+                    AchievementConditionType.CurrentStreak => stats.CurrentStreak >= achievement.ConditionValue,
+                    AchievementConditionType.BestStreak => stats.BestStreak >= achievement.ConditionValue,
+                    AchievementConditionType.Level => stats.Level >= achievement.ConditionValue,
+                    AchievementConditionType.TotalXP => stats.TotalXP >= achievement.ConditionValue,
+                    AchievementConditionType.PerfectRatingsStreak => stats.PerfectRatingsStreak >= achievement.ConditionValue,
+                    _ => false
+                };
 
-            context.UserAchievements.AddRange(userAchievements);
-            await context.SaveChangesAsync();
-            Console.WriteLine("✅ User achievements unlocked!");
+                if (shouldUnlock)
+                {
+                    unlockedAchievements.Add(new UserAchievement
+                    {
+                        UserId = userId,
+                        AchievementId = achievement.Id,
+                        UnlockedAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 10))
+                    });
+                }
+            }
+
+            if (unlockedAchievements.Any())
+            {
+                context.UserAchievements.AddRange(unlockedAchievements);
+                await context.SaveChangesAsync();
+                Console.WriteLine($"✅ {unlockedAchievements.Count} achievements unlocked for test user!");
+            }
         }
 
         // 3. Создать группы

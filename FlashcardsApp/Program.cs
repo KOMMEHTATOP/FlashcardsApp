@@ -1,3 +1,4 @@
+using FlashcardsApp.Configuration;
 using FlashcardsApp.Data;
 using FlashcardsApp.Interfaces;
 using FlashcardsApp.Interfaces.Achievements;
@@ -14,6 +15,15 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Добавляем логирование
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+
+var logger = LoggerFactory.Create(config =>
+{
+    config.AddConsole();
+}).CreateLogger("Startup");
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -25,6 +35,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 
 if (string.IsNullOrEmpty(connectionString))
 {
+    logger.LogCritical("❌ Connection string is not configured.");
     throw new Exception("Connection string is not configured.");
 }
 
@@ -40,6 +51,7 @@ var jwtKey = builder.Configuration["Jwt:Key"];
 
 if (string.IsNullOrEmpty(jwtKey))
 {
+    logger.LogCritical("❌ JWT key is not configured. Please set Jwt:Key in configuration.");
     throw new Exception("JWT key is not configured. Please set Jwt:Key in configuration.");
 }
 
@@ -100,6 +112,10 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+// Настройки наград
+builder.Services.Configure<RewardSettings>(
+    builder.Configuration.GetSection("RewardSettings"));
+
 // Регистрация сервисов
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<IGroupService, GroupService>();
@@ -109,25 +125,23 @@ builder.Services.AddScoped<StudySettingsService>();
 builder.Services.AddScoped<StudySessionService>();
 builder.Services.AddScoped<UserStatisticsService>();
 
-builder.Services.AddScoped<IAchievementService, AchievementService>();
-builder.Services.AddScoped<IAchievementLeaderboardService, AchievementLeaderboardService>();
-// Будущий функционал (ЗАГЛУШКИ - не регистрируем пока!)
-// builder.Services.AddScoped<IAchievementProgressService, AchievementProgressService>();
-// builder.Services.AddScoped<IAchievementNotificationService, AchievementNotificationService>();
-// builder.Services.AddScoped<IAchievementRewardService, AchievementRewardService>();
+// Gamification
+builder.Services.AddScoped<IGamificationService, GamificationService>();
+builder.Services.AddScoped<IStudyService, StudyService>();
 
-builder.Services.AddScoped<GamificationService>();
-builder.Services.AddScoped<StudyService>();
+// Achievement services
+builder.Services.AddScoped<IAchievementService, AchievementService>();
+builder.Services.AddScoped<IAchievementRewardService, AchievementRewardService>();
+builder.Services.AddScoped<IAchievementLeaderboardService, AchievementLeaderboardService>();
 
 // CORS Configuration
 var allowedOrigins = builder.Configuration
     .GetSection("Cors:AllowedOrigins")
     .Get<string[]>() ?? [];
 
-// Fallback для локальной разработки
 if (allowedOrigins.Length == 0 && builder.Environment.IsDevelopment())
 {
-    Console.WriteLine("⚠️  WARNING: No CORS origins configured! Using defaults for development.");
+    logger.LogWarning("⚠️ No CORS origins configured! Using defaults for development.");
     allowedOrigins =
     [
         "http://localhost:3000",
@@ -139,8 +153,8 @@ if (allowedOrigins.Length == 0 && builder.Environment.IsDevelopment())
 
 if (allowedOrigins.Length > 0)
 {
-    Console.WriteLine($"🌐 CORS enabled for: {string.Join(", ", allowedOrigins)}");
-    
+    logger.LogInformation("🌐 CORS enabled for: {Origins}", string.Join(", ", allowedOrigins));
+
     builder.Services.AddCors(options =>
     {
         options.AddDefaultPolicy(policyBuilder =>
@@ -154,21 +168,20 @@ if (allowedOrigins.Length > 0)
 }
 else
 {
-    // В Production ОБЯЗАТЕЛЬНО должны быть настроены CORS origins
     if (builder.Environment.IsProduction())
     {
-        Console.WriteLine("❌ ERROR: No CORS origins configured for Production!");
+        logger.LogCritical("❌ No CORS origins configured for Production!");
         throw new Exception("CORS origins must be configured for Production.");
     }
-    
-    Console.WriteLine("⚠️  WARNING: CORS is not configured, but continuing...");
+
+    logger.LogWarning("⚠️ CORS is not configured, but continuing...");
 }
 
 // Фиксируем порт ТОЛЬКО для локальной разработки (не Docker)
 if (builder.Environment.IsDevelopment() && !IsRunningInDocker())
 {
     builder.WebHost.UseUrls("http://localhost:5000");
-    Console.WriteLine("🔧 Port fixed to 5000 for local development");
+    logger.LogInformation("🔧 Port fixed to 5000 for local development");
 }
 
 var app = builder.Build();
@@ -178,7 +191,7 @@ if (!app.Environment.IsProduction())
     app.UseHttpsRedirection();
 }
 
-// ВАЖНО: Порядок middleware
+// Middleware
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
@@ -189,33 +202,31 @@ if (!app.Environment.IsProduction())
     app.UseSwaggerUI();
 }
 
-app.MapControllers();
-
 // Auto-migration and Seed
 var autoMigrate = builder.Configuration.GetValue<bool>("AutoMigrate", false);
 if (autoMigrate)
 {
-    Console.WriteLine("=== AUTO MIGRATION ENABLED ===");
+    logger.LogInformation("=== AUTO MIGRATION ENABLED ===");
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     
-    Console.WriteLine("Running migrations...");
+    logger.LogInformation("Running migrations...");
     db.Database.Migrate();
-    Console.WriteLine("Migrations completed!");
-    
-    // Seed данные
-    Console.WriteLine("Starting seed...");
+    logger.LogInformation("Migrations completed!");
+
+    logger.LogInformation("Starting seed...");
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
     await DbSeeder.SeedAsync(db, userManager);
-    Console.WriteLine("Seed completed!");
+    logger.LogInformation("Seed completed!");
 }
 else
 {
-    Console.WriteLine("=== AUTO MIGRATION DISABLED ===");
+    logger.LogInformation("=== AUTO MIGRATION DISABLED ===");
 }
 
-Console.WriteLine($"🚀 Application started in {app.Environment.EnvironmentName} mode");
+logger.LogInformation("🚀 Application started in {Environment} mode", app.Environment.EnvironmentName);
 
+app.MapControllers();
 app.Run();
 
 // Метод для определения Docker окружения
