@@ -1,6 +1,9 @@
 using FlashcardsApp.Data;
+using FlashcardsApp.Interfaces;
+using FlashcardsApp.Interfaces.Achievements;
 using FlashcardsApp.Models;
 using FlashcardsApp.Services;
+using FlashcardsApp.Services.Achievements;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -99,32 +102,39 @@ builder.Services.AddSwaggerGen(options =>
 
 // Регистрация сервисов
 builder.Services.AddScoped<TokenService>();
-builder.Services.AddScoped<GroupService>();
+builder.Services.AddScoped<IGroupService, GroupService>();
 builder.Services.AddScoped<CardService>();
 builder.Services.AddScoped<CardRatingService>();
 builder.Services.AddScoped<StudySettingsService>();
 builder.Services.AddScoped<StudySessionService>();
 builder.Services.AddScoped<UserStatisticsService>();
-builder.Services.AddScoped<AchievementService>(); 
+
+builder.Services.AddScoped<IAchievementService, AchievementService>();
+builder.Services.AddScoped<IAchievementLeaderboardService, AchievementLeaderboardService>();
+// Будущий функционал (ЗАГЛУШКИ - не регистрируем пока!)
+// builder.Services.AddScoped<IAchievementProgressService, AchievementProgressService>();
+// builder.Services.AddScoped<IAchievementNotificationService, AchievementNotificationService>();
+// builder.Services.AddScoped<IAchievementRewardService, AchievementRewardService>();
+
 builder.Services.AddScoped<GamificationService>();
 builder.Services.AddScoped<StudyService>();
 
 // CORS Configuration
 var allowedOrigins = builder.Configuration
     .GetSection("Cors:AllowedOrigins")
-    .Get<string[]>() ?? Array.Empty<string>();
+    .Get<string[]>() ?? [];
 
 // Fallback для локальной разработки
 if (allowedOrigins.Length == 0 && builder.Environment.IsDevelopment())
 {
     Console.WriteLine("⚠️  WARNING: No CORS origins configured! Using defaults for development.");
-    allowedOrigins = new[] 
-    { 
+    allowedOrigins =
+    [
         "http://localhost:3000",
         "http://localhost:5173",
         "http://localhost:7255",
         "https://localhost:7255"
-    };
+    ];
 }
 
 if (allowedOrigins.Length > 0)

@@ -1,6 +1,6 @@
+using FlashcardsApp.Interfaces;
 using FlashcardsApp.Models;
 using FlashcardsAppContracts.DTOs.Requests;
-using FlashcardsApp.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -13,9 +13,9 @@ namespace FlashcardsApp.Controllers
     public class GroupController : ControllerBase
     {
         private readonly UserManager<User> _userManager;
-        private readonly GroupService _groupService;
+        private readonly IGroupService _groupService;
 
-        public GroupController(UserManager<User> userManager, GroupService groupService)
+        public GroupController(UserManager<User> userManager, IGroupService groupService)
         {
             _userManager = userManager;
             _groupService = groupService;
