@@ -1,10 +1,11 @@
 import { motion } from "framer-motion";
 import Card from "../ui/card";
 import { LightbulbIcon, RotateCcwIcon, Sparkles } from "lucide-react";
+import type { GroupCardType } from "../../types/types";
 
 interface MainCardLessensProps {
   currentCardIndex: number;
-  currentCard: any;
+  currentCard: GroupCardType;
   isNext: boolean;
   isFlipped: boolean;
   subjectColor: string;
@@ -73,16 +74,16 @@ export default function MainCardLessens({
                     </div>
                   </motion.div>
                   <h3 className="text-3xl text-white mb-6">
-                    {currentCard.question}
+                    {currentCard.Question}
                   </h3>
-                  {currentCard.hint && (
+                  {/* {currentCard.hint && (
                     <div className="bg-white/20 backdrop-blur-sm px-6 py-3 rounded-full">
                       <p className="text-white/90 flex items-center gap-1">
                         <LightbulbIcon className="w-6 h-6 text-white" />{" "}
                         Подсказка: {currentCard.hint}
                       </p>
                     </div>
-                  )}
+                  )} */}
                   <motion.div
                     animate={{ y: [0, -10, 0] }}
                     transition={{ duration: 2, repeat: Infinity }}
@@ -111,7 +112,7 @@ export default function MainCardLessens({
                     <div className="bg-white/60 backdrop-blur-sm w-16 h-2 rounded-full"></div>
                   </motion.div>
                   <h3 className="text-4xl text-white mb-6">
-                    {currentCard.answer}
+                    {currentCard.Answer}
                   </h3>
                 </div>
               )}

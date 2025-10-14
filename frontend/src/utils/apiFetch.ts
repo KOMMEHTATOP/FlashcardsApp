@@ -1,7 +1,8 @@
 import axios from "axios";
-
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+export { BASE_URL };
 const apiFetch = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
+    baseURL: BASE_URL,
     withCredentials: true
 });
 
@@ -59,17 +60,16 @@ apiFetch.interceptors.response.use((response) =>
             } catch (err) {
                 proccesQuene(err);
                 console.log("Ошибка получние данных! _407");
-
-                window.location.href = "/login";
                 return Promise.reject(err);
             } finally {
                 isRefreshing = false;
             }
         }
-
+        
         return Promise.reject(error);
 }
 );
+
 
 
 export default apiFetch;

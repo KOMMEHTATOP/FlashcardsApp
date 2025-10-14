@@ -1,23 +1,52 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import type { SubjectCardType, SubjectDetailType } from "../types/types";
-import { ArrowLeft, BowArrowIcon, Trophy } from "lucide-react";
-import { motion } from "framer-motion";
+import type {
+  ConfrimModalState,
+  GroupCardType,
+  GroupDetailType,
+} from "../types/types";
+import {
+  ArrowLeft,
+  BookHeartIcon,
+  BowArrowIcon,
+  Frown,
+  Trophy,
+} from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import MotivationCard from "../components/cards/Motivation_card";
 import CardQuestion from "../components/cards/Card_question";
 import { useApp } from "../context/AppContext";
 import useTitle from "../utils/useTitle";
 import apiFetch from "../utils/apiFetch";
 import AddFlashcardForm from "../components/modal/AddFlashcardForm";
+import StarInput from "../components/ui/star_unput";
 
 export default function StudyPage({}) {
   const { id } = useParams();
-  const { handleSelectLesson } = useApp();
-  const [group, setGroup] = useState<SubjectDetailType | null>(null);
-  const [isOpenAddModal, setIsOpenAddModal] = useState<boolean>(false);
+  const {
+    handleSelectLesson,
+    deleteCard,
+    handleOpenConfrimModal,
+    handleCloseConfrimModal,
+  } = useApp();
 
-  const [dataDetail, setDataDetail] = useState<SubjectCardType[]>([]);
+  const [group, setGroup] = useState<GroupDetailType | null>(null);
+  const [isOpenAddModal, setIsOpenAddModal] = useState<boolean>(false);
+  const [newQuestion, setNewQuestion] = useState<string>("");
+  const [newAnswer, setNewAnswer] = useState<string>("");
+  const [targetCard, setTargetCard] = useState<GroupCardType | null>(null);
+
+  const [dataDetail, setDataDetail] = useState<GroupCardType[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [targetStar, setTargetStar] = useState<number>(0);
+
+  const filterCards = useMemo(() => {
+    return dataDetail.filter((card) =>
+      targetStar !== 0 ? card.LastRating === targetStar : card
+    );
+  }, [targetStar, dataDetail]);
 
   useEffect(() => {
     const fetchCards = async () => {
@@ -38,27 +67,89 @@ export default function StudyPage({}) {
 
   useTitle(group?.GroupName || "");
 
-  const handleAddCard = async (question: string, answer: string) => {
-    try {
-      setLoading(true);
-      const data = {
-        question,
-        answer,
-      };
-      const res = await apiFetch.post(`/groups/${id}/cards`, data);
-      if (res.status !== 200) {
-        console.log("Ошибка добавления карточки!");
-      }
-      setDataDetail((prev) => [res.data, ...prev]);
-    } catch (err) {
-      console.log(err);
-    } finally {
-      setTimeout(() => {
-        setLoading(false);
-        setIsOpenAddModal(false);
-      }, 1000);
+  const handleAddCard = async (
+    question: string,
+    answer: string
+  ): Promise<boolean> => {
+    setLoading(true);
+    const data = {
+      question,
+      answer,
+    };
+    let res;
+    if (targetCard) {
+      res = await apiFetch
+        .put(`/Cards/${targetCard.CardId}`, data)
+        .then((res) => {
+          console.log(res);
+          setDataDetail((prev) =>
+            prev.map((card) =>
+              card.CardId === targetCard.CardId
+                ? { ...card, Question: question, Answer: answer }
+                : card
+            )
+          );
+          setIsOpenAddModal(false);
+          setLoading(false);
+          return true;
+        })
+        .catch(() => {
+          setTimeout(() => {
+            setIsOpenAddModal(false);
+            setLoading(false);
+            setError("Произошла ошибка");
+            return false;
+          }, 500);
+        });
+    } else {
+      res = await apiFetch
+        .post(`/groups/${id}/cards`, data)
+        .then((res) => {
+          setLoading(false);
+          setDataDetail((prev) => [res.data, ...prev]);
+          return true;
+        })
+        .catch(() => {
+          setTimeout(() => {
+            setIsOpenAddModal(false);
+            setLoading(false);
+            setError("Произошла ошибка");
+            return false;
+          }, 500);
+        });
     }
+    return res as boolean;
   };
+
+  const handleDeleteCard = (card: GroupCardType) => {
+    const modal: ConfrimModalState = {
+      title: "Вы уверены, что хотите удалить карточку?",
+      target: card.Question,
+      handleConfirm: () => {
+        setDataDetail((prev) => prev.filter((c) => c.CardId !== card.CardId));
+        deleteCard(card.CardId);
+        handleCloseConfrimModal();
+      },
+      handleCancel: () => handleCloseConfrimModal(),
+    };
+    handleOpenConfrimModal(modal);
+  };
+
+  const handleEditCard = (card: GroupCardType) => {
+    setNewQuestion(card.Question);
+    setNewAnswer(card.Answer);
+    setTargetCard(card);
+    setIsOpenAddModal(true);
+  };
+
+  const handleNewCard = () => {
+    setNewQuestion("");
+    setNewAnswer("");
+    setTargetCard(null);
+    setIsOpenAddModal(true);
+  };
+
+  const handleCloseModal = () => setIsOpenAddModal(false);
 
   return (
     <div className="min-h-screen">
@@ -152,55 +243,111 @@ export default function StudyPage({}) {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl text-base-content/80">Путь обучения</h2>
-          <div className="flex items-center gap-2 text-base-content/80">
-            <AddFlashcardForm
-              handleAddCard={handleAddCard}
-              isOpen={isOpenAddModal}
-              setIsOpen={setIsOpenAddModal}
-              loading={loading}
-              subjectColor={"from-pink-400 to-rose-500"}
-            />
-            <Trophy className="w-5 h-5" />
-            <span>
-              Завершено {dataDetail.filter((item) => item.completed).length} из{" "}
-              {dataDetail.length}
-            </span>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+          <h2 className="text-lg md:text-2xl text-base-content/80">
+            Путь обучения
+          </h2>
+
+          <div
+            className="
+                grid grid-cols-1 sm:grid-cols-3 md:flex 
+                md:flex-row md:items-center 
+                gap-3 md:gap-4 text-base-content/80
+                w-full md:w-auto
+              "
+          >
+            {/* Фильтр по звездам карт */}
+            <div className="col-span-1 sm:col-span-3 md:col-auto flex justify-center md:justify-start">
+              <StarInput
+                name="Фильтр"
+                max={5}
+                size={24}
+                value={targetStar}
+                onChange={setTargetStar}
+              />
+            </div>
+
+            {/* Кнопка добавления */}
+            <div className="flex justify-center md:justify-start">
+              <AddFlashcardForm
+                handleAddCard={handleAddCard}
+                isOpen={isOpenAddModal}
+                handleNewCard={handleNewCard}
+                handleCloseModal={handleCloseModal}
+                question={newQuestion}
+                answer={newAnswer}
+                setQuestion={setNewQuestion}
+                setAnswer={setNewAnswer}
+                loading={loading}
+                isUpdateCard={targetCard !== null}
+                error={error || ""}
+                subjectColor={group?.GroupColor || "from-pink-400 to-rose-500"}
+              />
+            </div>
+
+            {/* Прогресс и трофей */}
+            <div className="flex items-center justify-center md:justify-start gap-2">
+              <Trophy className="w-5 h-5" />
+              <span>
+                Завершено{" "}
+                {dataDetail.filter((item) => item.LastRating > 0).length} из{" "}
+                {dataDetail.length}
+              </span>
+            </div>
           </div>
         </div>
 
         <div className="space-y-4">
-          {dataDetail.map((item, index) => (
+          {filterCards.length === 0 && (
             <motion.div
-              key={index}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.1 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="text-center text-base-content/80 text-xl rounded-2xl py-20"
             >
-              <CardQuestion
-                item={item}
-                onClick={() => {
-                  handleSelectLesson(group!);
-                }}
-              />
+              <BookHeartIcon className="w-15 h-15 inline-block mr-2" />
+              <p className="text-center text-base-content/80 text-xl">
+                Не нашлось ни одной карточки
+                <Frown className="w-5 h-5 inline-block ml-2" />
+              </p>
             </motion.div>
-          ))}
+          )}
+          <AnimatePresence>
+            {filterCards.map((item, index) => (
+              <motion.div
+                key={item.CardId}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <CardQuestion
+                  item={item}
+                  onClick={() => {
+                    handleSelectLesson(filterCards, group!, index);
+                  }}
+                  onDelete={() => handleDeleteCard(item)}
+                  onEdit={() => handleEditCard(item)}
+                />
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
-
-        <MotivationCard
-          animated="scale"
-          animatedDelay={4}
-          icon={Trophy}
-          label="У тебя отлично получается!"
-          description={`Пройдите еще ${
-            dataDetail.filter((item) => !item.completed).length
-          } урока, чтобы получить итоговую оценку и заработать 500 бонусных очков опыта!`}
-          textIcon={BowArrowIcon}
-          gradient={group?.GroupColor || ""}
-          delay={0.6}
-          className="mt-8"
-        />
+        {filterCards.length > 5 && (
+          <MotivationCard
+            animated="scale"
+            animatedDelay={4}
+            icon={Trophy}
+            label="У тебя отлично получается!"
+            description={`Пройдите еще ${
+              dataDetail.filter((item) => !item.completed).length
+            } урока, чтобы получить итоговую оценку и заработать 500 бонусных очков опыта!`}
+            textIcon={BowArrowIcon}
+            gradient={group?.GroupColor || ""}
+            delay={0.6}
+            className="mt-8"
+          />
+        )}
       </div>
     </div>
   );

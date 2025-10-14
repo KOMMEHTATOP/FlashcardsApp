@@ -17,7 +17,6 @@ import { useMemo, useState } from "react";
 import { BadgeCard } from "../components/cards/Badge_card";
 import SortableList from "../components/SortebleList";
 import useTitle from "../utils/useTitle";
-import { testBadgesData, testStudyData } from "../test/testData";
 import { getLevelMotivationText } from "../utils/getMotivationText";
 import formatTotalHour from "../utils/formatTotalHour";
 
@@ -37,9 +36,6 @@ export function HomePage() {
   const [modul, setModul] = useState<typeof modulePage>(modulePage);
   const [currentModul, setCurrentModul] = useState<number>(0);
 
-  const [badget, setBadget] = useState(testBadgesData);
-  const [study, setStudy] = useState(testStudyData);
-
   const currentXP = userState?.XPProgressInCurrentLevel || 0;
   const xpToNextLevel = userState?.XPRequiredForCurrentLevel || 0;
   const level = userState?.Level || 0;
@@ -53,20 +49,6 @@ export function HomePage() {
     const index = modul.findIndex((item) => item.name === name);
     setCurrentModul(index);
   };
-  // const { scrollY } = useScroll();
-  // const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
-
-  // const scale = useTransform(scrollY, [0, 200], [1, 1]);
-  // const opacity = useTransform(scrollY, [0, 200], [1, 0.9]);
-  // const y = useTransform(scrollY, [0, 200], [0, 90]);
-
-  // useMotionValueEvent(scrollY, "change", (latest) => {
-  //   if (latest > 120 && !isCollapsed) {
-  //     setIsCollapsed(true);
-  //   } else if (latest <= 120 && isCollapsed) {
-  //     setIsCollapsed(false);
-  //   }
-  // });
 
   return (
     <div className="w-full pb-10">
@@ -150,9 +132,8 @@ export function HomePage() {
                     <PlusSquareIcon className="w-8 h-8 text-success z-10" />
                   </div>
                 </div>
-                {groups && groups.length > 0 && (
-                  <SortableList initalItems={groups} />
-                )}
+
+                <SortableList initalItems={groups || []} />
               </motion.div>
             ) : (
               <motion.div

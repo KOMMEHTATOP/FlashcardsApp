@@ -10,14 +10,15 @@ import {
   User,
   Zap,
 } from "lucide-react";
-import { Activity, useState } from "react";
+import { Activity, useEffect, useState } from "react";
 import Input from "../components/ui/input";
 import ConfrimBtn from "../components/ui/confrim_btn";
 import Card from "../components/ui/card";
 import { useNavigate } from "react-router-dom";
 import useTitle from "../utils/useTitle";
 import { floatingIcons } from "../test/data";
-import apiFetch from "../utils/apiFetch";
+import apiFetch, { BASE_URL } from "../utils/apiFetch";
+import axios from "axios";
 
 export default function LoginPage() {
   useTitle("Вход");
@@ -26,18 +27,32 @@ export default function LoginPage() {
   );
 
   const [login, setLogin] = useState<string>("");
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
+  const [email, setEmail] = useState<string>("ais1@gmail.com");
+  const [password, setPassword] = useState<string>("Aibek2002!");
 
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
   const navigation = useNavigate();
 
+  useEffect(() => {
+    if (localStorage.getItem("accessToken")) {
+      navigation("/");
+    }
+  }, []);
+
   const handleSelect = (block: string) => {
     setSelectedBlock(block as "login" | "register");
+    setError(" ");
   };
 
   const handleLogin = async () => {
+    if (!email) {
+      setError("Введите email");
+      return;
+    } else if (!password) {
+      setError("Введите пароль");
+      return;
+    }
     setLoading(true);
 
     const data = {
@@ -45,27 +60,38 @@ export default function LoginPage() {
       password,
     };
     console.log(data);
-    await apiFetch
-      .post("/Auth/login", data)
+    await axios
+      .post(`${BASE_URL}/Auth/login`, data, { withCredentials: true })
       .then((res) => {
         console.log(res);
         const token = res.data.accessToken;
         localStorage.setItem("accessToken", token);
         apiFetch.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        window.location.href = "/";
       })
       .catch((err) => {
         console.log(err);
         setError(err.response.data.message);
         setLoading(false);
+      })
+      .finally(() => {
+        setTimeout(() => {
+          setLoading(false);
+        }, 2000);
       });
-
-    setTimeout(() => {
-      setLoading(false);
-      navigation("/");
-    }, 2000);
   };
 
   const handleRegister = async () => {
+    if (!login) {
+      setError("Введите логин");
+      return;
+    } else if (!email) {
+      setError("Введите email");
+      return;
+    } else if (!password) {
+      setError("Введите пароль");
+      return;
+    }
     setLoading(true);
 
     const data = {
@@ -74,25 +100,30 @@ export default function LoginPage() {
       Password: password,
     };
 
-    await apiFetch
-      .post("/Auth/register", data)
+    await axios
+      .post(
+        `${
+          import.meta.env.VITE_API_URL || "http://localhost:5000/api"
+        }/Auth/register`,
+        data,
+        { withCredentials: true }
+      )
       .then((res) => {
         console.log(res);
         const accessToken = res.data.accessToken;
         localStorage.setItem("accessToken", accessToken);
+        handleSelect("login");
       })
       .catch((err) => {
-        console.log(err.response.data.Errors);
-
         err.response.data.Errors.map((item: any) => setError(item));
 
         setLoading(false);
+      })
+      .finally(() => {
+        setTimeout(() => {
+          setLoading(false);
+        }, 2000);
       });
-
-    setTimeout(() => {
-      setLoading(false);
-      handleSelect("login");
-    }, 2000);
   };
 
   return (

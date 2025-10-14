@@ -34,7 +34,7 @@ interface GroupType {
   Order: number;
 }
 
-interface SubjectDetailType {
+interface GroupDetailType {
   Id: string;
   // icon: LucideIcon;
   GroupName: string;
@@ -49,14 +49,15 @@ interface SubjectStatsType {
   value: string;
 }
 
-interface SubjectCardType {
+interface GroupCardType {
   CardId: string;
-  CreatedAt: string;
   GroupId: string;
-  LastRating: number;
   Question: string;
-  UpdatedAt: string;
+  Answer: string;
+  LastRating: number;
   completed: boolean;
+  UpdatedAt: string;
+  CreatedAt: string;
 }
 
 type RatingValue = 0 | 1 | 2 | 3 | 4 | 5;
@@ -68,13 +69,21 @@ interface FlashCard {
   hint?: string;
 }
 
+type ConfrimModalState = {
+  title: string;
+  target: string;
+  handleCancel: () => void;
+  handleConfirm: () => void;
+};
+
 export type {
   UserState,
   UserData,
-  SubjectDetailType,
-  SubjectCardType,
+  GroupDetailType,
+  GroupCardType,
   RatingValue,
   FlashCard,
   AchievementsType,
   GroupType,
+  ConfrimModalState,
 };

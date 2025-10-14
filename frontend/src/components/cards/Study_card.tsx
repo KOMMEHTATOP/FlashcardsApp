@@ -39,6 +39,9 @@ export default function StudyCard({
     if (target.closest("button")) {
       onLessonPlayer?.();
       return;
+    } else if (target.closest("svg")) {
+      onDelete?.();
+      return;
     }
 
     const dx = Math.abs(e.clientX - pointerStart.x);

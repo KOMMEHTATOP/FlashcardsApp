@@ -11,14 +11,15 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { motion } from "framer-motion";
-import React, { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import React, { useEffect, useRef, useState } from "react";
 import StudyCard from "./cards/Study_card";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
-import type { GroupType } from "../types/types";
+import type { ConfrimModalState, GroupType } from "../types/types";
 import { Star } from "lucide-react";
 import GroupForm from "./modal/GroupForm";
+import apiFetch from "../utils/apiFetch";
 
 export function SortableItem({
   id,
@@ -79,8 +80,29 @@ export default function SortableList({
   initalItems: GroupType[];
 }) {
   const [items, setItems] = useState(initalItems);
-  const { handleSelectLesson } = useApp();
+  const {
+    handleSelectLesson,
+    deleteGroup,
+    handleOpenConfrimModal,
+    handleCloseConfrimModal,
+  } = useApp();
   const navigate = useNavigate();
+
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(null);
+
+  useEffect(() => {
+    const sorted = [...initalItems].sort((a, b) => a.Order - b.Order);
+    setItems(sorted);
+  }, [initalItems]);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, []);
 
   function handleDragOver(event: DragOverEvent) {
     const { active, over } = event;
@@ -89,7 +111,20 @@ export default function SortableList({
       setItems((prev) => {
         const oldIndex = prev.findIndex((x) => x.Id === active.id);
         const newIndex = prev.findIndex((x) => x.Id === over.id);
-        return arrayMove(prev, oldIndex, newIndex);
+        const updated = arrayMove(prev, oldIndex, newIndex);
+
+        const data = updated.map((item, index) => ({
+          Id: item.Id,
+          Order: index + 1,
+        }));
+
+        if (timerRef.current) clearTimeout(timerRef.current);
+
+        timerRef.current = setTimeout(() => {
+          apiFetch.put(`/Group/reorder`, data);
+        }, 2000);
+
+        return updated;
       });
     }
   }
@@ -101,10 +136,34 @@ export default function SortableList({
       setItems((prev) => {
         const oldIndex = prev.findIndex((x) => x.Id === active.id);
         const newIndex = prev.findIndex((x) => x.Id === over.id);
-        return arrayMove(prev, oldIndex, newIndex);
+        const updated = arrayMove(prev, oldIndex, newIndex);
+        return updated;
       });
     }
   }
+
+  const handleStartLesson = async (group: GroupType) => {
+    const res = await apiFetch
+      .get(`/groups/${group.Id}/cards`)
+      .then((res) => res.data)
+      .catch();
+
+    if (!res || res.length === 0) return;
+    handleSelectLesson(res, group, 0);
+  };
+
+  const handleDeleteGroup = (item: GroupType) => {
+    const modal: ConfrimModalState = {
+      title: "Вы точно хотите удалить группу?",
+      target: item.GroupName,
+      handleCancel: () => handleCloseConfrimModal(),
+      handleConfirm: () => {
+        deleteGroup(item.Id);
+        handleCloseConfrimModal();
+      },
+    };
+    handleOpenConfrimModal(modal);
+  };
 
   return (
     <DndContext
@@ -117,23 +176,32 @@ export default function SortableList({
         strategy={verticalListSortingStrategy}
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 space-y-1">
-          {items.map((item, index) => (
-            <SortableItem key={item.Id} id={item?.Id || ""} index={index}>
-              <motion.div layout layoutId={`card-${item.Id}`}>
-                <StudyCard
-                  gradient={"from-green-400 to-emerald-500"}
-                  streak={4}
-                  progress={21}
-                  icon={Star}
-                  title={item.GroupName}
-                  onClick={() => navigate(`/study/${item.Id.toString()}`)}
-                  onDelete={() => {}}
-                  // onLessonPlayer={() => handleSelectLesson(item)}
-                />
-              </motion.div>
-            </SortableItem>
-          ))}
-          <GroupForm />
+          <AnimatePresence mode="popLayout">
+            {items.map((item, index) => (
+              <SortableItem key={item.Id} id={item?.Id || ""} index={index}>
+                <motion.div
+                  layout
+                  layoutId={`card-${item.Id}`}
+                  exit={{ opacity: 0, y: -30 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <StudyCard
+                    gradient={
+                      item.GroupColor || "from-green-400 to-emerald-500"
+                    }
+                    streak={4}
+                    progress={21}
+                    icon={Star}
+                    title={item.GroupName}
+                    onClick={() => navigate(`/study/${item.Id.toString()}`)}
+                    onDelete={() => handleDeleteGroup(item)}
+                    onLessonPlayer={() => handleStartLesson(item)}
+                  />
+                </motion.div>
+              </SortableItem>
+            ))}
+            <GroupForm />
+          </AnimatePresence>
         </div>
       </SortableContext>
     </DndContext>

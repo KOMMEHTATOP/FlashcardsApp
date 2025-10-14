@@ -1,9 +1,15 @@
-import { Brain, UserRound } from "lucide-react";
+import { Brain, LogInIcon, UserRound } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import type { UserData } from "../types/types";
 
-export default function Header({ user }: { user: UserData | undefined }) {
+export default function Header({
+  user,
+  onLogout,
+}: {
+  user: UserData | undefined;
+  onLogout: () => void;
+}) {
   const navigate = useNavigate();
   return (
     <header className="navbar backdrop-blur-md bg-base-200/20 shadow-lg py-3 items-center justify-center fixed top-0 z-50">
@@ -32,11 +38,21 @@ export default function Header({ user }: { user: UserData | undefined }) {
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.3 }}
-          className="flex items-center gap-4"
-          onClick={() => navigate("/login")}
         >
-          <span>{user?.UserName}</span>
-          <UserRound className="h-7 w-7 text-base-content" />
+          {user ? (
+            <div className="flex items-center gap-4" onClick={() => onLogout()}>
+              <span>{user?.UserName}</span>
+              <LogInIcon className="h-7 w-7 text-error" />
+            </div>
+          ) : (
+            <div
+              className="flex items-center gap-4"
+              onClick={() => navigate("/login")}
+            >
+              <span>Войти</span>
+              <UserRound className="h-7 w-7 text-error" />
+            </div>
+          )}
         </motion.div>
       </div>
     </header>

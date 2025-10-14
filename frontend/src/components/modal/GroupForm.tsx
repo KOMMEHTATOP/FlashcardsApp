@@ -6,8 +6,10 @@ import Input from "../ui/input";
 import { availableColors, availableIcons } from "../../test/data";
 import { Button, ButtonCircle } from "../ui/button";
 import apiFetch from "../../utils/apiFetch";
+import { useApp } from "../../context/AppContext";
 
 export default function GroupForm() {
+  const { setNewGroups, groups } = useApp();
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [name, setName] = useState<string>("");
   const [selectColor, setSelectColor] = useState<string>(
@@ -24,25 +26,27 @@ export default function GroupForm() {
       setLoading(true);
       const data = {
         Name: name,
-        Color: "Red",
-        // Order: 0,
+        Color: selectColor,
+        Order: 0,
         // Icon: selectIcon
       };
       console.log(data);
 
-      const res = await apiFetch.post("/Group", data, {
-        headers: { ContentType: "application/json" },
-      });
-      if (res.status !== 200) {
-        console.log("Ошибка добавления группы!");
-      }
-      console.log(res.data);
+      await apiFetch
+        .post("/Group", data)
+        .then((res) => {
+          console.log(res.data, groups);
+          setNewGroups(res.data);
+          setTimeout(() => {
+            setIsOpen(false);
+            setLoading(false);
+          }, 1000);
+        })
+        .catch((err) => console.log(err));
     } catch (err) {
       console.log(err);
     } finally {
       setLoading(false);
-
-      //   handleClose();
     }
   };
 
@@ -55,7 +59,7 @@ export default function GroupForm() {
         className="group relative w-full md:w-70 h-50"
         onClick={handleOpen}
       >
-        <Card className="p-6 border-2 border-dashed border-purple-300 dark:border-purple-700 hover:border-purple-500 dark:hover:border-purple-500 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm transition-all cursor-pointer h-full min-h-[200px] flex flex-col items-center justify-center">
+        <Card className="p-6 border-2 border-dashed border-purple-300  hover:border-purple-500 bg-base-300  backdrop-blur-sm transition-all cursor-pointer h-full min-h-[200px] flex flex-col items-center justify-center">
           <motion.div
             animate={{ rotate: [0, 90, 0] }}
             transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
@@ -63,10 +67,8 @@ export default function GroupForm() {
           >
             <Plus className="w-8 h-8 text-white" />
           </motion.div>
-          <p className="text-gray-700 dark:text-gray-300">
-            Добавить новую тему
-          </p>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          <p className="text-base-content/80 ">Добавить новую тему</p>
+          <p className="text-sm text-base-content/60 mt-1">
             Создать учебную группу
           </p>
         </Card>

@@ -1,13 +1,20 @@
-import { CheckCircle, Edit, Play, Star } from "lucide-react";
-import type { SubjectCardType } from "../../types/types";
+import { CheckCircle, Edit, Play, Star, Trash } from "lucide-react";
+import type { GroupCardType } from "../../types/types";
 import { ButtonCircle } from "../ui/button";
 
 type CardProps = {
-  item: SubjectCardType;
+  item: GroupCardType;
   onClick?: () => void;
+  onDelete?: () => void;
+  onEdit?: () => void;
 };
 
-export default function CardQuestion({ item, onClick }: CardProps) {
+export default function CardQuestion({
+  item,
+  onClick,
+  onDelete,
+  onEdit,
+}: CardProps) {
   const isCompleted = item.LastRating > 0;
 
   return (
@@ -57,17 +64,20 @@ export default function CardQuestion({ item, onClick }: CardProps) {
                   className={`w-5 h-5 transition-colors ${
                     i < item.LastRating
                       ? "text-yellow-500 fill-yellow-500"
-                      : "text-gray-300 dark:text-gray-600"
+                      : "text-gray-600"
                   }`}
                 />
               ))}
             </div>
           </div>
-
-          <ButtonCircle>
-            <Edit className="w-6 h-6 text-base-content" />
-          </ButtonCircle>
-
+          <div className=" opacity-0 group-hover:opacity-100 transition-all duration-600 flex gap-3">
+            <ButtonCircle onClick={onDelete}>
+              <Trash className="w-6 h-6 text-error" />
+            </ButtonCircle>
+            <ButtonCircle onClick={onEdit}>
+              <Edit className="w-6 h-6 text-base-content" />
+            </ButtonCircle>
+          </div>
           {/* Кнопка “Обзор */}
           <button
             onClick={onClick}

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button, ButtonCircle } from "../ui/button";
 import { CheckCircle, Plus, Sparkle, Sparkles, X } from "lucide-react";
@@ -6,28 +5,47 @@ import Card from "../ui/card";
 
 interface AddFlashcardFormProps {
   subjectColor: string;
-  handleAddCard: (question: string, answer: string) => void;
+  handleAddCard: (question: string, answer: string) => Promise<boolean>;
+  question: string;
+  answer: string;
+  setQuestion: React.Dispatch<React.SetStateAction<string>>;
+  setAnswer: React.Dispatch<React.SetStateAction<string>>;
+
   isOpen: boolean;
-  setIsOpen: (isOpen: boolean) => void;
+  handleNewCard: () => void;
+  handleCloseModal: () => void;
   loading: boolean;
+  isUpdateCard: boolean;
+  error?: string;
 }
 
 export default function AddFlashcardForm({
   subjectColor,
   handleAddCard,
-  isOpen,
-  setIsOpen,
-  loading,
-}: AddFlashcardFormProps) {
-  const [question, setQuestion] = useState<string>("");
-  const [answer, setAnswer] = useState<string>("");
+  question,
+  answer,
+  setQuestion,
+  setAnswer,
 
+  isOpen,
+  handleNewCard,
+  handleCloseModal,
+
+  loading,
+  isUpdateCard,
+  error,
+}: AddFlashcardFormProps) {
   const handleSubmit = async () => {
-    handleAddCard(question, answer);
+    const isSucces = await handleAddCard(question, answer);
+    if (isSucces) {
+      handleCloseModal();
+      setQuestion("");
+      setAnswer("");
+    }
   };
 
   const handleClose = () => {
-    setIsOpen(false);
+    handleCloseModal();
     setQuestion("");
     setAnswer("");
   };
@@ -36,9 +54,9 @@ export default function AddFlashcardForm({
     <div>
       <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
         <Button
-          size="lg"
-          onClick={() => setIsOpen(true)}
-          className={`bg-gradient-to-r ${subjectColor} hover:opacity-90 text-white shadow-lg w-full border-none`}
+          size="md"
+          onClick={() => handleNewCard()}
+          className={`bg-gradient-to-r ${subjectColor} hover:opacity-90 text-white shadow-lg w-full border-none `}
         >
           <Plus className="w-5 h-5 mr-2" />
           Добавить новую карточку
@@ -56,7 +74,7 @@ export default function AddFlashcardForm({
               <div
                 className={`text-2xl bg-gradient-to-r ${subjectColor} bg-clip-text text-transparent flex items-center gap-2`}
               >
-                <Sparkles className="w-6 h-6 text-pink-400" />
+                <Sparkles className="w-6 h-6 text-gray-600" />
                 <label className="">Создать новую карточку</label>
               </div>
               <ButtonCircle onClick={handleClose} className="hover:bg-gray-300">
@@ -169,19 +187,18 @@ export default function AddFlashcardForm({
                 </motion.div>
               )}
 
+              {/* Ошибка */}
+              {error && <div className="text-red-500 mt-2">{error}</div>}
+
               {/* Кнопки */}
               <div className="flex gap-3 pt-4">
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => {
-                    setIsOpen(false);
-                    setQuestion("");
-                    setAnswer("");
-                  }}
+                  onClick={handleClose}
                   className="flex-1 text-gray-600 shadow-lg rounded-xl"
                 >
-                  Cancel
+                  Закрыть
                 </Button>
                 <Button
                   type="button"
@@ -194,7 +211,7 @@ export default function AddFlashcardForm({
                   ) : (
                     <CheckCircle className="w-4 h-4 mr-2" />
                   )}
-                  Добавить карточку
+                  {isUpdateCard ? "Обновить" : "Добавить"}
                 </Button>
               </div>
             </div>

@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Brain } from "lucide-react";
 
 import type { RatingValue } from "../types/types";
-import { flashcards } from "../test/testData";
 
 import StarRating from "../components/ui/ratting";
 import Celebration from "../components/lessons/Celebration";
@@ -11,11 +10,13 @@ import StateLessens from "../components/lessons/StateLessens";
 import HeaderLessons from "../components/lessons/HeaderLessons";
 import NavigationLessons from "../components/lessons/NavigationLessons";
 import MainCardLessens from "../components/lessons/MainCard";
+import { useApp } from "../context/AppContext";
 
 interface LessonPlayerProps {
   lessonTitle: string;
   subjectColor: string;
-  totalXp: number;
+  totalXp?: number;
+  initialIndex?: number;
   onComplete: (earnedXP: number) => void;
   onBack: () => void;
 }
@@ -24,20 +25,24 @@ export default function LessonPlayer({
   lessonTitle,
   subjectColor,
   totalXp,
+  initialIndex,
   onComplete,
   onBack,
 }: LessonPlayerProps) {
-  const [currentCardIndex, setCurrentCardIndex] = useState(0);
+  const { currentLesson, questionAnswered } = useApp();
+
+  const [currentCardIndex, setCurrentCardIndex] = useState(initialIndex || 0);
   const [isFlipped, setIsFlipped] = useState<boolean>(false);
-  const [answeredCards, setAnsweredCards] = useState<Set<number>>(new Set());
+  const [answeredCards, setAnsweredCards] = useState<Set<string>>(new Set());
 
   const [showCelebration, setShowCelebration] = useState<boolean>(false);
   const [isNext, setIsNext] = useState<boolean>(true);
 
-  const [rating, setRating] = useState<Record<number, RatingValue>>({});
+  const [rating, setRating] = useState<Record<string, RatingValue>>({});
 
-  const currentCard = flashcards[currentCardIndex];
-  const progress = (Object.keys(rating).length / flashcards.length) * 100;
+  const currentCard = currentLesson!.cards[currentCardIndex];
+
+  const progress = (Object.keys(rating).length / currentLesson!.length) * 100;
 
   const values = Object.values(rating);
   const averageRating =
@@ -45,7 +50,7 @@ export default function LessonPlayer({
       ? values.reduce<number>((acc, val) => acc + val, 0) / values.length
       : 0;
 
-  const earnedXP = Math.floor((averageRating / 5) * totalXp);
+  const earnedXP = Math.floor((averageRating / 5) * (totalXp || 100));
 
   const handleFlip = () => {
     setIsFlipped(!isFlipped);
@@ -66,27 +71,30 @@ export default function LessonPlayer({
 
   const handleAnswer = (ratting: RatingValue) => {
     // Если ответ верный добавляем его в правильные для статистикии
+    questionAnswered(currentCard.CardId, ratting);
     setRating((prev) => ({
       ...prev,
-      [currentCard.id]: ratting,
+      [currentCard.CardId]: ratting,
     }));
 
     const newAnswerd = new Set(answeredCards);
-    newAnswerd.add(currentCard.id);
+    newAnswerd.add(currentCard.CardId);
     setAnsweredCards(newAnswerd);
 
-    const allAnswered = newAnswerd.size === flashcards.length;
+    const allAnswered = newAnswerd.size === currentLesson?.length;
     if (allAnswered) {
       setTimeout(() => setShowCelebration(true), 500);
       return;
     }
 
-    let nextIndex = flashcards.findIndex(
-      (card, i) => i > currentCardIndex && !newAnswerd.has(card.id)
+    let nextIndex = currentLesson?.cards.findIndex(
+      (card, i) => i > currentCardIndex && !newAnswerd.has(card.CardId)
     );
 
     if (nextIndex === -1) {
-      nextIndex = flashcards.findIndex((card) => !newAnswerd.has(card.id));
+      nextIndex = currentLesson?.cards.findIndex(
+        (card) => !newAnswerd.has(card.CardId)
+      );
     }
 
     // Функция для перехода к следующему вопросу или для показа конца с
@@ -94,7 +102,7 @@ export default function LessonPlayer({
       setTimeout(() => {
         setIsFlipped(false);
         setIsNext(true);
-        setCurrentCardIndex(nextIndex);
+        setCurrentCardIndex(nextIndex || 0);
       }, 600);
     } else {
       setTimeout(() => {
@@ -112,7 +120,7 @@ export default function LessonPlayer({
   };
 
   const handleNext = () => {
-    if (currentCardIndex < flashcards.length - 1) {
+    if (currentLesson && currentCardIndex < currentLesson.length - 1) {
       setIsNext(true);
       setCurrentCardIndex(currentCardIndex + 1);
       setIsFlipped(false);
@@ -151,7 +159,7 @@ export default function LessonPlayer({
         earnedXP={earnedXP}
         progress={progress}
         from={currentCardIndex + 1}
-        to={flashcards.length}
+        to={currentLesson?.length || 0}
       />
 
       {/* Главная карточка */}
@@ -167,7 +175,7 @@ export default function LessonPlayer({
               className={`w-5 h-5 bg-gradient-to-r ${subjectColor} bg-clip-text`}
             />
             <span className="text-base-content">
-              Карточка {currentCardIndex + 1} из {flashcards.length}
+              Карточка {currentCardIndex + 1} из {currentLesson?.length || 0}
             </span>
           </motion.div>
         </div>
@@ -210,7 +218,7 @@ export default function LessonPlayer({
                   Насколько верно вы ответили?
                 </p>
                 <StarRating
-                  value={rating[currentCard.id] || 0}
+                  value={rating[currentCard.CardId] || 0}
                   onChange={(val: number) => handleAnswer(val as RatingValue)}
                   size={10}
                 />
@@ -220,7 +228,7 @@ export default function LessonPlayer({
             {/* навигация */}
             {!isFlipped && (
               <NavigationLessons
-                flashcards={flashcards}
+                flashcards={currentLesson?.cards || []}
                 currentCardIndex={currentCardIndex}
                 rating={rating}
                 handlePrev={handlePrev}

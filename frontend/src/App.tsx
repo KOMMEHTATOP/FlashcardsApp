@@ -5,14 +5,36 @@ import { HomePage } from "./pages/Home";
 import AboutPage from "./pages/About";
 import StudyPage from "./pages/Study";
 import LoginPage from "./pages/Login";
+import { PrivateRoute } from "./layout/PrivateRoute";
 
 const router = createBrowserRouter([
   {
     element: <AppLayout />,
     children: [
-      { path: "/", element: <HomePage /> },
-      { path: "/study/:id", element: <StudyPage /> },
-      { path: "/about", element: <AboutPage /> },
+      {
+        path: "/",
+        element: (
+          <PrivateRoute>
+            <HomePage />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/study/:id",
+        element: (
+          <PrivateRoute>
+            <StudyPage />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/about",
+        element: (
+          <PrivateRoute>
+            <AboutPage />
+          </PrivateRoute>
+        ),
+      },
     ],
   },
   {

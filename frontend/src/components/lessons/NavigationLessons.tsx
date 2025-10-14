@@ -1,13 +1,13 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "../ui/button";
 import { motion } from "framer-motion";
-import type { FlashCard, RatingValue } from "../../types/types";
+import type { GroupCardType, RatingValue } from "../../types/types";
 import { colorRatingCard } from "../../test/data";
 
 interface NavigationLessonsProps {
-  flashcards: FlashCard[];
+  flashcards: GroupCardType[];
   currentCardIndex: number;
-  rating: Record<number, RatingValue>;
+  rating: Record<string, RatingValue>;
   handlePrev: () => void;
   handleNext: () => void;
   handleSelect: (index: number) => void;
@@ -50,13 +50,13 @@ export default function NavigationLessons({
       >
         {flashcards.map((card, index) => (
           <motion.div
-            key={card.id}
+            key={index}
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: index * 0.05 }}
             onClick={() => handleSelect(index)}
             className={`w-3 h-3 rounded-full cursor-pointer ${
-              colorRatingCard[rating[card.id] || 0]
+              colorRatingCard[rating[card.CardId] || 0]
             } ${
               index === currentCardIndex &&
               "border-1 border-white shadow shadow-white"
@@ -86,10 +86,10 @@ export default function NavigationLessons({
       <div className="flex sm:hidden justify-center gap-2 absolute -bottom-8 left-1/2 -translate-x-1/2">
         {flashcards.map((card, index) => (
           <div
-            key={card.id}
+            key={index}
             onClick={() => handleSelect(index)}
             className={`w-3 h-3 rounded-full cursor-pointer ${
-              colorRatingCard[rating[card.id] || 0]
+              colorRatingCard[rating[card.LastRating] || 0]
             } ${
               index === currentCardIndex &&
               "border-1 border-white shadow shadow-white"
