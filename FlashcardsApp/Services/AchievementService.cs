@@ -15,13 +15,21 @@ public class AchievementService
     }
 
     // Получить все достижения
-    public async Task<ServiceResult<IEnumerable<Achievement>>> GetAllAchievementsAsync()
+    public async Task<ServiceResult<IEnumerable<AchievementDto>>> GetAllAchievementsAsync()
     {
         var achievements = await _context.Achievements
             .AsNoTracking()
+            .Select(a => new AchievementDto  
+            {
+                Id = a.Id,
+                Name = a.Name,
+                Description = a.Description,
+                IconUrl = a.IconUrl,
+                Gradient = a.Gradient
+            })
             .ToListAsync();
 
-        return ServiceResult<IEnumerable<Achievement>>.Success(achievements);
+        return ServiceResult<IEnumerable<AchievementDto>>.Success(achievements);
     }
 
     // Получить ТОЛЬКО разблокированные достижения пользователя
@@ -47,39 +55,31 @@ public class AchievementService
     // Получить все достижения со статусом разблокировки для юзера
     public async Task<ServiceResult<IEnumerable<AchievementWithStatusDto>>> GetAllAchievementsWithStatusAsync(Guid userId)
     {
-        var allAchievements = await _context.Achievements
+        var result = await _context.Achievements
             .AsNoTracking()
+            .Select(a => new AchievementWithStatusDto
+            {
+                Id = a.Id,
+                Name = a.Name,
+                Description = a.Description,
+                IconUrl = a.IconUrl,
+                Gradient = a.Gradient,
+                IsUnlocked = a.UserAchievements.Any(ua => ua.UserId == userId)  
+            })
             .ToListAsync();
-
-        var unlockedAchievementIds = (await _context.UserAchievements
-            .AsNoTracking()
-            .Where(ua => ua.UserId == userId)
-            .Select(ua => ua.AchievementId)
-            .ToListAsync())
-            .ToHashSet();
-
-        var result = allAchievements.Select(a => new AchievementWithStatusDto
-        {
-            Id = a.Id,
-            Name = a.Name,
-            Description = a.Description,
-            IconUrl = a.IconUrl,
-            Gradient = a.Gradient,
-            IsUnlocked = unlockedAchievementIds.Contains(a.Id)
-        }).ToList();
 
         return ServiceResult<IEnumerable<AchievementWithStatusDto>>.Success(result);
     }
-
+    
     // Разблокировать достижение
-    public async Task<ServiceResult<UserAchievement>> UnlockAchievementAsync(Guid userId, Guid achievementId)
+    public async Task<ServiceResult<UserAchievementDto>> UnlockAchievementAsync(Guid userId, Guid achievementId)
     {
         var exists = await _context.UserAchievements
             .AnyAsync(ua => ua.UserId == userId && ua.AchievementId == achievementId);
 
         if (exists)
         {
-            return ServiceResult<UserAchievement>.Failure("Achievement already unlocked");
+            return ServiceResult<UserAchievementDto>.Failure("Achievement already unlocked");
         }
 
         var userAchievement = new UserAchievement
@@ -92,18 +92,38 @@ public class AchievementService
         _context.UserAchievements.Add(userAchievement);
         await _context.SaveChangesAsync();
 
-        return ServiceResult<UserAchievement>.Success(userAchievement);
+    
+        await _context.Entry(userAchievement)
+            .Reference(ua => ua.Achievement)
+            .LoadAsync();
+
+        var dto = new UserAchievementDto
+        {
+            UserId = userAchievement.UserId,
+            AchievementId = userAchievement.AchievementId,
+            UnlockedAt = userAchievement.UnlockedAt,
+            Achievement = new AchievementDto
+            {
+                Id = userAchievement.Achievement!.Id,
+                Name = userAchievement.Achievement.Name,
+                Description = userAchievement.Achievement.Description,
+                IconUrl = userAchievement.Achievement.IconUrl,
+                Gradient = userAchievement.Achievement.Gradient
+            }
+        };
+
+        return ServiceResult<UserAchievementDto>.Success(dto);
     }
 
     // Проверить и разблокировать достижения на основе статистики
-    public async Task<ServiceResult<List<Achievement>>> CheckAndUnlockAchievementsAsync(Guid userId)
+    public async Task<ServiceResult<List<AchievementDto>>> CheckAndUnlockAchievementsAsync(Guid userId)
     {
         var statistics = await _context.UserStatistics
             .FirstOrDefaultAsync(s => s.UserId == userId);
 
         if (statistics == null)
         {
-            return ServiceResult<List<Achievement>>.Failure("Statistics not found");
+            return ServiceResult<List<AchievementDto>>.Failure("Statistics not found");
         }
 
         var allAchievements = await _context.Achievements.ToListAsync();
@@ -112,7 +132,7 @@ public class AchievementService
             .Select(ua => ua.AchievementId)
             .ToListAsync();
 
-        var newlyUnlocked = new List<Achievement>();
+        var newlyUnlocked = new List<AchievementDto>();
 
         foreach (var achievement in allAchievements)
         {
@@ -134,11 +154,18 @@ public class AchievementService
                 var unlockResult = await UnlockAchievementAsync(userId, achievement.Id);
                 if (unlockResult.IsSuccess)
                 {
-                    newlyUnlocked.Add(achievement);
+                    newlyUnlocked.Add(new AchievementDto 
+                    {
+                        Id = achievement.Id,
+                        Name = achievement.Name,
+                        Description = achievement.Description,
+                        IconUrl = achievement.IconUrl,
+                        Gradient = achievement.Gradient
+                    });
                 }
             }
         }
 
-        return ServiceResult<List<Achievement>>.Success(newlyUnlocked);
+        return ServiceResult<List<AchievementDto>>.Success(newlyUnlocked);
     }
 }
