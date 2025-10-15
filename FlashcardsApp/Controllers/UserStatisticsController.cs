@@ -1,5 +1,4 @@
 using FlashcardsApp.Interfaces;
-using FlashcardsApp.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -11,11 +10,11 @@ namespace FlashcardsApp.Controllers;
 [Authorize]
 public class UserStatisticsController : ControllerBase
 {
-    private readonly UserStatisticsService _statisticsService;
+    private readonly IUserStatisticsService _statisticsService;
     private readonly IGamificationService _gamificationService;
 
     public UserStatisticsController(
-        UserStatisticsService statisticsService,
+        IUserStatisticsService statisticsService,
         IGamificationService gamificationService)
     {
         _statisticsService = statisticsService;

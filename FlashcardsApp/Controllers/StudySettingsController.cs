@@ -1,5 +1,5 @@
+using FlashcardsApp.Interfaces;
 using FlashcardsApp.Models;
-using FlashcardsApp.Services;
 using FlashcardsAppContracts.DTOs.Requests;
 using FlashcardsAppContracts.DTOs.Responses;
 using Microsoft.AspNetCore.Authorization;
@@ -13,10 +13,10 @@ namespace FlashcardsApp.Controllers;
 [Authorize]
 public class StudySettingsController : ControllerBase
 {
-    private readonly StudySettingsService _studySettingsService;
+    private readonly IStudySettingsService _studySettingsService;
     private readonly UserManager<User> _userManager;
 
-    public StudySettingsController(StudySettingsService studySettingsService, UserManager<User> userManager)
+    public StudySettingsController(IStudySettingsService studySettingsService, UserManager<User> userManager)
     {
         _studySettingsService = studySettingsService;
         _userManager = userManager;

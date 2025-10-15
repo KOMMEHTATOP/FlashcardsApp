@@ -1,4 +1,5 @@
 using FlashcardsApp.Data;
+using FlashcardsApp.Interfaces;
 using FlashcardsApp.Mapping;
 using FlashcardsApp.Models;
 using FlashcardsAppContracts.DTOs.Requests;
@@ -7,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FlashcardsApp.Services;
 
-public class CardRatingService
+public class CardRatingService : ICardRatingService
 {
     private readonly ApplicationDbContext _context;
 

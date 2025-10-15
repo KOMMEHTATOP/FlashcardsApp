@@ -1,3 +1,4 @@
+using FlashcardsApp.Interfaces;
 using FlashcardsApp.Models;
 using FlashcardsApp.Services;
 using FlashcardsAppContracts.DTOs.Responses;
@@ -12,10 +13,10 @@ namespace FlashcardsApp.Controllers
     [Authorize]
     public class StudySessionController : ControllerBase
     {
-        private readonly StudySessionService _studySessionService;
+        private readonly IStudySessionService _studySessionService;
         private readonly UserManager<User> _userManager;
 
-        public StudySessionController(StudySessionService studySessionService, UserManager<User> userManager)
+        public StudySessionController(IStudySessionService studySessionService, UserManager<User> userManager)
         {
             _studySessionService = studySessionService;
             _userManager = userManager;

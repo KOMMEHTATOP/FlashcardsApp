@@ -2,11 +2,12 @@ using FlashcardsApp.Data;
 using FlashcardsApp.Interfaces;
 using FlashcardsApp.Models;
 using FlashcardsAppContracts.DTOs.Responses;
+using FlashcardsAppContracts.DTOs.Statistics.Responses;
 using Microsoft.EntityFrameworkCore;
 
 namespace FlashcardsApp.Services;
 
-public class UserStatisticsService
+public class UserStatisticsService: IUserStatisticsService
 {
     private readonly ApplicationDbContext _context;
     private readonly IGamificationService _gamificationService;

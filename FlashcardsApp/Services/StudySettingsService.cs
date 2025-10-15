@@ -1,4 +1,5 @@
 using FlashcardsApp.Data;
+using FlashcardsApp.Interfaces;
 using FlashcardsApp.Mapping;
 using FlashcardsApp.Models;
 using FlashcardsAppContracts.Constants;
@@ -8,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FlashcardsApp.Services;
 
-public class StudySettingsService
+public class StudySettingsService : IStudySettingsService
 {
     private readonly ApplicationDbContext _context;
     

@@ -3,6 +3,7 @@ using FlashcardsApp.Interfaces;
 using FlashcardsApp.Interfaces.Achievements;
 using FlashcardsApp.Mapping;
 using FlashcardsApp.Models;
+using FlashcardsAppContracts.DTOs.Cards.Responses;
 using FlashcardsAppContracts.DTOs.Requests;
 using FlashcardsAppContracts.DTOs.Responses;
 using Microsoft.EntityFrameworkCore;
@@ -83,6 +84,7 @@ public class CardService : ICardService
     public async Task<ServiceResult<ResultCardDto>> GetCardAsync(Guid cardId, Guid userId)
     {
         var card = await _context.Cards
+            .Include(c=>c.Ratings)
             .AsNoTracking()
             .FirstOrDefaultAsync(c => c.CardId == cardId && c.UserId == userId);
 

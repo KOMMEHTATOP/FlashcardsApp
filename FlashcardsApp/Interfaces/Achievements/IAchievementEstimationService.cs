@@ -12,9 +12,6 @@ public interface IAchievementEstimationService
     /// <param name="remainingValue">Сколько осталось до выполнения</param>
     /// <param name="userStats">Статистика пользователя</param>
     /// <returns>Примерное количество дней (0 если невозможно оценить)</returns>
-    int EstimateDaysToComplete(
-        AchievementConditionType conditionType, 
-        int remainingValue, 
-        UserStatistics userStats);
+    int EstimateDaysToComplete(AchievementConditionType conditionType, int remainingValue, UserStatistics userStats);
 
 }
