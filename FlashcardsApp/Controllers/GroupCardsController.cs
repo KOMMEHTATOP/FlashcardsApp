@@ -1,3 +1,4 @@
+using FlashcardsApp.Interfaces;
 using FlashcardsApp.Models;
 using FlashcardsAppContracts.DTOs.Requests;
 using FlashcardsApp.Services;
@@ -13,9 +14,9 @@ namespace FlashcardsApp.Controllers
     public class GroupCardsController : ControllerBase
     {
         private readonly UserManager<User> _userManager;
-        private readonly CardService _cardService;
+        private readonly ICardService _cardService;
 
-        public GroupCardsController(UserManager<User> userManager, CardService cardService)
+        public GroupCardsController(UserManager<User> userManager, ICardService cardService)
         {
             _userManager = userManager;
             _cardService = cardService;

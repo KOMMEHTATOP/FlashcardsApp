@@ -1,6 +1,6 @@
+using FlashcardsApp.Interfaces;
 using FlashcardsApp.Models;
 using FlashcardsAppContracts.DTOs.Requests;
-using FlashcardsApp.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -13,9 +13,9 @@ namespace FlashcardsApp.Controllers
     public class CardRatingsController : ControllerBase
     {
         private readonly UserManager<User> _userManager;
-        private readonly CardRatingService _cardRatingService;
+        private readonly ICardRatingService _cardRatingService;
 
-        public CardRatingsController(UserManager<User> userManager, CardRatingService cardRatingService)
+        public CardRatingsController(UserManager<User> userManager, ICardRatingService cardRatingService)
         {
             _userManager = userManager;
             _cardRatingService = cardRatingService;

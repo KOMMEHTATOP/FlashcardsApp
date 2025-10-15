@@ -1,4 +1,5 @@
 using FlashcardsApp.Data;
+using FlashcardsApp.Interfaces;
 using FlashcardsApp.Models;
 using FlashcardsAppContracts.Constants;
 using FlashcardsAppContracts.DTOs.Responses;
@@ -6,12 +7,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FlashcardsApp.Services;
 
-public class StudySessionService
+public class StudySessionService: IStudySessionService
 {
     private readonly ApplicationDbContext _context;
-    private readonly StudySettingsService _studySettingsService;
+    private readonly IStudySettingsService _studySettingsService;
 
-    public StudySessionService(ApplicationDbContext context, StudySettingsService studySettingsService)
+    public StudySessionService(ApplicationDbContext context, IStudySettingsService studySettingsService)
     {
         _context = context;
         _studySettingsService = studySettingsService;

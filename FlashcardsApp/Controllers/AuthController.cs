@@ -1,5 +1,5 @@
+using FlashcardsApp.Interfaces;
 using FlashcardsApp.Models;
-using FlashcardsApp.Services;
 using FlashcardsAppContracts.DTOs.Requests;
 using FlashcardsAppContracts.DTOs.Responses;
 using Microsoft.AspNetCore.Authorization;
@@ -15,22 +15,19 @@ namespace FlashcardsApp.Controllers
     {
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
-        private readonly TokenService _tokenService;
+        private readonly ITokenService _tokenService;
         private readonly IConfiguration _configuration;
-        private readonly UserStatisticsService _statisticsService;
         
         public AuthController(
             UserManager<User> userManager, 
             SignInManager<User> signInManager,
-            TokenService tokenService,
-            IConfiguration configuration,
-            UserStatisticsService statisticsService)
+            ITokenService tokenService,
+            IConfiguration configuration)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _tokenService = tokenService;
             _configuration = configuration;
-            _statisticsService = statisticsService;
         }
 
         [AllowAnonymous]

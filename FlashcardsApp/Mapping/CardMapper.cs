@@ -1,4 +1,5 @@
 using FlashcardsApp.Models;
+using FlashcardsAppContracts.DTOs.Cards.Responses;
 using FlashcardsAppContracts.DTOs.Responses;
 
 namespace FlashcardsApp.Mapping;
@@ -14,7 +15,8 @@ public static class CardMapper
             Question = model.Question,
             Answer = model.Answer,
             CreatedAt = model.CreatedAt,
-            UpdatedAt = model.UpdatedAt
+            UpdatedAt = model.UpdatedAt,
+            LastRating = model.Ratings?.LastOrDefault()?.Rating ?? 0,
         };
     }
 }
