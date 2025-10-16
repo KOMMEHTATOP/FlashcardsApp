@@ -1,11 +1,11 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace FlashcardsAppContracts.DTOs.Responses;
+namespace FlashcardsAppContracts.DTOs.Auth.Responses;
 
-public class LoginResponse
+public class LoginResponseDto
 {
     [Required]
-    public required string Token { get; set; }
+    public required string AccessToken { get; set; }
     
     public Guid? UserId { get; set; }
     

@@ -1,11 +1,9 @@
 using FlashcardsApp.Interfaces;
-using FlashcardsApp.Models;
+using FlashcardsAppContracts.DTOs.Auth.Requests;
+using FlashcardsAppContracts.DTOs.Auth.Responses;
 using FlashcardsAppContracts.DTOs.Requests;
-using FlashcardsAppContracts.DTOs.Responses;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace FlashcardsApp.Controllers
 {
@@ -13,19 +11,16 @@ namespace FlashcardsApp.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly UserManager<User> _userManager;
-        private readonly SignInManager<User> _signInManager;
+        private readonly IAuthService _authService;
         private readonly ITokenService _tokenService;
         private readonly IConfiguration _configuration;
         
         public AuthController(
-            UserManager<User> userManager, 
-            SignInManager<User> signInManager,
+            IAuthService authService,
             ITokenService tokenService,
             IConfiguration configuration)
         {
-            _userManager = userManager;
-            _signInManager = signInManager;
+            _authService = authService;
             _tokenService = tokenService;
             _configuration = configuration;
         }
@@ -34,137 +29,85 @@ namespace FlashcardsApp.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterModel model)
         {
-            var user = new User
+            var result = await _authService.Register(model);
+            
+            if (!result.IsSuccess)
             {
-                Login = model.Login,
-                UserName = model.Email,
-                Email = model.Email
-            };
-
-            var result = await _userManager.CreateAsync(user, model.Password);
-
-            if (result.Succeeded)
-            {
-                return Ok(new RegisterUserDto
-                {
-                    IsSuccess = true,
-                    Message = "Пользователь успешно зарегистрирован!"
-                });
+                return BadRequest(new { errors = result.Errors });
             }
-
-            return BadRequest(new RegisterUserDto
-            {
-                IsSuccess = false,
-                Message = "Ошибка регистрации",
-                Errors = result.Errors.Select(e => TranslateIdentityError(e.Code, e.Description)).ToList()
-            });
+            
+            return Ok(result.Data);
         }
 
         [AllowAnonymous]
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginModel model)
         {
-            var user = await _userManager.FindByEmailAsync(model.Email);
-            if (user == null)
+            var result = await _authService.Login(model);
+    
+            if (!result.IsSuccess)
             {
-                return Unauthorized(new { message = "Неверный email или пароль" });
+                return Unauthorized(new { message = string.Join(", ", result.Errors) });
             }
 
-            var passwordValid = await _signInManager.CheckPasswordSignInAsync(user, model.Password, false);
-            if (!passwordValid.Succeeded)
-            {
-                return Unauthorized(new { message = "Неверный email или пароль" });
-            }
-
-            // Генерируем оба токена
+            var user = result.Data!;
+    
+            // HTTP-специфичная логика: извлечение данных из запроса
             var accessToken = _tokenService.GenerateAccessToken(user);
-            
             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
             var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
             var refreshToken = await _tokenService.GenerateRefreshToken(user.Id, ipAddress, userAgent);
 
-            // Устанавливаем Refresh Token в httpOnly cookie
+            // HTTP-специфичная логика: установка cookie
             SetRefreshTokenCookie(refreshToken.Token);
 
-            // Возвращаем ТОЛЬКО токен
-            return Ok(new
+            return Ok(new LoginResponseDto
             {
-                accessToken
-            });
-        }
-
-        /// <summary>
-        /// Получить данные текущего аутентифицированного пользователя
-        /// </summary>
-        [HttpGet("me")]
-        [Authorize]
-        public async Task<IActionResult> GetCurrentUser()
-        {
-            // Получаем ID пользователя из claims токена
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized(new { message = "Пользователь не аутентифицирован" });
-            }
-
-            var user = await _userManager.FindByIdAsync(userId);
-            
-            if (user == null)
-            {
-                return NotFound(new { message = "Пользователь не найден" });
-            }
-
-            // Возвращаем только необходимые данные
-            return Ok(new
-            {
-                user.Id,
-                user.Login,
-                user.UserName,
-                user.Email
+                AccessToken = accessToken,
+                UserId = user.Id,
+                Email = user.Email,
+                ExpiresAt = DateTime.UtcNow.AddMinutes(_configuration.GetValue<double>("Jwt:AccessTokenExpirationMinutes"))
             });
         }
 
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh()
         {
+            // HTTP-специфичная логика: чтение cookie
             if (!Request.Cookies.TryGetValue("refreshToken", out var refreshTokenValue))
             {
                 return Unauthorized(new { message = "Refresh токен не найден" });
             }
 
-            var refreshToken = await _tokenService.ValidateRefreshToken(refreshTokenValue);
-            if (refreshToken == null)
-            {
-                return Unauthorized(new { message = "Недействительный или истекший refresh токен" });
-            }
-
-            var accessToken = _tokenService.GenerateAccessToken(refreshToken.User);
-
-            // Refresh Token Rotation
-            await _tokenService.RevokeRefreshToken(refreshTokenValue);
-            
+            // HTTP-специфичная логика: извлечение данных из запроса
             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
             var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
-            var newRefreshToken = await _tokenService.GenerateRefreshToken(refreshToken.UserId, ipAddress, userAgent);
-            
-            SetRefreshTokenCookie(newRefreshToken.Token);
 
-            return Ok(new
+            // Бизнес-логика в сервисе
+            var result = await _authService.RefreshAccessToken(refreshTokenValue, ipAddress, userAgent);
+            
+            if (!result.IsSuccess)
             {
-                accessToken
-            });
+                return Unauthorized(new { message = string.Join(", ", result.Errors) });
+            }
+
+            // HTTP-специфичная логика: установка cookie
+            SetRefreshTokenCookie(result.Data!.RefreshToken);
+
+            return Ok(new { accessToken = result.Data.AccessToken });
         }
 
         [HttpPost("logout")]
         [Authorize]
         public async Task<IActionResult> Logout()
         {
-            if (Request.Cookies.TryGetValue("refreshToken", out var refreshTokenValue))
-            {
-                await _tokenService.RevokeRefreshToken(refreshTokenValue);
-            }
+            // HTTP-специфичная логика: чтение cookie
+            Request.Cookies.TryGetValue("refreshToken", out var refreshTokenValue);
 
+            // Бизнес-логика в сервисе
+            await _authService.Logout(refreshTokenValue);
+
+            // HTTP-специфичная логика: удаление cookie
             Response.Cookies.Delete("refreshToken", new CookieOptions
             {
                 HttpOnly = true,
@@ -190,33 +133,6 @@ namespace FlashcardsApp.Controllers
             };
 
             Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
-        }
-
-        private string TranslateIdentityError(string code, string originalDescription)
-        {
-            return code switch
-            {
-                "DuplicateUserName" => "Пользователь с таким именем уже существует",
-                "DuplicateEmail" => "Пользователь с таким email уже зарегистрирован",
-                "InvalidEmail" => "Некорректный email адрес",
-                "InvalidUserName" => "Некорректное имя пользователя",
-                "PasswordTooShort" => "Пароль должен содержать минимум 6 символов",
-                "PasswordRequiresNonAlphanumeric" => "Пароль должен содержать специальные символы",
-                "PasswordRequiresDigit" => "Пароль должен содержать цифры",
-                "PasswordRequiresLower" => "Пароль должен содержать строчные буквы",
-                "PasswordRequiresUpper" => "Пароль должен содержать заглавные буквы",
-                "PasswordMismatch" => "Неверный пароль",
-                "UserAlreadyHasPassword" => "У пользователя уже установлен пароль",
-                "UserLockoutNotEnabled" => "Блокировка пользователя не включена",
-                "UserAlreadyInRole" => "Пользователь уже имеет эту роль",
-                "UserNotInRole" => "Пользователь не имеет этой роли",
-                "LoginAlreadyAssociated" => "Этот вход уже привязан к другому пользователю",
-                "InvalidToken" => "Недействительный токен",
-                "RecoveryCodeRedemptionFailed" => "Не удалось использовать код восстановления",
-                "ConcurrencyFailure" => "Ошибка параллельного доступа, попробуйте снова",
-                "DefaultError" => "Произошла неизвестная ошибка",
-                _ => originalDescription 
-            };
         }
     }
 }

@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace FlashcardsAppContracts.DTOs.Requests;
+namespace FlashcardsAppContracts.DTOs.Auth.Requests;
 
 public class RegisterModel
 {

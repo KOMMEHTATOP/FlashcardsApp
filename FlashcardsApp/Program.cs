@@ -146,6 +146,8 @@ builder.Services.Configure<RewardSettings>(
     builder.Configuration.GetSection("RewardSettings"));
 
 // Регистрация сервисов
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IGroupService, GroupService>();
 builder.Services.AddScoped<ICardService, CardService>();

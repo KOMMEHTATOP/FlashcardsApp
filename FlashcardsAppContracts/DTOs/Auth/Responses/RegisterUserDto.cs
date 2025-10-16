@@ -1,4 +1,4 @@
-namespace FlashcardsAppContracts.DTOs.Responses;
+namespace FlashcardsAppContracts.DTOs.Auth.Responses;
 
 public class RegisterUserDto
 {
