@@ -67,7 +67,7 @@ export default function LoginPage() {
         const token = res.data.accessToken;
         localStorage.setItem("accessToken", token);
         apiFetch.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-        // window.location.href = "/";
+        window.location.href = "/";
       })
       .catch((err) => {
         console.log(err);

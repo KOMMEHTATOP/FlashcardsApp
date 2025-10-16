@@ -54,23 +54,24 @@ services:
       - Cors__AllowedOrigins__0=http://localhost:5173
     networks:
       - app-network
-  # frontend:
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile.dev
-  #   container_name: frontend
-  #   ports:
-  #     - "5173:5173"
-  #   volumes:
-  #     - ./frontend:/app
-  #     - /app/node_modules
-  #   depends_on:
-  #     - webapp
-  #   environment:
-  #     - VITE_API_URL=http://localhost:5000
-  #     - CHOKIDAR_USEPOLLING=true
-  #   networks:
-  #     - app-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    environment:
+      - VITE_API_URL=http://localhost:5001/api
+      - CHOKIDAR_USEPOLLING=true
+    networks:
+      - app-network
 
 volumes:
   postgres_data:
