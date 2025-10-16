@@ -5,7 +5,6 @@ using FlashcardsApp.Mapping;
 using FlashcardsApp.Models;
 using FlashcardsAppContracts.DTOs.Cards.Responses;
 using FlashcardsAppContracts.DTOs.Requests;
-using FlashcardsAppContracts.DTOs.Responses;
 using Microsoft.EntityFrameworkCore;
 
 namespace FlashcardsApp.Services;
@@ -34,12 +33,27 @@ public class CardService : ICardService
 
         if (targetRating.HasValue)
         {
-            query = query.Where(c =>
-                !_context.CardRatings.Any(r => r.CardId == c.CardId) ||
-                _context.CardRatings
-                    .Where(r => r.CardId == c.CardId)
-                    .OrderByDescending(r => r.CreatedAt)
-                    .First().Rating <= targetRating.Value);
+            // Получаем последние оценки из StudyHistory
+            var cardsWithRating = await query
+                .Select(c => new
+                {
+                    Card = c,
+                    LastRating = _context.StudyHistory
+                        .Where(sh => sh.CardId == c.CardId && sh.UserId == userId)
+                        .OrderByDescending(sh => sh.StudiedAt)
+                        .Select(sh => (int?)sh.Rating)
+                        .FirstOrDefault()
+                })
+                .ToListAsync();
+
+            // Фильтруем: карточки без оценок или с оценкой <= targetRating
+            var filteredCards = cardsWithRating
+                .Where(x => !x.LastRating.HasValue || x.LastRating.Value <= targetRating.Value)
+                .Select(x => x.Card)
+                .OrderBy(card => card.CreatedAt)
+                .ToList();
+
+            return ServiceResult<IEnumerable<ResultCardDto>>.Success(filteredCards.Select(c => c.ToDto()));
         }
 
         var cards = await query.OrderBy(card => card.CreatedAt).ToListAsync();
@@ -51,20 +65,7 @@ public class CardService : ICardService
         var cards = await _context.Cards
             .AsNoTracking()
             .Where(c => c.GroupId == groupId && c.UserId == userId)
-            .Include(c => c.Ratings) 
             .OrderBy(c => c.CreatedAt)
-            .Select(c => new ResultCardDto
-            {
-                CardId = c.CardId,
-                GroupId = c.GroupId,
-                Question = c.Question,
-                Answer = c.Answer,
-                CreatedAt = c.CreatedAt,
-                UpdatedAt = c.UpdatedAt,
-                LastRating = c.Ratings != null && c.Ratings.Any()
-                    ? c.Ratings.OrderByDescending(r => r.CreatedAt).First().Rating
-                    : 0
-            })
             .ToListAsync();
 
         if (!cards.Any())
@@ -78,13 +79,35 @@ public class CardService : ICardService
             }
         }
 
-        return ServiceResult<IEnumerable<ResultCardDto>>.Success(cards);
+        // Получаем последние оценки для карточек из StudyHistory
+        var cardIds = cards.Select(c => c.CardId).ToList();
+        var lastRatings = await _context.StudyHistory
+            .Where(sh => sh.UserId == userId && cardIds.Contains(sh.CardId))
+            .GroupBy(sh => sh.CardId)
+            .Select(g => new
+            {
+                CardId = g.Key,
+                LastRating = g.OrderByDescending(sh => sh.StudiedAt).First().Rating
+            })
+            .ToDictionaryAsync(x => x.CardId, x => x.LastRating);
+
+        var result = cards.Select(c => new ResultCardDto
+        {
+            CardId = c.CardId,
+            GroupId = c.GroupId,
+            Question = c.Question,
+            Answer = c.Answer,
+            CreatedAt = c.CreatedAt,
+            UpdatedAt = c.UpdatedAt,
+            LastRating = lastRatings.GetValueOrDefault(c.CardId, 0)
+        }).ToList();
+
+        return ServiceResult<IEnumerable<ResultCardDto>>.Success(result);
     }
     
     public async Task<ServiceResult<ResultCardDto>> GetCardAsync(Guid cardId, Guid userId)
     {
         var card = await _context.Cards
-            .Include(c=>c.Ratings)
             .AsNoTracking()
             .FirstOrDefaultAsync(c => c.CardId == cardId && c.UserId == userId);
 

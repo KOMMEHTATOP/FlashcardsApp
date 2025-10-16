@@ -3,7 +3,6 @@ using FlashcardsApp.Interfaces;
 using FlashcardsApp.Interfaces.Achievements;
 using FlashcardsApp.Models;
 using FlashcardsAppContracts.DTOs.Achievements.Responses;
-using FlashcardsAppContracts.DTOs.Requests;
 using FlashcardsAppContracts.DTOs.Responses;
 using FlashcardsAppContracts.DTOs.Study.Requests;
 using FlashcardsAppContracts.DTOs.Study.Responses;
@@ -133,18 +132,35 @@ public class StudyService : IStudyService
                 return ServiceResult<StudyRewardDto>.Failure("User statistics not found");
             }
 
+            // 8. Рассчитываем прогресс до следующего уровня
+            var xpForCurrentLevel = _gamificationService.CalculateXPForLevel(updatedStats.Level);
+            var xpForNextLevel = _gamificationService.CalculateXPForLevel(updatedStats.Level + 1);
+            
+            var currentLevelXP = updatedStats.TotalXP - xpForCurrentLevel;
+            var xpNeededForLevel = xpForNextLevel - xpForCurrentLevel;
+            var xpToNextLevel = xpForNextLevel - updatedStats.TotalXP;
+
             await transaction.CommitAsync();
 
-            // 8. Формируем ответ
+            // 9. Формируем ответ
             var reward = new StudyRewardDto
             {
+                // XP и уровень
                 XPEarned = xpEarned,
                 TotalXP = updatedStats.TotalXP,
                 CurrentLevel = updatedStats.Level,
                 LeveledUp = leveledUp,
-                NewLevel = newLevel,
+                
+                // Прогресс до следующего уровня
+                CurrentLevelXP = currentLevelXP,
+                XPForNextLevel = xpNeededForLevel,
+                XPToNextLevel = xpToNextLevel,
+                
+                // Streak
                 StreakIncreased = streakIncreased,
                 CurrentStreak = updatedStats.CurrentStreak,
+                
+                // Достижения
                 NewAchievements = newAchievements.Select(a => new AchievementUnlockedDto
                 {
                     Id = a.Id,

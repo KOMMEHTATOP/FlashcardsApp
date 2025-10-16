@@ -22,57 +22,27 @@ public class GamificationService : IGamificationService
 
     /// <summary>
     /// Рассчитывает XP за изученную карточку
+    /// Формула: XP = BaseXP × Quality × Streak
     /// </summary>
     public async Task<int> CalculateXPForCardAsync(Guid userId, Guid cardId, int rating)
     {
         // 1. Базовое XP из конфига
         var baseXP = _settings.Base.XPPerCard;
 
-        // 2. Рассчитываем множитель сложности карточки (на основе истории)
-        var difficultyMultiplier = await CalculateDifficultyMultiplierAsync(userId, cardId);
-
-        // 3. Рассчитываем множитель качества (оценка пользователя)
+        // 2. Рассчитываем множитель качества (оценка пользователя)
         var qualityMultiplier = CalculateQualityMultiplier(rating);
 
-        // 4. Получаем streak пользователя для бонуса
+        // 3. Получаем streak пользователя для бонуса
         var userStats = await _context.UserStatistics
             .AsNoTracking()
             .FirstOrDefaultAsync(us => us.UserId == userId);
         
         var streakBonus = CalculateStreakBonus(userStats?.CurrentStreak ?? 0);
 
-        // 5. Итоговый расчет по формуле:
-        // XP = BaseXP × Difficulty × Quality × Streak
-        var xp = (int)Math.Round(baseXP * difficultyMultiplier * qualityMultiplier * streakBonus);
+        // 4. Итоговый расчет: XP = BaseXP × Quality × Streak
+        var xp = (int)Math.Round(baseXP * qualityMultiplier * streakBonus);
 
         return xp;
-    }
-
-    /// <summary>
-    /// Рассчитывает множитель сложности на основе истории изучения
-    /// </summary>
-    private async Task<double> CalculateDifficultyMultiplierAsync(Guid userId, Guid cardId)
-    {
-        // Берем последние 5 оценок этой карточки пользователем
-        var recentRatings = await _context.StudyHistory
-            .Where(sh => sh.UserId == userId && sh.CardId == cardId)
-            .OrderByDescending(sh => sh.StudiedAt)
-            .Take(5)
-            .Select(sh => sh.Rating)
-            .ToListAsync();
-
-        if (!recentRatings.Any())
-            return _settings.Multipliers.Difficulty.Medium; // Средняя сложность для новой карточки
-
-        var averageRating = recentRatings.Average();
-
-        // Чем ниже средняя оценка, тем сложнее карточка → больше XP
-        return averageRating switch
-        {
-            >= 4.0 => _settings.Multipliers.Difficulty.Easy,   // Легкая карточка
-            >= 2.5 => _settings.Multipliers.Difficulty.Medium, // Средняя
-            _ => _settings.Multipliers.Difficulty.Hard         // Сложная
-        };
     }
 
     /// <summary>
@@ -162,13 +132,13 @@ public class GamificationService : IGamificationService
     /// <summary>
     /// Добавляет XP пользователю и проверяет level up
     /// </summary>
-    public async Task<ServiceResult<(bool leveledUp, int? newLevel)>> AddXPToUserAsync(Guid userId, int xp)
+    public async Task<ServiceResult<(bool leveledUp, int newLevel)>> AddXPToUserAsync(Guid userId, int xp)
     {
         var userStats = await _context.UserStatistics.FirstOrDefaultAsync(us => us.UserId == userId);
         
         if (userStats == null)
         {
-            return ServiceResult<(bool, int?)>.Failure("User statistics not found");
+            return ServiceResult<(bool, int)>.Failure("User statistics not found");
         }
 
         var oldLevel = userStats.Level;
@@ -185,7 +155,7 @@ public class GamificationService : IGamificationService
 
         await _context.SaveChangesAsync();
 
-        return ServiceResult<(bool leveledUp, int? newLevel)>.Success((leveledUp, leveledUp ? newLevel : null));
+        return ServiceResult<(bool leveledUp, int newLevel)>.Success((leveledUp, newLevel));
     }
 
     /// <summary>

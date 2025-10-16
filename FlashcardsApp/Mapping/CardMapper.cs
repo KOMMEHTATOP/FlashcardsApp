@@ -16,7 +16,7 @@ public static class CardMapper
             Answer = model.Answer,
             CreatedAt = model.CreatedAt,
             UpdatedAt = model.UpdatedAt,
-            LastRating = model.Ratings?.LastOrDefault()?.Rating ?? 0,
+            LastRating = 0
         };
     }
 }

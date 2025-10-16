@@ -149,7 +149,6 @@ builder.Services.Configure<RewardSettings>(
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IGroupService, GroupService>();
 builder.Services.AddScoped<ICardService, CardService>();
-builder.Services.AddScoped<ICardRatingService, CardRatingService>();
 builder.Services.AddScoped<IStudySettingsService, StudySettingsService>();
 builder.Services.AddScoped<IStudySessionService, StudySessionService>();
 builder.Services.AddScoped<IUserStatisticsService, UserStatisticsService>();

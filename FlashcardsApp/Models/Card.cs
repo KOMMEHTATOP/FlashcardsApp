@@ -11,7 +11,5 @@ public class Card
     public Guid UserId { get; set; }  
     public User? User { get; set; } 
     public required Guid GroupId { get; set; } 
-    public Group? Group { get; set; } 
-    public List<CardRating>? Ratings { get; set; } 
-    
+    public Group? Group { get; set; }
 }

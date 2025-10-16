@@ -10,7 +10,8 @@ public interface IGamificationService
 {
     /// <summary>
     /// Рассчитывает XP за изученную карточку.
-    /// Учитывает: сложность карточки, качество ответа, streak пользователя.
+    /// Учитывает: качество ответа (оценка) и streak пользователя.
+    /// Формула: XP = BaseXP × Quality × Streak
     /// </summary>
     /// <param name="userId">ID пользователя</param>
     /// <param name="cardId">ID карточки</param>
@@ -23,8 +24,8 @@ public interface IGamificationService
     /// </summary>
     /// <param name="userId">ID пользователя</param>
     /// <param name="xp">Количество XP для добавления</param>
-    /// <returns>(leveledUp: был ли level up, newLevel: новый уровень если был)</returns>
-    Task<ServiceResult<(bool leveledUp, int? newLevel)>> AddXPToUserAsync(Guid userId, int xp);
+    /// <returns>(leveledUp: был ли level up, newLevel: новый уровень)</returns>
+    Task<ServiceResult<(bool leveledUp, int newLevel)>> AddXPToUserAsync(Guid userId, int xp);
 
     /// <summary>
     /// Обновляет streak пользователя на основе даты последнего занятия.

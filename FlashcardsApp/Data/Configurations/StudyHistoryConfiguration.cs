@@ -17,13 +17,13 @@ public class StudyHistoryConfiguration : IEntityTypeConfiguration<StudyHistory>
         builder.HasIndex(sh => new { sh.UserId, sh.CardId, sh.StudiedAt })
             .HasDatabaseName("IX_StudyHistory_User_Card_Date");
 
-        // Связь с User
+        // Связь с User 
         builder.HasOne(sh => sh.User)
-            .WithMany()
+            .WithMany(u => u.StudyHistory)
             .HasForeignKey(sh => sh.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Связь с Card
+        // Связь с Card 
         builder.HasOne(sh => sh.Card)
             .WithMany()
             .HasForeignKey(sh => sh.CardId)

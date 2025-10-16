@@ -3,6 +3,7 @@ using System;
 using FlashcardsApp.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FlashcardsApp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251016100859_RemoveCardRatingsTable")]
+    partial class RemoveCardRatingsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -198,12 +201,17 @@ namespace FlashcardsApp.Migrations
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("UserId1")
+                        .HasColumnType("uuid");
+
                     b.Property<int>("XPEarned")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CardId");
+
+                    b.HasIndex("UserId1");
 
                     b.HasIndex("UserId", "CardId", "StudiedAt")
                         .HasDatabaseName("IX_StudyHistory_User_Card_Date");
@@ -550,10 +558,14 @@ namespace FlashcardsApp.Migrations
                         .IsRequired();
 
                     b.HasOne("FlashcardsApp.Models.User", "User")
-                        .WithMany("StudyHistory")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("FlashcardsApp.Models.User", null)
+                        .WithMany("StudyHistory")
+                        .HasForeignKey("UserId1");
 
                     b.Navigation("Card");
 

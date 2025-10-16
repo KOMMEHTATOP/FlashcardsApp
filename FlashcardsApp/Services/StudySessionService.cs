@@ -33,19 +33,30 @@ public class StudySessionService : IStudySessionService
 
         var settings = settingsResult.Data;
 
-        // Получаем карточки группы с последней оценкой
+        // Получаем карточки группы
         var cards = await _context.Cards
             .Where(c => c.UserId == userId && c.GroupId == groupId)
-            .Include(c => c.Ratings)
             .ToListAsync();
+
+        // Получаем последние оценки для всех карточек из StudyHistory
+        var cardIds = cards.Select(c => c.CardId).ToList();
+        
+        var lastRatings = await _context.StudyHistory
+            .Where(sh => sh.UserId == userId && cardIds.Contains(sh.CardId))
+            .GroupBy(sh => sh.CardId)
+            .Select(g => new 
+            { 
+                CardId = g.Key, 
+                LastRating = g.OrderByDescending(sh => sh.StudiedAt)
+                              .Select(sh => sh.Rating)
+                              .FirstOrDefault() 
+            })
+            .ToDictionaryAsync(x => x.CardId, x => x.LastRating);
 
         // Фильтруем по диапазону оценок
         var filteredCards = cards.Where(card =>
         {
-            var lastRating = card.Ratings?
-                .OrderByDescending(r => r.CreatedAt)
-                .FirstOrDefault()?.Rating ?? 0;
-
+            var lastRating = lastRatings.GetValueOrDefault(card.CardId, 0);
             return lastRating >= settings.MinRating && lastRating <= settings.MaxRating;
         }).ToList();
 
@@ -53,13 +64,12 @@ public class StudySessionService : IStudySessionService
         List<Card> sortedCards = settings.StudyOrder switch
         {
             StudyOrder.CreatedDate => filteredCards.OrderBy(c => c.CreatedAt).ToList(),
-            StudyOrder.Rating => filteredCards.OrderBy(c =>
-                c.Ratings?.OrderByDescending(r => r.CreatedAt).FirstOrDefault()?.Rating ?? 0
+            StudyOrder.Rating => filteredCards.OrderBy(c => 
+                lastRatings.GetValueOrDefault(c.CardId, 0)
             ).ToList(),
             StudyOrder.Random => filteredCards.OrderBy(c => Guid.NewGuid()).ToList(),
             _ => filteredCards
         };
-
 
         // Преобразуем в DTO
         var studyCards = sortedCards.Select(card => new StudyCardDto
@@ -67,9 +77,7 @@ public class StudySessionService : IStudySessionService
             CardId = card.CardId,
             Question = card.Question,
             Answer = card.Answer,
-            LastRating = card.Ratings?
-                .OrderByDescending(r => r.CreatedAt)
-                .FirstOrDefault()?.Rating ?? 0
+            LastRating = lastRatings.GetValueOrDefault(card.CardId, 0)
         }).ToList();
 
         var response = new ResultStudySessionDto

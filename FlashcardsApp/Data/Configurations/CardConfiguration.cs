@@ -33,11 +33,5 @@ public class CardConfiguration : IEntityTypeConfiguration<Card>
             .WithMany(g => g.Cards)
             .HasForeignKey(c => c.GroupId)
             .OnDelete(DeleteBehavior.Cascade);
-
-        // Связь с Ratings
-        builder.HasMany(c => c.Ratings)
-            .WithOne(r => r.Card)
-            .HasForeignKey(r => r.CardId)
-            .OnDelete(DeleteBehavior.Cascade);
     }
 }
