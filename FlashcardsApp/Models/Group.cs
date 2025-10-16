@@ -14,5 +14,5 @@ public class Group
     public int Order { get; set; } = 0;
     
     public User? User { get; set; }
-    public List<Card>? Cards { get; set; } 
+    public List<Card>? Cards { get; set; } = [];
 }

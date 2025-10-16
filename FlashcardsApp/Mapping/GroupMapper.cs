@@ -12,10 +12,12 @@ public static class GroupMapper
         return new ResultGroupDto()
         {
             Id = model.Id,
-            GroupName = model.GroupName, 
+            GroupName = model.GroupName,
             GroupColor = model.GroupColor,
+            GroupIcon = model.GroupIcon,
             CreatedAt = model.CreatedAt,
-            Order = model.Order
+            Order = model.Order,
+            CardCount = model.Cards?.Count ?? 0
         };
     }
 }

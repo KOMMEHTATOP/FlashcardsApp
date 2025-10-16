@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FlashcardsApp.Services;
 
-public class StudySessionService: IStudySessionService
+public class StudySessionService : IStudySessionService
 {
     private readonly ApplicationDbContext _context;
     private readonly IStudySettingsService _studySettingsService;
@@ -36,13 +36,16 @@ public class StudySessionService: IStudySessionService
         // Получаем карточки группы с последней оценкой
         var cards = await _context.Cards
             .Where(c => c.UserId == userId && c.GroupId == groupId)
-            .Include(c => c.Ratings!.OrderByDescending(r => r.CreatedAt).Take(1))
+            .Include(c => c.Ratings)
             .ToListAsync();
 
         // Фильтруем по диапазону оценок
         var filteredCards = cards.Where(card =>
         {
-            var lastRating = card.Ratings?.FirstOrDefault()?.Rating ?? 0;
+            var lastRating = card.Ratings?
+                .OrderByDescending(r => r.CreatedAt)
+                .FirstOrDefault()?.Rating ?? 0;
+
             return lastRating >= settings.MinRating && lastRating <= settings.MaxRating;
         }).ToList();
 
@@ -50,10 +53,13 @@ public class StudySessionService: IStudySessionService
         List<Card> sortedCards = settings.StudyOrder switch
         {
             StudyOrder.CreatedDate => filteredCards.OrderBy(c => c.CreatedAt).ToList(),
-            StudyOrder.Rating => filteredCards.OrderBy(c => c.Ratings?.FirstOrDefault()?.Rating ?? 0).ToList(),
-            StudyOrder.Random => filteredCards.OrderBy(c => Guid.NewGuid()).ToList(), // Лучше использовать Guid.NewGuid() для рандома
+            StudyOrder.Rating => filteredCards.OrderBy(c =>
+                c.Ratings?.OrderByDescending(r => r.CreatedAt).FirstOrDefault()?.Rating ?? 0
+            ).ToList(),
+            StudyOrder.Random => filteredCards.OrderBy(c => Guid.NewGuid()).ToList(),
             _ => filteredCards
         };
+
 
         // Преобразуем в DTO
         var studyCards = sortedCards.Select(card => new StudyCardDto
@@ -61,7 +67,9 @@ public class StudySessionService: IStudySessionService
             CardId = card.CardId,
             Question = card.Question,
             Answer = card.Answer,
-            LastRating = card.Ratings?.FirstOrDefault()?.Rating ?? 0
+            LastRating = card.Ratings?
+                .OrderByDescending(r => r.CreatedAt)
+                .FirstOrDefault()?.Rating ?? 0
         }).ToList();
 
         var response = new ResultStudySessionDto

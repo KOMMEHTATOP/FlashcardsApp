@@ -29,6 +29,7 @@ public class GroupService : IGroupService
         _logger.LogInformation("Fetching group {GroupId} for user {UserId}", groupId, userId);
 
         var group = await _context.Groups
+            .Include(g => g.Cards)
             .AsNoTracking()
             .FirstOrDefaultAsync(g => g.Id == groupId && g.UserId == userId);
 
@@ -47,6 +48,7 @@ public class GroupService : IGroupService
         _logger.LogInformation("Fetching all groups for user {UserId}", userId);
 
         var groups = await _context.Groups
+            .Include(c => c.Cards)
             .AsNoTracking()
             .Where(g => g.UserId == userId)
             .OrderBy(g => g.Order)
@@ -71,6 +73,7 @@ public class GroupService : IGroupService
             GroupIcon = "",
             GroupColor = model.Color,
             CreatedAt = DateTime.UtcNow,
+            Order = 0
         };
 
         _context.Groups.Add(group);
