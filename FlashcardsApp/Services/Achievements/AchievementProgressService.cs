@@ -97,7 +97,7 @@ public class AchievementProgressService : IAchievementProgressService
     {
         try
         {
-            // Получаем статистику пользователя ОДИН раз
+            // Получаем статистику пользователя
             var userStats = await _context.UserStatistics
                 .AsNoTracking()
                 .FirstOrDefaultAsync(s => s.UserId == userId);
@@ -108,7 +108,7 @@ public class AchievementProgressService : IAchievementProgressService
                     "Статистика пользователя не найдена");
             }
 
-            // Получаем ВСЕ активные достижения и разблокированные пользователем за ОДИН запрос
+            // Получаем активные достижения и разблокированные пользователем
             var achievements = await _context.Achievements
                 .AsNoTracking()
                 .Where(a => a.IsActive)

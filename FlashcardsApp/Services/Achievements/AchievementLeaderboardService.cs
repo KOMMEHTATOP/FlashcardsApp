@@ -25,7 +25,7 @@ public class AchievementLeaderboardService : IAchievementLeaderboardService
     {
         _logger.LogInformation("Fetching top {Count} users by achievements", count);
 
-        if (count < 1 || count > 100)
+        if (count is < 1 or > 100)
         {
             _logger.LogWarning("Invalid count parameter: {Count}", count);
             return ServiceResult<IEnumerable<LeaderboardEntryDto>>.Failure("Count must be between 1 and 100");
@@ -47,7 +47,7 @@ public class AchievementLeaderboardService : IAchievementLeaderboardService
                 {
                     UserId = x.User.Id,
                     Username = x.User.UserName ?? "Unknown",
-                    AvatarUrl = null, // TODO: Добавить, когда будет поле Avatar в User
+                    AvatarUrl = null, // Добавить, когда будет поле Avatar в User
                     AchievementCount = x.AchievementCount,
                     TotalXP = x.TotalXP,
                     Position = index + 1,
@@ -100,7 +100,7 @@ public class AchievementLeaderboardService : IAchievementLeaderboardService
     {
         _logger.LogInformation("Fetching leaderboard with user {UserId} position", userId);
 
-        if (topCount < 1 || topCount > 100)
+        if (topCount is < 1 or > 100)
         {
             _logger.LogWarning("Invalid topCount parameter: {TopCount}", topCount);
             return ServiceResult<IEnumerable<LeaderboardEntryDto>>.Failure("Count must be between 1 and 100");

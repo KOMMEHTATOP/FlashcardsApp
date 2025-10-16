@@ -9,9 +9,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FlashcardsApp.Services.Achievements;
 
-/// <summary>
-/// Сервис для управления достижениями пользователей
-/// </summary>
 public class AchievementService : IAchievementService
 {
     private readonly ApplicationDbContext _context;
@@ -138,9 +135,6 @@ public class AchievementService : IAchievementService
         }
     }
 
-    /// <summary>
-    /// Разблокировать конкретное достижение для пользователя вручную
-    /// </summary>
     /// <summary>
     /// Разблокировать конкретное достижение для пользователя вручную
     /// </summary>
@@ -286,7 +280,7 @@ public class AchievementService : IAchievementService
             {
                 await _context.SaveChangesAsync();
 
-                // ✅ ОТПРАВЛЯЕМ УВЕДОМЛЕНИЯ через SignalR
+                // ОТПРАВЛЯЕМ УВЕДОМЛЕНИЯ через SignalR
                 // Начисляем награды и собираем информацию о бонусах
                 var notifications = new List<AchievementUnlockedNotification>();
 
@@ -363,14 +357,10 @@ public class AchievementService : IAchievementService
     }
     
     /// <summary>
-    /// ✅ ВСПОМОГАТЕЛЬНЫЙ МЕТОД для отправки уведомления
+    /// МЕТОД для отправки уведомления
     /// Инкапсулирует создание объекта уведомления
     /// </summary>
-    private async Task SendAchievementNotificationAsync(
-        Guid userId, 
-        Achievement achievement, 
-        DateTime unlockedAt, 
-        int bonusXP)
+    private async Task SendAchievementNotificationAsync(Guid userId, Achievement achievement, DateTime unlockedAt, int bonusXP)
     {
         try
         {
@@ -390,8 +380,6 @@ public class AchievementService : IAchievementService
         }
         catch (Exception ex)
         {
-            // Логируем, но НЕ пробрасываем исключение
-            // Ошибка уведомления не должна ломать основную логику
             _logger.LogError(ex, 
                 "Failed to send achievement notification for achievement {AchievementId} to user {UserId}",
                 achievement.Id, userId);

@@ -9,12 +9,7 @@ namespace FlashcardsApp.Interfaces.Achievements;
 public interface IAchievementRewardService
 {
     /// <summary>
-    /// Начислить награду за выполнение достижения (XP + монеты).
+    /// Начислить награду за выполнение достижения (XP).
     /// </summary>
     Task<ServiceResult<AchievementRewardDto>> AwardBonusForAchievementAsync(Guid userId, Guid achievementId);
-
-    /// <summary>
-    /// Получить историю наград пользователя.
-    /// </summary>
-    Task<ServiceResult<IEnumerable<AchievementRewardDto>>> GetUserRewardHistoryAsync(Guid userId);
 }

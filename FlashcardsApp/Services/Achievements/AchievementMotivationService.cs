@@ -5,7 +5,7 @@ namespace FlashcardsApp.Services.Achievements;
 
 /// <summary>
 /// Сервис для генерации мотивационных сообщений
-/// Отвечает ТОЛЬКО за текстовую мотивацию и локализацию (склонения слов)
+/// Отвечает за текстовую мотивацию и локализацию (склонения слов)
 /// </summary>
 public class AchievementMotivationService : IAchievementMotivationService
 {

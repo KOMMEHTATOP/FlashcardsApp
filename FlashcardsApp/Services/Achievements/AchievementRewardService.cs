@@ -53,16 +53,13 @@ public class AchievementRewardService : IAchievementRewardService
 
             // Начисляем XP через GamificationService
             var addResult = await _gamificationService.AddXPToUserAsync(userId, baseXP);
-            
+
             if (!addResult.IsSuccess)
             {
-                _logger.LogWarning("Failed to add XP for achievement {AchievementId} to user {UserId}", 
+                _logger.LogWarning("Failed to add XP for achievement {AchievementId} to user {UserId}",
                     achievementId, userId);
                 return ServiceResult<AchievementRewardDto>.Failure("Failed to award XP");
             }
-
-            // TODO: Начислить монеты когда появится функционал
-            // await _coinService.AddCoinsAsync(userId, coins);
 
             var rewardDto = new AchievementRewardDto
             {
@@ -76,33 +73,15 @@ public class AchievementRewardService : IAchievementRewardService
             _logger.LogInformation(
                 "Awarded {XP} XP and {Coins} coins to user {UserId} for achievement '{Achievement}'",
                 baseXP, coins, userId, achievement.Name);
-
-            // TODO: Сохранить в таблицу UserRewards для истории
-            
             return ServiceResult<AchievementRewardDto>.Success(rewardDto);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, 
-                "Failed to award bonus for achievement {AchievementId} to user {UserId}", 
+            _logger.LogError(ex,
+                "Failed to award bonus for achievement {AchievementId} to user {UserId}",
                 achievementId, userId);
             return ServiceResult<AchievementRewardDto>.Failure("Failed to award bonus");
         }
     }
-
-    /// <summary>
-    /// Получить историю наград пользователя
-    /// TODO: Реализовать когда появится таблица UserRewards
-    /// </summary>
-    public Task<ServiceResult<IEnumerable<AchievementRewardDto>>> GetUserRewardHistoryAsync(Guid userId)
-    {
-        _logger.LogDebug(
-            "GetUserRewardHistoryAsync called for user {UserId} — history storage not implemented yet", 
-            userId);
-
-        // TODO: создать сущность UserReward и DbSet<UserReward> в ApplicationDbContext
-        return Task.FromResult(
-            ServiceResult<IEnumerable<AchievementRewardDto>>.Success(
-                Enumerable.Empty<AchievementRewardDto>()));
-    }
+    
 }

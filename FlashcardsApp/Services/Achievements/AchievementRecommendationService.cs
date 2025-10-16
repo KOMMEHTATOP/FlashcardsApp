@@ -41,8 +41,7 @@ public class AchievementRecommendationService : IAchievementRecommendationServic
     {
         try
         {
-            // Валидация входных данных
-            if (count <= 0 || count > 10)
+            if (count is <= 0 or > 10)
             {
                 return ServiceResult<IEnumerable<AchievementRecommendationDto>>.Failure(
                     "Количество рекомендаций должно быть от 1 до 10");
@@ -70,10 +69,10 @@ public class AchievementRecommendationService : IAchievementRecommendationServic
 
             // 3. Фильтруем и сортируем достижения
             var recommendations = allProgressResult.Data
-                .Where(p => !p.IsUnlocked && p.ProgressPercentage > 0) // Только неразблокированные с прогрессом
+                .Where(p => p is { IsUnlocked: false, ProgressPercentage: > 0 }) // Только неразблокированные с прогрессом
                 .OrderByDescending(p => p.ProgressPercentage)          // Сначала ближайшие к завершению
                 .ThenBy(p => p.Rarity)                                 // При равном прогрессе - более простые
-                .Take(count)                                           // Берем топ-N
+                .Take(count)                                              // Берем топ-N
                 .Select(p =>
                 {
                     var remainingValue = p.ConditionValue - p.CurrentValue;

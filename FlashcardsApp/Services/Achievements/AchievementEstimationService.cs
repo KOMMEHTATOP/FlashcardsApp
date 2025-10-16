@@ -1,3 +1,4 @@
+using FlashcardsApp.Interfaces;
 using FlashcardsApp.Interfaces.Achievements;
 using FlashcardsApp.Models;
 using FlashcardsAppContracts.Enums;
@@ -6,10 +7,17 @@ namespace FlashcardsApp.Services.Achievements;
 
 /// <summary>
 /// Сервис для оценки времени до получения достижения
-/// Отвечает ТОЛЬКО за расчет оценки дней на основе статистики пользователя
+/// Отвечает за расчет оценки дней на основе статистики пользователя
 /// </summary>
 public class AchievementEstimationService : IAchievementEstimationService
 {
+    private readonly IGamificationService _gamificationService;
+
+    public AchievementEstimationService(IGamificationService gamificationService)
+    {
+        _gamificationService = gamificationService;
+    }
+    
     // Константы для оценки среднего темпа (можно вынести в конфигурацию)
     private const int DefaultCardsPerDay = 5;
     private const int DefaultCreatedCardsPerDay = 2;
@@ -104,7 +112,6 @@ public class AchievementEstimationService : IAchievementEstimationService
         }
 
         // Вычисляем реальный темп пользователя
-        // УПРОЩЕННАЯ ОЦЕНКА: currentTotal / daysSinceLastActivity
         // В реальности лучше брать последние 30 дней из StudyHistory
         var estimatedDaysActive = Math.Max(1, daysSinceLastActivity);
         var userPacePerDay = (double)currentTotal / estimatedDaysActive;
@@ -126,42 +133,21 @@ public class AchievementEstimationService : IAchievementEstimationService
     /// Оценка дней для достижения уровня
     /// Учитываем экспоненциальный рост XP для уровней
     /// </summary>
-    private static int EstimateDaysForLevel(int targetLevel, UserStatistics userStats)
+    private int EstimateDaysForLevel(int targetLevel, UserStatistics userStats)
     {
-        // Текущий уровень пользователя
-        var currentLevel = userStats.Level;
         var currentXP = userStats.TotalXP;
-
-        // Вычисляем сколько XP нужно для целевого уровня
-        // Формула: XP_для_уровня = 100 * уровень^2
-        // (Эта формула должна совпадать с GamificationService)
-        var requiredXP = CalculateXPForLevel(targetLevel);
+        var requiredXP = _gamificationService.CalculateXPForLevel(targetLevel);
         var remainingXP = requiredXP - currentXP;
 
-        // Если уже достигнут или превышен
         if (remainingXP <= 0)
             return 0;
 
-        // Оцениваем темп набора XP
         return EstimateByUserPace(
             remainingXP, 
             currentXP, 
             userStats.LastStudyDate, 
             DefaultXpPerDay);
     }
-
-    /// <summary>
-    /// Вычислить требуемый XP для уровня
-    /// ВАЖНО: Эта формула должна совпадать с GamificationService.CalculateLevelFromXP()
-    /// </summary>
-    private static int CalculateXPForLevel(int level)
-    {
-        // Формула: XP = 100 * level^2
-        // Уровень 1 = 100 XP
-        // Уровень 5 = 2500 XP
-        // Уровень 10 = 10000 XP
-        return 100 * level * level;
-    }
-
+    
     #endregion
 }
