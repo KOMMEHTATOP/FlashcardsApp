@@ -75,14 +75,18 @@ export default function AddFlashcardForm({
                 className={`text-2xl bg-gradient-to-r ${subjectColor} bg-clip-text text-transparent flex items-center gap-2`}
               >
                 <Sparkles className="w-6 h-6 text-gray-600" />
-                <label className="">Создать новую карточку</label>
+                <label className="">
+                  {isUpdateCard ? "Обновить" : "Добавить"} карточку
+                </label>
               </div>
               <ButtonCircle onClick={handleClose} className="hover:bg-gray-300">
                 <X className="w-6 h-6 text-gray-600" />
               </ButtonCircle>
             </div>
             <span className="text-gray-600">
-              Добавьте вопрос и ответ, чтобы попрактиковаться позже
+              {isUpdateCard
+                ? "Обновите вопрос и ответ"
+                : "Добавьте вопрос и ответ, чтобы попрактиковаться позже"}
             </span>
 
             <div className="space-y-6 mt-4">

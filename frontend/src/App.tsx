@@ -6,6 +6,7 @@ import AboutPage from "./pages/About";
 import StudyPage from "./pages/Study";
 import LoginPage from "./pages/Login";
 import { PrivateRoute } from "./layout/PrivateRoute";
+import { GuestRoute } from "./layout/GuestRoute";
 
 const router = createBrowserRouter([
   {
@@ -39,7 +40,11 @@ const router = createBrowserRouter([
   },
   {
     path: "/login",
-    element: <LoginPage />,
+    element: (
+      <GuestRoute>
+        <LoginPage />
+      </GuestRoute>
+    ),
   },
 ]);
 

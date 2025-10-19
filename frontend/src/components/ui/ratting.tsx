@@ -5,12 +5,14 @@ import type { RatingValue } from "../../types/types";
 import { recallRatingInfo } from "../../test/data";
 
 interface RecallRatingProps {
+  disabled?: boolean;
   value: RatingValue;
   onChange: (val: RatingValue) => void;
   size?: number;
 }
 
 export default function RecallRating({
+  disabled = false,
   value,
   onChange,
   size = 8,
@@ -28,6 +30,7 @@ export default function RecallRating({
           return (
             <motion.input
               key={num}
+              disabled={disabled}
               type="radio"
               name="recall-rating"
               value={num}

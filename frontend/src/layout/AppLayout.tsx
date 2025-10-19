@@ -20,11 +20,11 @@ export default function AppLayout() {
           initialIndex={currentLesson.initialIndex}
           onComplete={() => {
             handleCompliteLesson();
-            navigate(`/study/${currentLesson?.group?.Id}/`);
+            navigate(`/`);
           }}
           onBack={() => {
             handleCompliteLesson();
-            navigate(`/study/${currentLesson?.group?.Id}/`);
+            navigate(`/`);
           }}
         />
       </div>

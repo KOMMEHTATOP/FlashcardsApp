@@ -10,13 +10,13 @@ import {
   User,
   Zap,
 } from "lucide-react";
-import { Activity, useEffect, useState } from "react";
+import { Activity, useState } from "react";
 import Input from "../components/ui/input";
 import ConfrimBtn from "../components/ui/confrim_btn";
 import Card from "../components/ui/card";
-import { useNavigate } from "react-router-dom";
+
 import useTitle from "../utils/useTitle";
-import { floatingIcons } from "../test/data";
+import { floatingIcons, TITLE_APP } from "../test/data";
 import apiFetch, { BASE_URL } from "../utils/apiFetch";
 import axios from "axios";
 
@@ -27,18 +27,11 @@ export default function LoginPage() {
   );
 
   const [login, setLogin] = useState<string>("");
-  const [email, setEmail] = useState<string>("ais1@gmail.com");
-  const [password, setPassword] = useState<string>("Aibek2002!");
+  const [email, setEmail] = useState<string>("test@test.com");
+  const [password, setPassword] = useState<string>("Test123!");
 
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
-  const navigation = useNavigate();
-
-  useEffect(() => {
-    if (localStorage.getItem("accessToken")) {
-      // navigation("/");
-    }
-  }, []);
 
   const handleSelect = (block: string) => {
     setSelectedBlock(block as "login" | "register");
@@ -59,7 +52,7 @@ export default function LoginPage() {
       email,
       password,
     };
-    console.log(data);
+    // console.log(data);
     await axios
       .post(`${BASE_URL}/Auth/login`, data, { withCredentials: true })
       .then((res) => {
@@ -71,7 +64,7 @@ export default function LoginPage() {
       })
       .catch((err) => {
         console.log(err);
-        setError(err.response.data.message);
+        setError(err.response?.data.message || "Произошла ошибка");
         setLoading(false);
       })
       .finally(() => {
@@ -177,7 +170,7 @@ export default function LoginPage() {
             </div>
           </motion.div>
           <h1 className="text-5xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2 p-2">
-            Studing
+            {TITLE_APP}
           </h1>
           <p className="text-gray-600 dark:text-gray-400 text-lg text-subtitle">
             Повышайте уровень своего обучения вместе с нами! 🚀

@@ -22,7 +22,7 @@ export default function LevelCard({
     <motion.div
       layout
       transition={{ layout: { duration: 0.4, ease: "easeInOut" } }}
-      className={`bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500  rounded-2xl shadow-lg dark:shadow-purple-900/20 ${className} ${
+      className={`bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500  rounded-2xl shadow-lg ${className} ${
         isCollapsed ? "p-4" : "p-6"
       }`}
     >
@@ -35,7 +35,6 @@ export default function LevelCard({
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="overflow-hidden"
           >
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
@@ -58,7 +57,9 @@ export default function LevelCard({
                 className="flex items-center gap-1 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full"
               >
                 <Star className="w-5 h-5 text-yellow-300 fill-yellow-300" />
-                <span className="text-white text-number">{current} XP</span>
+                <span className="text-white text-number">
+                  {xpToNextLevel.toFixed(0)} XP
+                </span>
               </motion.div>
             </div>
           </motion.div>

@@ -11,6 +11,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     | "error";
   size?: "sm" | "md" | "lg";
   asChild?: boolean;
+  loading?: boolean;
 }
 
 export function Button({
@@ -18,6 +19,7 @@ export function Button({
   variant = "primary",
   size = "md",
   asChild = false,
+  loading = false,
   ...props
 }: ButtonProps) {
   const Comp = asChild ? "span" : "button";
@@ -42,7 +44,11 @@ export function Button({
 
   return (
     <Comp
-      className={`${base} ${variants[variant]} ${sizes[size]} ${className}  transition-all duration-300 ease-in-out`}
+      className={`${base} ${variants[variant]} ${
+        sizes[size]
+      } ${className}  transition-all duration-300 ease-in-out ${
+        loading ? "cursor-not-allowed opacity-50" : ""
+      }`}
       {...props}
     />
   );
@@ -73,6 +79,29 @@ export function ButtonCircle({
         circleSizes[size || "md"]
       } p-2 flex items-center justify-center hover:bg-base-300 hover:scale-105 transition-all duration-300 cursor-pointer ${className}`}
       {...props}
+    >
+      {children}
+    </button>
+  );
+}
+
+interface ButtonCard {
+  className?: string;
+  size?: string;
+  children?: React.ReactNode;
+  onClick?: () => void;
+}
+
+export function ButtonCard({
+  className = "",
+  size,
+  children,
+  onClick,
+}: ButtonCard) {
+  return (
+    <button
+      className={` w-10 h-10 flex items-center justify-center bg-base-300/10 rounded-full z-10 hover:bg-white/20 hover:scale-105 transition-all duration-300 ${className}`}
+      onClick={onClick}
     >
       {children}
     </button>

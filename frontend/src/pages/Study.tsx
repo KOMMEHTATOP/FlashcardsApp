@@ -3,13 +3,14 @@ import { Link, useParams } from "react-router-dom";
 import type {
   ConfrimModalState,
   GroupCardType,
-  GroupDetailType,
+  GroupType,
 } from "../types/types";
 import {
   ArrowLeft,
   BookHeartIcon,
   BowArrowIcon,
   Frown,
+  GalleryVerticalEndIcon,
   Trophy,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -20,6 +21,7 @@ import useTitle from "../utils/useTitle";
 import apiFetch from "../utils/apiFetch";
 import AddFlashcardForm from "../components/modal/AddFlashcardForm";
 import StarInput from "../components/ui/star_unput";
+import SkeletonGroupDetail from "../components/StudySkeleton";
 
 export default function StudyPage({}) {
   const { id } = useParams();
@@ -28,9 +30,10 @@ export default function StudyPage({}) {
     deleteCard,
     handleOpenConfrimModal,
     handleCloseConfrimModal,
+    setGroups,
   } = useApp();
 
-  const [group, setGroup] = useState<GroupDetailType | null>(null);
+  const [group, setGroup] = useState<GroupType | null>(null);
   const [isOpenAddModal, setIsOpenAddModal] = useState<boolean>(false);
   const [newQuestion, setNewQuestion] = useState<string>("");
   const [newAnswer, setNewAnswer] = useState<string>("");
@@ -47,6 +50,14 @@ export default function StudyPage({}) {
       targetStar !== 0 ? card.LastRating === targetStar : card
     );
   }, [targetStar, dataDetail]);
+
+  const proggresGroup = useMemo(() => {
+    const totalCards = dataDetail.length;
+    const completedCards = dataDetail.filter(
+      (card) => card.LastRating > 0
+    ).length;
+    return (completedCards / totalCards) * 100;
+  }, [dataDetail]);
 
   useEffect(() => {
     const fetchCards = async () => {
@@ -107,6 +118,11 @@ export default function StudyPage({}) {
         .then((res) => {
           setLoading(false);
           setDataDetail((prev) => [res.data, ...prev]);
+          setGroups((prev) =>
+            prev.map((g) =>
+              g.Id === id ? { ...g, CardCount: g.CardCount + 1 } : g
+            )
+          );
           return true;
         })
         .catch(() => {
@@ -151,10 +167,15 @@ export default function StudyPage({}) {
 
   const handleCloseModal = () => setIsOpenAddModal(false);
 
+  if (!group) return <SkeletonGroupDetail />;
+
   return (
     <div className="min-h-screen">
-      <div
-        className={`relative bg-gradient-to-br ${group?.GroupColor} px-4 sm:px-6 lg:px-8 py-12 overflow-hidden rounded-2xl shadow-xl`}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className={`relative bg-gradient-to-br ${group?.GroupColor} px-4 sm:px-6 lg:px-8 py-12 overflow-hidden rounded-2xl shadow-xl flex  `}
       >
         <div
           className="absolute inset-0 bg-white/10"
@@ -164,7 +185,7 @@ export default function StudyPage({}) {
             backgroundSize: "40px 40px",
           }}
         />
-        <div className="max-w-7xl mx-auto relative z-10">
+        <div className="max-w-7xl mx-auto relative z-10 w-full">
           <Link
             to="/"
             className="text-white hover:bg-white/20 mb-6 flex items-center rounded px-4 py-2 duration-300 transition w-fit"
@@ -173,20 +194,20 @@ export default function StudyPage({}) {
             Назад на главную
           </Link>
 
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 mb-8">
+          <div className="flex flex-col sm:flex-row items-center md:items-start sm:items-center gap-6 mb-8">
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ type: "spring", stiffness: 200 }}
               className="bg-white/20 backdrop-blur-sm p-6 rounded-3xl"
             >
-              {/* {group?.icon && <group.icon className="w-12 h-12 text-white" />} */}
+              <BookHeartIcon className="w-25 h-25 md:w-18 md:h-18 text-white" />
             </motion.div>
 
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
                 <h1 className="text-4xl text-white">{group?.GroupName}</h1>
-                {/* {Number(group?.streak) > 0 && (
+                {Number(group?.CardCount) > 0 && (
                   <motion.div
                     animate={{ rotate: [0, 10, -10, 0] }}
                     transition={{
@@ -196,29 +217,31 @@ export default function StudyPage({}) {
                     }}
                     className="bg-orange-500 text-white px-3 py-2 rounded-full flex items-center gap-1 text-subtitle"
                   >
-                    <Flame className="w-5 h-5 text-yellow" /> {group?.streak}{" "}
-                    дней подряд
+                    <GalleryVerticalEndIcon className="w-5 h-5 text-yellow" />
+                    {group?.CardCount} карточек
                   </motion.div>
-                )} */}
+                )}
               </div>
               <p className="text-white/90 text-lg mb-4">
                 Овладейте основами и раскройте свой потенциал
               </p>
 
-              {/* <div className="space-y-2">
+              <div className="space-y-2">
                 <div className="flex justify-between text-white/80 text-sm">
                   <span className="text-subtitle">Общий прогресс</span>
-                  <span className="text-number">{group?.progress}%</span>
+                  <span className="text-number">
+                    {proggresGroup.toFixed(0)}%
+                  </span>
                 </div>
-                <div className="relative z-10 w-full h-2 bg-white/10">
+                <div className="relative z-10 w-full h-4 md:h-3 bg-white/10 rounded-full">
                   <motion.div
                     initial={{ width: 0 }}
-                    animate={{ width: `${group?.progress || 0}%` }}
+                    animate={{ width: `${proggresGroup || 0}%` }}
                     transition={{ duration: 1, ease: "easeOut" }}
-                    className="h-full bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-full"
+                    className="h-full bg-gradient-to-r from-yellow-50 to-yellow-100"
                   />
                 </div>
-              </div> */}
+              </div>
             </div>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -240,10 +263,15 @@ export default function StudyPage({}) {
             ))} */}
           </div>
         </div>
-      </div>
+      </motion.div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4"
+        >
           <h2 className="text-lg md:text-2xl text-base-content/80">
             Путь обучения
           </h2>
@@ -257,7 +285,7 @@ export default function StudyPage({}) {
               "
           >
             {/* Фильтр по звездам карт */}
-            <div className="col-span-1 sm:col-span-3 md:col-auto flex justify-center md:justify-start">
+            <div className="col-span-2 sm:col-span-3 md:col-auto flex justify-center md:justify-start">
               <StarInput
                 name="Фильтр"
                 max={5}
@@ -295,7 +323,7 @@ export default function StudyPage({}) {
               </span>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         <div className="space-y-4">
           {filterCards.length === 0 && (

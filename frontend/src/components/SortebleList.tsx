@@ -13,13 +13,19 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { AnimatePresence, motion } from "framer-motion";
 import React, { useEffect, useRef, useState } from "react";
-import StudyCard from "./cards/Study_card";
+import StudyCard from "./cards/Group_card";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
-import type { ConfrimModalState, GroupType } from "../types/types";
-import { Star } from "lucide-react";
+import type {
+  ConfrimModalState,
+  GroupCardType,
+  GroupType,
+} from "../types/types";
+import { Plus, Star } from "lucide-react";
 import GroupForm from "./modal/GroupForm";
 import apiFetch from "../utils/apiFetch";
+import Card from "./ui/card";
+import shuffleArray from "../utils/shuffleArray";
 
 export function SortableItem({
   id,
@@ -85,6 +91,7 @@ export default function SortableList({
     deleteGroup,
     handleOpenConfrimModal,
     handleCloseConfrimModal,
+    setting,
   } = useApp();
   const navigate = useNavigate();
 
@@ -143,13 +150,19 @@ export default function SortableList({
   }
 
   const handleStartLesson = async (group: GroupType) => {
-    const res = await apiFetch
+    let res: GroupCardType[] = await apiFetch
       .get(`/groups/${group.Id}/cards`)
       .then((res) => res.data)
       .catch();
 
     if (!res || res.length === 0) return;
-    handleSelectLesson(res, group, 0);
+    res = res.filter((card) => card.LastRating >= setting?.MinRating);
+    res = res.filter((card) => card.LastRating <= setting?.MaxRating);
+    if (setting?.ShuffleOnRepeat) res = shuffleArray(res);
+
+    if (!res || res.length === 0) return;
+    // console.log(res);
+    handleSelectLesson(res, group);
   };
 
   const handleDeleteGroup = (item: GroupType) => {
@@ -165,6 +178,18 @@ export default function SortableList({
     handleOpenConfrimModal(modal);
   };
 
+  const [isOpen, setIsOpen] = useState(false);
+  const [targetGroup, setTargetGroup] = useState<GroupType>();
+  const handleEdit = (group: GroupType) => {
+    setTargetGroup(group);
+    setIsOpen(true);
+  };
+  const handleOpen = () => {
+    setTargetGroup(undefined);
+    setIsOpen(true);
+  };
+  const handleClose = () => setIsOpen(false);
+
   return (
     <DndContext
       collisionDetection={closestCenter}
@@ -177,6 +202,33 @@ export default function SortableList({
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 space-y-1">
           <AnimatePresence mode="popLayout">
+            <motion.button
+              whileHover={{ scale: 1.01, y: -5 }}
+              whileTap={{ scale: 1 }}
+              transition={{ duration: 0.2 }}
+              className="group relative w-full md:w-70 h-49"
+              onClick={handleOpen}
+            >
+              <Card className="p-6 border-2 border-dashed border-purple-300  hover:border-purple-500 bg-base-300  backdrop-blur-sm transition-all cursor-pointer h-full flex flex-col items-center justify-center">
+                <motion.div
+                  animate={{ rotate: [0, 90, 0] }}
+                  transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
+                  className="bg-gradient-to-br from-purple-400 to-pink-500 p-4 rounded-2xl mb-4 shadow-lg"
+                >
+                  <Plus className="w-8 h-8 text-white" />
+                </motion.div>
+                <p className="text-base-content/80 ">Добавить новую тему</p>
+                <p className="text-sm text-base-content/60 mt-1">
+                  Создать учебную группу
+                </p>
+              </Card>
+            </motion.button>
+            <GroupForm
+              key={"form"}
+              targetGroup={targetGroup}
+              isOpen={isOpen}
+              handleCancle={handleClose}
+            />
             {items.map((item, index) => (
               <SortableItem key={item.Id} id={item?.Id || ""} index={index}>
                 <motion.div
@@ -189,18 +241,18 @@ export default function SortableList({
                     gradient={
                       item.GroupColor || "from-green-400 to-emerald-500"
                     }
-                    streak={4}
+                    streak={item.CardCount}
                     progress={21}
                     icon={Star}
                     title={item.GroupName}
                     onClick={() => navigate(`/study/${item.Id.toString()}`)}
                     onDelete={() => handleDeleteGroup(item)}
+                    onEdit={() => handleEdit(item)}
                     onLessonPlayer={() => handleStartLesson(item)}
                   />
                 </motion.div>
               </SortableItem>
             ))}
-            <GroupForm />
           </AnimatePresence>
         </div>
       </SortableContext>

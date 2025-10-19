@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import Card from "../ui/card";
-import { LightbulbIcon, RotateCcwIcon, Sparkles } from "lucide-react";
+import { RotateCcwIcon, Sparkles } from "lucide-react";
 import type { GroupCardType } from "../../types/types";
 
 interface MainCardLessensProps {
@@ -74,7 +74,7 @@ export default function MainCardLessens({
                     </div>
                   </motion.div>
                   <h3 className="text-3xl text-white mb-6">
-                    {currentCard.Question}
+                    {currentCard?.Question}
                   </h3>
                   {/* {currentCard.hint && (
                     <div className="bg-white/20 backdrop-blur-sm px-6 py-3 rounded-full">

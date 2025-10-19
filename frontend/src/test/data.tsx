@@ -11,6 +11,9 @@ import {
   Trophy,
   Zap,
 } from "lucide-react";
+
+const TITLE_APP = import.meta.env.VITE_APP_TITLE || "Studing";
+
 const floatingIcons = [
   { icon: Trophy, color: "text-yellow-400", delay: 0, x: "10%", y: "20%" },
   { icon: Star, color: "text-pink-400", delay: 0.2, x: "85%", y: "15%" },
@@ -119,4 +122,5 @@ export {
   levelMotivationVariants,
   availableColors,
   availableIcons,
+  TITLE_APP,
 };
