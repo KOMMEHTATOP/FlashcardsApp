@@ -217,10 +217,7 @@ export default function SortableList({
                 >
                   <Plus className="w-8 h-8 text-white" />
                 </motion.div>
-                <p className="text-base-content/80 ">Добавить новую тему</p>
-                <p className="text-sm text-base-content/60 mt-1">
-                  Создать учебную группу
-                </p>
+                <p className="text-base-content/80 ">Добавить новую группу</p>
               </Card>
             </motion.button>
             <GroupForm
@@ -242,7 +239,7 @@ export default function SortableList({
                       item.GroupColor || "from-green-400 to-emerald-500"
                     }
                     streak={item.CardCount}
-                    progress={21}
+                    progress={(item.CardCount / 10) * 100}
                     icon={Star}
                     title={item.GroupName}
                     onClick={() => navigate(`/study/${item.Id.toString()}`)}

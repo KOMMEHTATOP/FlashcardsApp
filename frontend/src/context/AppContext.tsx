@@ -166,7 +166,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
               ),
             }
         );
-
+        console.log(data);
         setUser(
           (prev) =>
             prev && {
@@ -175,9 +175,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 ...prev?.Statistics,
                 Level: data.CurrentLevel,
                 XPProgressInCurrentLevel: data.CurrentLevelXP,
-                TotalXP: data.TotalXP,
-                CurrentStreak: data.CurrentStreak,
-                XPForNextLevel: data.XPForNextLevel,
+                XPForNextLevel: data.XPToNextLevel,
+                XPRequiredForCurrentLevel: data.XPForNextLevel,
               },
             }
         );

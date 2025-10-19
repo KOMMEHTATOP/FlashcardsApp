@@ -5,6 +5,7 @@ type LevelCardProps = {
   level: number;
   currentXP: number;
   xpToNextLevel: number;
+  xpForNextLevel: number;
   className?: string;
   isCollapsed?: boolean;
 };
@@ -13,10 +14,11 @@ export default function LevelCard({
   level,
   currentXP,
   xpToNextLevel,
+  xpForNextLevel,
   className,
   isCollapsed = false,
 }: LevelCardProps) {
-  const current = xpToNextLevel > 0 ? (currentXP / xpToNextLevel) * 100 : 0;
+  const current = xpToNextLevel > 0 ? (currentXP / xpForNextLevel) * 100 : 0;
 
   return (
     <motion.div
@@ -70,7 +72,7 @@ export default function LevelCard({
         <div className="flex justify-between text-white text-sm opacity-90">
           <span>Осталось до следующего уровня {level + 1}</span>
           <span className="text-number">
-            {currentXP} / {xpToNextLevel}
+            {currentXP} / {xpForNextLevel}
           </span>
         </div>
         <div className="bg-white/20 rounded-full h-3 overflow-hidden">

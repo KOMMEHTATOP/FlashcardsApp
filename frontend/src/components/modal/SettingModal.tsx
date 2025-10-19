@@ -156,7 +156,7 @@ export default function SettingModal({
           </div>
 
           {/* кнопка случайного режима */}
-          <div className="bg-gradient-to-r from-blue-50 to-cyan-50  p-4 rounded-xl">
+          <div className="bg-gradient-to-r from-blue-50 to-pink-50  p-4 rounded-xl">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
                 <label className="text-gray-900 ">Случайный режим</label>

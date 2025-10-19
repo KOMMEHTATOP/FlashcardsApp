@@ -59,7 +59,6 @@ apiFetch.interceptors.response.use((response) =>
                 return apiFetch(originalRequest);
             } catch (err) {
                 proccesQuene(err);
-                console.log("Ошибка получние данных! _407");
                 return Promise.reject(err);
             } finally {
                 isRefreshing = false;

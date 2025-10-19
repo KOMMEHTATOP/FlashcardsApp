@@ -38,15 +38,16 @@ export function HomePage() {
   const [currentModul, setCurrentModul] = useState<number>(0);
   const [isOpenSetting, setIsOpenSetting] = useState<boolean>(false);
 
-  const currentXP = user?.Statistics?.XPProgressInCurrentLevel || 0;
-  const xpToNextLevel = user?.Statistics?.XPForNextLevel || 0;
+  const currentXP = user?.Statistics?.XPProgressInCurrentLevel ?? 0;
+  const xpForNextLevel = user?.Statistics?.XPRequiredForCurrentLevel ?? 0;
+  const xpToNextLevel = Math.max(0, xpForNextLevel - currentXP);
+
   const level = user?.Statistics?.Level || 0;
-  const totalCardCount = useMemo(() => {
-    return groups
-      ?.map((group) => group.CardCount)
-      .reduce((a, b) => a + b, 0)
-      .toString();
-  }, [groups]);
+
+  const totalCardCount = useMemo(
+    () => groups?.reduce((sum, g) => sum + (g.CardCount || 0), 0) ?? 0,
+    [groups]
+  );
 
   const motivationText = useMemo(() => {
     return getLevelMotivationText(currentXP, xpToNextLevel);
@@ -69,6 +70,7 @@ export function HomePage() {
             level={level}
             currentXP={currentXP}
             xpToNextLevel={xpToNextLevel}
+            xpForNextLevel={xpForNextLevel}
           />
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -97,8 +99,8 @@ export function HomePage() {
           />
           <StateCard
             icon={BookCopyIcon}
-            label="Общое количество групп"
-            value={totalCardCount || "0"}
+            label="Общое количество карточек"
+            value={totalCardCount.toString() || "0"}
             gradient="from-purple-500 to-pink-500"
             delay={0.4}
           />

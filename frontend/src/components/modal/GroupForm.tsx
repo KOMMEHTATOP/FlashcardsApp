@@ -50,6 +50,18 @@ export default function GroupForm({
 
   const handleSubmit = async () => {
     setError("");
+
+    if (!name || name.trim() === "") {
+      setError("Введите название группы");
+      return;
+    } else if (!selectColor) {
+      setError("Выберите цвет группы");
+      return;
+    } else if (!selectIcon) {
+      setError("Выберите иконку группы");
+      return;
+    }
+
     try {
       setLoading(true);
       const data = {
