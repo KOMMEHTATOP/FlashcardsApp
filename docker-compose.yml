@@ -20,20 +20,6 @@ services:
     networks:
       - app-network
 
-  migrations:
-    build:
-      context: .
-      dockerfile: FlashcardsApp/Dockerfile.migrations
-    depends_on:
-      postgres:
-        condition: service_healthy
-    environment:
-      - ConnectionStrings__DefaultConnection=${DB_CONNECTION_STRING}
-      - Jwt__Key=${JWT_KEY}
-    restart: "no"
-    networks:
-      - app-network
-
   backend:
     build:
       context: .
@@ -42,15 +28,13 @@ services:
       - "5001:5000"
     depends_on:
       postgres:
-        condition: service_healthy
-      migrations:
-        condition: service_completed_successfully
+        condition: service_healthy 
     environment:
       - ConnectionStrings__DefaultConnection=${DB_CONNECTION_STRING}
       - Jwt__Key=${JWT_KEY}
       - ASPNETCORE_URLS=http://+:5000
       - ASPNETCORE_ENVIRONMENT=Development
-      - AutoMigrate=false
+      - AutoMigrate=true 
       - Cors__AllowedOrigins__0=http://localhost:5173
     networks:
       - app-network
@@ -75,7 +59,6 @@ services:
 
 volumes:
   postgres_data:
-
 
 networks:
   app-network:
