@@ -71,7 +71,7 @@ export default function MotivationCard({
         <p className="text-white/90 text-lg items-center flex justify-center gap-2">
           {description}{" "}
           {TextIcon && (
-            <TextIcon className="w-6 h-6 inline-block text-orange-300" />
+            <TextIcon className="w-6 h-6 hidden md:inline text-orange-300" />
           )}
         </p>
       </div>

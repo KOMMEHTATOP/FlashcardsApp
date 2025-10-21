@@ -1,48 +1,106 @@
 import { motion } from "framer-motion";
 import Card from "../ui/card";
-import { Check, Plus, PlusCircle, X } from "lucide-react";
-import { useState } from "react";
+import { Check, PlusCircle, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import Input from "../ui/input";
 import { availableColors, availableIcons } from "../../test/data";
 import { Button, ButtonCircle } from "../ui/button";
 import apiFetch from "../../utils/apiFetch";
 import { useApp } from "../../context/AppContext";
+import type { GroupType } from "../../types/types";
 
-export default function GroupForm() {
-  const { setNewGroups, groups } = useApp();
-  const [isOpen, setIsOpen] = useState<boolean>(false);
+interface GroupFromProps {
+  targetGroup?: GroupType;
+  isOpen: boolean;
+  handleCancle: () => void;
+}
+
+export default function GroupForm({
+  targetGroup,
+  isOpen,
+  handleCancle,
+}: GroupFromProps) {
+  const { setNewGroups, putGroups } = useApp();
   const [name, setName] = useState<string>("");
   const [selectColor, setSelectColor] = useState<string>(
     availableColors[0].gradient
   );
   const [selectIcon, setSelectIcon] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
 
-  const handleOpen = () => setIsOpen(true);
-  const handleClose = () => setIsOpen(false);
+  useEffect(() => {
+    if (targetGroup) {
+      setName(targetGroup.GroupName);
+      setSelectColor(
+        availableColors.find((c) => c.gradient === targetGroup.GroupColor)
+          ?.gradient || availableColors[0].gradient
+      );
+      setSelectIcon(
+        targetGroup.GroupIcon
+          ? availableIcons.findIndex((i) => i.name === targetGroup.GroupIcon)
+          : 0
+      );
+    } else {
+      setName("");
+      setSelectColor(availableColors[0].gradient);
+      setSelectIcon(0);
+    }
+  }, [targetGroup]);
 
   const handleSubmit = async () => {
+    setError("");
+
+    if (!name || name.trim() === "") {
+      setError("Введите название группы");
+      return;
+    } else if (!selectColor) {
+      setError("Выберите цвет группы");
+      return;
+    } else if (!selectIcon) {
+      setError("Выберите иконку группы");
+      return;
+    }
+
     try {
       setLoading(true);
       const data = {
         Name: name,
         Color: selectColor,
         Order: 0,
-        // Icon: selectIcon
+        Icon: availableIcons[selectIcon].icon,
       };
       console.log(data);
-
-      await apiFetch
-        .post("/Group", data)
-        .then((res) => {
-          console.log(res.data, groups);
-          setNewGroups(res.data);
-          setTimeout(() => {
-            setIsOpen(false);
-            setLoading(false);
-          }, 1000);
-        })
-        .catch((err) => console.log(err));
+      if (targetGroup) {
+        await apiFetch
+          .put(`/Group/${targetGroup.Id}`, data)
+          .then((res) => {
+            setTimeout(() => {
+              putGroups(res.data);
+              setLoading(false);
+              handleCancle();
+            }, 100);
+          })
+          .catch((err) =>
+            setError(err.response?.data.message || "Произошла ошибка")
+          );
+      } else {
+        await apiFetch
+          .post("/Group", data)
+          .then((res) => {
+            setNewGroups(res.data);
+            setTimeout(() => {
+              setLoading(false);
+              handleCancle();
+              setName("");
+              setSelectColor(availableColors[0].gradient);
+              setSelectIcon(0);
+            }, 100);
+          })
+          .catch((err) =>
+            setError(err.response?.data.message || "Произошла ошибка")
+          );
+      }
     } catch (err) {
       console.log(err);
     } finally {
@@ -51,49 +109,34 @@ export default function GroupForm() {
   };
 
   return (
-    <div>
-      <motion.button
-        whileHover={{ scale: 1.01, y: -5 }}
-        whileTap={{ scale: 1 }}
-        transition={{ duration: 0.2 }}
-        className="group relative w-full md:w-70 h-50"
-        onClick={handleOpen}
-      >
-        <Card className="p-6 border-2 border-dashed border-purple-300  hover:border-purple-500 bg-base-300  backdrop-blur-sm transition-all cursor-pointer h-full min-h-[200px] flex flex-col items-center justify-center">
-          <motion.div
-            animate={{ rotate: [0, 90, 0] }}
-            transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
-            className="bg-gradient-to-br from-purple-400 to-pink-500 p-4 rounded-2xl mb-4 shadow-lg"
-          >
-            <Plus className="w-8 h-8 text-white" />
-          </motion.div>
-          <p className="text-base-content/80 ">Добавить новую тему</p>
-          <p className="text-sm text-base-content/60 mt-1">
-            Создать учебную группу
-          </p>
-        </Card>
-      </motion.button>
+    <>
       {isOpen && (
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3, ease: "easeInOut" }}
           className="fixed top-0 left-0 w-full h-full bg-black/50 flex items-center justify-center z-50"
         >
-          <div className="w-[90dvw] md:w-1/2 lg:w-1/3 max-h-[90dvh] overflow-y-auto bg-white p-6 rounded-2xl">
+          <div className="w-[90dvw] md:w-[80dvw] lg:w-[35dvw] max-h-[90dvh] overflow-y-auto bg-white p-6 rounded-2xl">
             <div>
               <div className="flex justify-between">
                 <span className="text-2xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                  Создать новую тему
+                  {targetGroup
+                    ? "Редактировать группу"
+                    : "Создать новую группу"}
                 </span>
                 <ButtonCircle
-                  onClick={handleClose}
+                  onClick={handleCancle}
                   className="hover:bg-gray-300"
                 >
                   <X className="w-6 h-6 text-gray-600" />
                 </ButtonCircle>
               </div>
-              <p className="text-gray-700">Создать учебную группу</p>
+              <p className="text-gray-700">
+                {targetGroup
+                  ? "Редактировать учебную группу"
+                  : "Создать учебную группу"}
+              </p>
             </div>
 
             <div className="space-y-6 mt-4">
@@ -215,28 +258,37 @@ export default function GroupForm() {
                   </div>
                 </Card>
               </div>
-
-              <div className="flex gap-3 pt-4">
+              {error && (
+                <p className="text-red-500 text-center font-semibold">
+                  {error}
+                </p>
+              )}
+              <div className="flex gap-3">
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setIsOpen(false)}
+                  onClick={handleCancle}
                   className="flex-1 text-gray-600 shadow-lg rounded-xl"
                 >
                   Отменить
                 </Button>
                 <Button
+                  loading={loading}
                   type="submit"
                   onClick={handleSubmit}
                   className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0 shadow-lg rounded-xl"
                 >
-                  Создать группу
+                  {loading
+                    ? "Сохранение..."
+                    : targetGroup
+                    ? "Сохранить"
+                    : "Создать"}
                 </Button>
               </div>
             </div>
           </div>
         </motion.div>
       )}
-    </div>
+    </>
   );
 }

@@ -15,7 +15,6 @@ import { useApp } from "../context/AppContext";
 interface LessonPlayerProps {
   lessonTitle: string;
   subjectColor: string;
-  totalXp?: number;
   initialIndex?: number;
   onComplete: (earnedXP: number) => void;
   onBack: () => void;
@@ -24,7 +23,6 @@ interface LessonPlayerProps {
 export default function LessonPlayer({
   lessonTitle,
   subjectColor,
-  totalXp,
   initialIndex,
   onComplete,
   onBack,
@@ -34,6 +32,8 @@ export default function LessonPlayer({
   const [currentCardIndex, setCurrentCardIndex] = useState(initialIndex || 0);
   const [isFlipped, setIsFlipped] = useState<boolean>(false);
   const [answeredCards, setAnsweredCards] = useState<Set<string>>(new Set());
+
+  const [earnetXp, setEarnetXp] = useState<number>(0);
 
   const [showCelebration, setShowCelebration] = useState<boolean>(false);
   const [isNext, setIsNext] = useState<boolean>(true);
@@ -45,12 +45,6 @@ export default function LessonPlayer({
   const progress = (Object.keys(rating).length / currentLesson!.length) * 100;
 
   const values = Object.values(rating);
-  const averageRating =
-    values.length > 0
-      ? values.reduce<number>((acc, val) => acc + val, 0) / values.length
-      : 0;
-
-  const earnedXP = Math.floor((averageRating / 5) * (totalXp || 100));
 
   const handleFlip = () => {
     setIsFlipped(!isFlipped);
@@ -69,9 +63,10 @@ export default function LessonPlayer({
     return Math.round((average / 5) * 100);
   };
 
-  const handleAnswer = (ratting: RatingValue) => {
+  const handleAnswer = async (ratting: RatingValue) => {
     // Если ответ верный добавляем его в правильные для статистикии
-    questionAnswered(currentCard.CardId, ratting);
+    const XpEarned = await questionAnswered(currentCard.CardId, ratting);
+    setEarnetXp((prev) => prev + XpEarned);
     setRating((prev) => ({
       ...prev,
       [currentCard.CardId]: ratting,
@@ -134,7 +129,7 @@ export default function LessonPlayer({
   };
 
   const handleComplete = () => {
-    onComplete(earnedXP);
+    onComplete(earnetXp);
   };
 
   // модуль статистики
@@ -142,7 +137,7 @@ export default function LessonPlayer({
     return (
       <Celebration
         subjectColor={subjectColor}
-        earnedXP={earnedXP}
+        earnedXP={earnetXp}
         handleComplete={handleComplete}
         total={calculateOverallScore(rating)}
         values={values}
@@ -156,7 +151,7 @@ export default function LessonPlayer({
       <HeaderLessons
         lessonTitle={lessonTitle}
         onBack={onBack}
-        earnedXP={earnedXP}
+        earnedXP={earnetXp}
         progress={progress}
         from={currentCardIndex + 1}
         to={currentLesson?.length || 0}
@@ -218,6 +213,7 @@ export default function LessonPlayer({
                   Насколько верно вы ответили?
                 </p>
                 <StarRating
+                  disabled={answeredCards.has(currentCard.CardId)}
                   value={rating[currentCard.CardId] || 0}
                   onChange={(val: number) => handleAnswer(val as RatingValue)}
                   size={10}

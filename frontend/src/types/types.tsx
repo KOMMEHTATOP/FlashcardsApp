@@ -1,21 +1,31 @@
-import type { LucideIcon } from "lucide-react";
-
 interface UserData {
   Id: String;
-  UserName: String;
-  Email: String;
   Login?: String;
+  Email: String;
+  Statistics: UserState;
+  Groups: GroupType[];
 }
 
 interface UserState {
-  Level: number;
   TotalXP: number;
+  Level: number;
   XPForNextLevel: number;
+  XPProgressInCurrentLevel: number;
+  XPRequiredForCurrentLevel: number;
   CurrentStreak: number;
   BestStreak: number;
   TotalStudyTime: String;
-  XPRequiredForCurrentLevel: number;
-  XPProgressInCurrentLevel: number;
+  TotalCardsStudied: number;
+  TotalCardsCreated: number;
+  PerfectRatingsStreak: number;
+}
+
+interface SettingType {
+  StudyOrder: string;
+  MinRating: number;
+  MaxRating: number;
+  CompletionThreshold: number;
+  ShuffleOnRepeat: boolean;
 }
 
 interface AchievementsType {
@@ -30,23 +40,10 @@ interface GroupType {
   Id: string;
   GroupName: string;
   GroupColor: string;
+  GroupIcon: string;
   CreatedAt: string;
   Order: number;
-}
-
-interface GroupDetailType {
-  Id: string;
-  // icon: LucideIcon;
-  GroupName: string;
-  GroupColor: string;
-  CreatedAt: string;
-  Order: number;
-  // stats: SubjectStatsType[];
-}
-
-interface SubjectStatsType {
-  label: string;
-  value: string;
+  CardCount: number;
 }
 
 interface GroupCardType {
@@ -79,11 +76,11 @@ type ConfrimModalState = {
 export type {
   UserState,
   UserData,
-  GroupDetailType,
   GroupCardType,
   RatingValue,
   FlashCard,
   AchievementsType,
   GroupType,
   ConfrimModalState,
+  SettingType,
 };
