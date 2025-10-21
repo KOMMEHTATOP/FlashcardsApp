@@ -6,6 +6,7 @@ import type {
   GroupCardType,
   ConfrimModalState,
   SettingType,
+  MotivationType,
 } from "../types/types";
 import apiFetch from "../utils/apiFetch";
 
@@ -42,6 +43,8 @@ type AppContextType = {
   handleCloseConfrimModal: () => void;
   confrimModal: ConfrimModalState | undefined;
   loading: boolean;
+
+  motivationText: MotivationType | undefined;
 };
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -71,6 +74,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [confrimModal, setModalConfrimDetail] = useState<ConfrimModalState>();
   const [loading, setLoading] = useState<boolean>(true);
 
+  const [motivationText, setMotivationText] = useState<MotivationType>();
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -80,9 +85,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setLoading(true);
       const res = await apiFetch.get("/User/me/dashboard");
       if (res.status === 200) {
-        console.log(res.data);
         setUser(res.data);
         setGroups(res.data.Groups);
+        setAchivment(res.data.Achievements);
         await apiFetch
           .get("/StudySettings")
           .then((res) => {
@@ -90,6 +95,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           })
           .catch((err) => {
             console.log(err);
+          });
+        await apiFetch
+          .get("/UserStatistics/motivational-message")
+          .then((res) => {
+            setMotivationText(res.data);
           });
       }
     } catch (err) {
@@ -120,8 +130,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
-    await apiFetch.post("/Auth/logout").then((res) => {
-      console.log(res);
+    await apiFetch.post("/Auth/logout").then(() => {
       setUser(undefined);
       localStorage.removeItem("accessToken");
       window.location.href = "/login";
@@ -137,14 +146,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const deleteGroup = async (id: string) => {
-    console.log(id);
     setGroups((prev) => prev.filter((group) => group.Id !== id));
-    await apiFetch.delete(`/Group/${id}`).then((res) => console.log(res));
+    await apiFetch.delete(`/Group/${id}`);
   };
 
   const deleteCard = async (id: string) => {
-    console.log(id);
-    await apiFetch.delete(`/Cards/${id}`).then((res) => console.log(res));
+    await apiFetch.delete(`/Cards/${id}`);
   };
 
   const handleCompliteLesson = () => {
@@ -155,7 +162,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const res = await apiFetch
       .post(`/Study/record`, { CardId: id, Rating: ratting })
       .then((res) => {
-        console.log(res.data);
         const data = res.data;
         setCurrentLesson(
           (prev) =>
@@ -166,7 +172,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
               ),
             }
         );
-        console.log(data);
+
         setUser(
           (prev) =>
             prev && {
@@ -211,6 +217,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     handleCloseConfrimModal,
     confrimModal,
     loading,
+
+    motivationText,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

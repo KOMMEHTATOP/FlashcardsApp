@@ -27,8 +27,8 @@ export default function LoginPage() {
   );
 
   const [login, setLogin] = useState<string>("");
-  const [email, setEmail] = useState<string>("test@test.com");
-  const [password, setPassword] = useState<string>("Test123!");
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
 
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
@@ -52,7 +52,6 @@ export default function LoginPage() {
       email,
       password,
     };
-    // console.log(data);
     await axios
       .post(`${BASE_URL}/Auth/login`, data, { withCredentials: true })
       .then((res) => {
@@ -94,22 +93,17 @@ export default function LoginPage() {
     };
 
     await axios
-      .post(
-        `${
-          import.meta.env.VITE_API_URL || "http://localhost:5000/api"
-        }/Auth/register`,
-        data,
-        { withCredentials: true }
-      )
+      .post(`${BASE_URL}/Auth/register`, data, { withCredentials: true })
       .then((res) => {
-        console.log(res);
         const accessToken = res.data.accessToken;
         localStorage.setItem("accessToken", accessToken);
         handleSelect("login");
       })
       .catch((err) => {
-        err.response.data.Errors.map((item: any) => setError(item));
-
+        setError(
+          err.response?.data.errors.map((e: string) => e + "\n") ||
+            "Произошла ошибка"
+        );
         setLoading(false);
       })
       .finally(() => {
@@ -118,10 +112,15 @@ export default function LoginPage() {
         }, 2000);
       });
   };
+  const hasError = Array.isArray(error)
+    ? error.length > 0
+    : typeof error === "string"
+    ? error.trim() !== ""
+    : Boolean(error);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-base-300 via-base-100 to-base-300 flex items-center justify-center p-4 relative overflow-hidden">
-      <div className="absolute  inset-0 opacity-30">
+      <div className="absolute inset-0 opacity-30">
         <div
           className="absolute inset-0"
           style={{
@@ -185,7 +184,7 @@ export default function LoginPage() {
           <motion.div
             transition={{ duration: 0.4, ease: "easeInOut" }}
             className={`p-8 backdrop-blur-xl bg-white/80  border-2 border-purple-300 shadow-2xl rounded-xl overflow-hidden max-h-dvh transition-all duration-300 ${
-              selectedBlock === "login" ? "h-100" : "h-120"
+              selectedBlock === "login" ? "h-100" : hasError ? "h-130" : "h-120"
             }`}
           >
             <div className="space-y-4">

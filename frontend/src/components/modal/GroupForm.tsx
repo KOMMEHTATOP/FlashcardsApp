@@ -57,9 +57,6 @@ export default function GroupForm({
     } else if (!selectColor) {
       setError("Выберите цвет группы");
       return;
-    } else if (!selectIcon) {
-      setError("Выберите иконку группы");
-      return;
     }
 
     try {
@@ -68,9 +65,9 @@ export default function GroupForm({
         Name: name,
         Color: selectColor,
         Order: 0,
-        Icon: availableIcons[selectIcon].icon,
+        Icon: availableIcons[selectIcon].name,
       };
-      console.log(data);
+
       if (targetGroup) {
         await apiFetch
           .put(`/Group/${targetGroup.Id}`, data)

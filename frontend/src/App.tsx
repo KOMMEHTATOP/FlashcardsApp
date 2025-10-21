@@ -10,15 +10,28 @@ import { GuestRoute } from "./layout/GuestRoute";
 
 const router = createBrowserRouter([
   {
-    element: (
-      <PrivateRoute>
-        <AppLayout />
-      </PrivateRoute>
-    ),
+    element: <AppLayout />,
     children: [
-      { path: "/", element: <HomePage /> },
-      { path: "/study/:id", element: <StudyPage /> },
-      { path: "/about", element: <AboutPage /> },
+      {
+        path: "/",
+        element: (
+          <PrivateRoute>
+            <HomePage />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/study/:id",
+        element: (
+          <PrivateRoute>
+            <StudyPage />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/about",
+        element: <AboutPage />,
+      },
     ],
   },
   {

@@ -1,8 +1,4 @@
 import {
-  Award,
-  Clock,
-  Zap,
-  TrendingUp,
   Star,
   Flame,
   BookOpen,

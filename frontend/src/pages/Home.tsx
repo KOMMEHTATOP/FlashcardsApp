@@ -17,7 +17,6 @@ import { useMemo, useState } from "react";
 import { BadgeCard } from "../components/cards/Badge_card";
 import SortableList from "../components/SortebleList";
 import useTitle from "../utils/useTitle";
-import { getLevelMotivationText } from "../utils/getMotivationText";
 import formatTotalHour from "../utils/formatTotalHour";
 import SettingModal from "../components/modal/SettingModal";
 
@@ -31,7 +30,7 @@ const modulePage = [
 ];
 
 export function HomePage() {
-  const { user, achivment, groups } = useApp();
+  const { user, achivment, groups, motivationText } = useApp();
   useTitle("Главная");
 
   const [modul] = useState<typeof modulePage>(modulePage);
@@ -48,11 +47,6 @@ export function HomePage() {
     () => groups?.reduce((sum, g) => sum + (g.CardCount || 0), 0) ?? 0,
     [groups]
   );
-
-  const motivationText = useMemo(() => {
-    return getLevelMotivationText(currentXP, xpToNextLevel);
-  }, [level, currentXP, xpToNextLevel]);
-  const xpLeft = xpToNextLevel - currentXP;
 
   const selectModul = (name: string) => {
     const index = modul.findIndex((item) => item.name === name);
@@ -93,7 +87,11 @@ export function HomePage() {
           <StateCard
             icon={Award}
             label="Достижения"
-            value={`${achivment?.length || 0}/${achivment?.length}` || "0/0"}
+            value={
+              `${achivment?.filter((item) => item.IsUnlocked).length}/${
+                achivment?.length
+              }` || "0/0"
+            }
             gradient="from-green-500 to-emerald-500"
             delay={0.3}
           />
@@ -179,7 +177,9 @@ export function HomePage() {
                       <BadgeCard
                         title={item.Name}
                         description={item.Description}
-                        earned={item.Name !== ""}
+                        earned={item.IsUnlocked}
+                        gradient={item.Gradient}
+                        icon={item.IconUrl}
                       />
                     </motion.div>
                   ))}
@@ -192,10 +192,11 @@ export function HomePage() {
           animated="rotate"
           animatedDelay={20}
           icon={Star}
-          // textIcon={Rocket}
+          // textIcon={}
           label="Продолжай идти!"
-          description={`${motivationText}  
-        Осталось ${xpLeft} XP до ${level + 1}-го уровня.`}
+          description={` ${motivationText?.Message || ""} ${
+            motivationText?.Icon || ""
+          }`}
           gradient="from-indigo-500 via-purple-500 to-pink-500"
         />
       </div>

@@ -20,8 +20,8 @@ import { useApp } from "../context/AppContext";
 import useTitle from "../utils/useTitle";
 import apiFetch from "../utils/apiFetch";
 import AddFlashcardForm from "../components/modal/AddFlashcardForm";
-import StarInput from "../components/ui/star_unput";
 import SkeletonGroupDetail from "../components/StudySkeleton";
+import { availableIcons } from "../test/data";
 
 export default function StudyPage({}) {
   const { id } = useParams();
@@ -43,7 +43,7 @@ export default function StudyPage({}) {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [targetStar, setTargetStar] = useState<number>(0);
+  const [targetStar] = useState<number>(0);
 
   const filterCards = useMemo(() => {
     return dataDetail.filter((card) =>
@@ -91,8 +91,7 @@ export default function StudyPage({}) {
     if (targetCard) {
       res = await apiFetch
         .put(`/Cards/${targetCard.CardId}`, data)
-        .then((res) => {
-          console.log(res);
+        .then(() => {
           setDataDetail((prev) =>
             prev.map((card) =>
               card.CardId === targetCard.CardId
@@ -168,6 +167,9 @@ export default function StudyPage({}) {
   const handleCloseModal = () => setIsOpenAddModal(false);
 
   if (!group) return <SkeletonGroupDetail />;
+  const Icon =
+    availableIcons.find((icon) => icon.name === group.GroupIcon)?.icon ||
+    BookHeartIcon;
 
   return (
     <div className="min-h-screen">
@@ -201,7 +203,7 @@ export default function StudyPage({}) {
               transition={{ type: "spring", stiffness: 200 }}
               className="bg-white/20 backdrop-blur-sm p-6 rounded-3xl"
             >
-              <BookHeartIcon className="w-25 h-25 md:w-18 md:h-18 text-white" />
+              <Icon className="w-25 h-25 md:w-18 md:h-18 text-white" />
             </motion.div>
 
             <div className="flex-1">
@@ -230,7 +232,7 @@ export default function StudyPage({}) {
                 <div className="flex justify-between text-white/80 text-sm">
                   <span className="text-subtitle">Общий прогресс</span>
                   <span className="text-number">
-                    {proggresGroup.toFixed(0)}%
+                    {proggresGroup ? Number(proggresGroup).toFixed(0) : 0}%
                   </span>
                 </div>
                 <div className="relative z-10 w-full h-4 md:h-3 bg-white/10 rounded-full">
@@ -238,7 +240,7 @@ export default function StudyPage({}) {
                     initial={{ width: 0 }}
                     animate={{ width: `${proggresGroup || 0}%` }}
                     transition={{ duration: 1, ease: "easeOut" }}
-                    className="h-full bg-gradient-to-r from-yellow-50 to-yellow-100"
+                    className="h-full bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-full"
                   />
                 </div>
               </div>
@@ -285,7 +287,7 @@ export default function StudyPage({}) {
               "
           >
             {/* Фильтр по звездам карт */}
-            <div className="col-span-2 sm:col-span-3 md:col-auto flex justify-center md:justify-start">
+            {/* <div className="col-span-2 sm:col-span-3 md:col-auto flex justify-center md:justify-start">
               <StarInput
                 name="Фильтр"
                 max={5}
@@ -293,7 +295,7 @@ export default function StudyPage({}) {
                 value={targetStar}
                 onChange={setTargetStar}
               />
-            </div>
+            </div> */}
 
             {/* Кнопка добавления */}
             <div className="flex justify-center md:justify-start">

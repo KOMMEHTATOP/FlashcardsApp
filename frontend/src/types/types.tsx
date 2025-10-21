@@ -30,10 +30,14 @@ interface SettingType {
 
 interface AchievementsType {
   Id: string;
-  Description: String;
-  IconUrl: String;
-  Name: String;
-  UUserAchievements?: any;
+  Description: string;
+  IconUrl: string;
+  Name: string;
+  Gradient: string;
+  IsUnlocked: boolean;
+  ConditionValue: number;
+  ConditionType: string;
+  Rarity: string;
 }
 
 interface GroupType {
@@ -44,6 +48,7 @@ interface GroupType {
   CreatedAt: string;
   Order: number;
   CardCount: number;
+  Icon: string;
 }
 
 interface GroupCardType {
@@ -73,6 +78,12 @@ type ConfrimModalState = {
   handleConfirm: () => void;
 };
 
+type MotivationType = {
+  Icon: string;
+  Message: string;
+  Type: string;
+};
+
 export type {
   UserState,
   UserData,
@@ -83,4 +94,5 @@ export type {
   GroupType,
   ConfrimModalState,
   SettingType,
+  MotivationType,
 };

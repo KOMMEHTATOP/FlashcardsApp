@@ -94,7 +94,7 @@ interface ButtonCard {
 
 export function ButtonCard({
   className = "",
-  size,
+  // size,
   children,
   onClick,
 }: ButtonCard) {

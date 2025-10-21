@@ -23,7 +23,7 @@ interface StudyCardProps {
 export default function StudyCard({
   icon: Icon,
   title,
-  progress,
+  // progress,
   streak,
   gradient,
   onClick,
@@ -140,7 +140,7 @@ export default function StudyCard({
         </div>
 
         {/* Прогресс */}
-        <div className="space-y-2">
+        {/* <div className="space-y-2">
           <div className="flex justify-between text-white/80 text-sm select-none">
             <span>Прогресс: {progress}%</span>
           </div>
@@ -152,7 +152,7 @@ export default function StudyCard({
               className="h-full bg-white"
             />
           </div>
-        </div>
+        </div> */}
       </div>
     </motion.div>
   );

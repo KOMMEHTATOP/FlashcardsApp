@@ -1,25 +1,25 @@
 import { motion } from "framer-motion";
-import { Check, Lock, type LucideIcon } from "lucide-react";
+import { Check, Lock } from "lucide-react";
 
 interface BadgeCardProps {
-  // icon: LucideIcon;
-  title: String;
-  description: String;
+  icon: string;
+  title: string;
+  description: string;
   earned?: boolean;
-  gradient?: String;
+  gradient?: string;
   onClick?: () => void;
   onDelete?: () => void;
 }
 
 export function BadgeCard({
-  // icon: Icon,
+  icon,
   title,
   description,
   earned,
   gradient,
   onClick,
-  onDelete,
-}: BadgeCardProps) {
+}: // onDelete,
+BadgeCardProps) {
   return (
     <motion.div
       whileHover={{ scale: 1.05, y: -5 }}
@@ -48,11 +48,11 @@ export function BadgeCard({
               : "bg-gray-300 dark:bg-base-200"
           }`}
         >
-          {/* <Icon
-            className={`w-10 h-10 ${
-              earned ? "text-white" : "text-gray-400 dark:text-gray-500"
-            }`}
-          /> */}
+          <span
+            className={`text-2xl ${earned ? "text-white" : "text-gray-500"}`}
+          >
+            {icon}
+          </span>
         </div>
         <div>
           <h4

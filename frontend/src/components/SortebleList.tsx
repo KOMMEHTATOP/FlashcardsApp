@@ -21,11 +21,12 @@ import type {
   GroupCardType,
   GroupType,
 } from "../types/types";
-import { Plus, Star } from "lucide-react";
+import { BookHeartIcon, Plus } from "lucide-react";
 import GroupForm from "./modal/GroupForm";
 import apiFetch from "../utils/apiFetch";
 import Card from "./ui/card";
 import shuffleArray from "../utils/shuffleArray";
+import { availableIcons } from "../test/data";
 
 export function SortableItem({
   id,
@@ -161,7 +162,6 @@ export default function SortableList({
     if (setting?.ShuffleOnRepeat) res = shuffleArray(res);
 
     if (!res || res.length === 0) return;
-    // console.log(res);
     handleSelectLesson(res, group);
   };
 
@@ -206,7 +206,7 @@ export default function SortableList({
               whileHover={{ scale: 1.01, y: -5 }}
               whileTap={{ scale: 1 }}
               transition={{ duration: 0.2 }}
-              className="group relative w-full md:w-70 h-49"
+              className="group relative w-full md:w-70 h-40"
               onClick={handleOpen}
             >
               <Card className="p-6 border-2 border-dashed border-purple-300  hover:border-purple-500 bg-base-300  backdrop-blur-sm transition-all cursor-pointer h-full flex flex-col items-center justify-center">
@@ -240,7 +240,10 @@ export default function SortableList({
                     }
                     streak={item.CardCount}
                     progress={(item.CardCount / 10) * 100}
-                    icon={Star}
+                    icon={
+                      availableIcons.find((i) => i.name === item.GroupIcon)
+                        ?.icon || BookHeartIcon
+                    }
                     title={item.GroupName}
                     onClick={() => navigate(`/study/${item.Id.toString()}`)}
                     onDelete={() => handleDeleteGroup(item)}

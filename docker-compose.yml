@@ -28,37 +28,39 @@ services:
       - "5001:5000"
     depends_on:
       postgres:
-        condition: service_healthy 
+        condition: service_healthy
     environment:
       - ConnectionStrings__DefaultConnection=${DB_CONNECTION_STRING}
       - Jwt__Key=${JWT_KEY}
       - ASPNETCORE_URLS=http://+:5000
       - ASPNETCORE_ENVIRONMENT=Development
-      - AutoMigrate=true 
+      - AutoMigrate=true
       - Cors__AllowedOrigins__0=http://localhost:5173
+      - Cors__AllowedOrigins__1=http://localhost:3000
     networks:
       - app-network
 
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile.prod
     container_name: frontend
     ports:
-      - "5173:5173"
+      - "3000:3000"
     volumes:
-      - ./frontend:/app
       - /app/node_modules
     depends_on:
       - backend
     environment:
       - VITE_API_URL=http://localhost:5001/api
       - CHOKIDAR_USEPOLLING=true
+      - VITE_APP_TITLE=FlashcardsLoop
     networks:
       - app-network
 
 volumes:
   postgres_data:
+
 
 networks:
   app-network:

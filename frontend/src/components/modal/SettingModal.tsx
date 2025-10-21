@@ -60,8 +60,7 @@ export default function SettingModal({
         ShuffleOnRepeat: RandomMode,
         CompletionThreshold: compliteThreshold,
       })
-      .then((res) => {
-        console.log(res.data);
+      .then(() => {
         setSetting((prev): SettingType => {
           return {
             ...prev,
