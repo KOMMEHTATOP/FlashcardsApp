@@ -65,7 +65,7 @@ export default function GroupForm({
         Name: name,
         Color: selectColor,
         Order: 0,
-        Icon: availableIcons[selectIcon].name,
+        GroupIcon: availableIcons[selectIcon].name,
       };
 
       if (targetGroup) {
