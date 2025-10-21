@@ -70,7 +70,7 @@ public class GroupService : IGroupService
             Id = Guid.NewGuid(),
             UserId = userId,
             GroupName = model.Name,
-            GroupIcon = "",
+            GroupIcon = model.Icon,
             GroupColor = model.Color,
             CreatedAt = DateTime.UtcNow,
             Order = 0
