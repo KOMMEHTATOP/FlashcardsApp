@@ -52,13 +52,13 @@ namespace FlashcardsApp.Controllers
 
             var user = result.Data!;
     
-            // HTTP-специфичная логика: извлечение данных из запроса
+            // HTTP- логика: извлечение данных из запроса
             var accessToken = _tokenService.GenerateAccessToken(user);
             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
             var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
             var refreshToken = await _tokenService.GenerateRefreshToken(user.Id, ipAddress, userAgent);
 
-            // HTTP-специфичная логика: установка cookie
+            // HTTP- логика: установка cookie
             SetRefreshTokenCookie(refreshToken.Token);
 
             return Ok(new LoginResponseDto
@@ -73,17 +73,16 @@ namespace FlashcardsApp.Controllers
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh()
         {
-            // HTTP-специфичная логика: чтение cookie
+            // HTTP- логика: чтение cookie
             if (!Request.Cookies.TryGetValue("refreshToken", out var refreshTokenValue))
             {
                 return Unauthorized(new { message = "Refresh токен не найден" });
             }
 
-            // HTTP-специфичная логика: извлечение данных из запроса
+            // HTTP- логика: извлечение данных из запроса
             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
             var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
 
-            // Бизнес-логика в сервисе
             var result = await _authService.RefreshAccessToken(refreshTokenValue, ipAddress, userAgent);
             
             if (!result.IsSuccess)
@@ -91,7 +90,7 @@ namespace FlashcardsApp.Controllers
                 return Unauthorized(new { message = string.Join(", ", result.Errors) });
             }
 
-            // HTTP-специфичная логика: установка cookie
+            // HTTP- логика: установка cookie
             SetRefreshTokenCookie(result.Data!.RefreshToken);
 
             return Ok(new { accessToken = result.Data.AccessToken });
@@ -101,13 +100,12 @@ namespace FlashcardsApp.Controllers
         [Authorize]
         public async Task<IActionResult> Logout()
         {
-            // HTTP-специфичная логика: чтение cookie
+            // HTTP- логика: чтение cookie
             Request.Cookies.TryGetValue("refreshToken", out var refreshTokenValue);
 
-            // Бизнес-логика в сервисе
             await _authService.Logout(refreshTokenValue);
 
-            // HTTP-специфичная логика: удаление cookie
+            // HTTP- логика: удаление cookie
             Response.Cookies.Delete("refreshToken", new CookieOptions
             {
                 HttpOnly = true,

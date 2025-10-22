@@ -38,6 +38,8 @@ public class AuthService : IAuthService
         if (!result.Succeeded)
         {
             var errors = result.Errors.Select(e => e.Description).ToArray();
+            _logger.LogWarning($"Returning errors: {string.Join(", ", errors)}");
+
             return ServiceResult<RegisterUserDto>.Failure(errors);
         }
 

@@ -1,16 +1,20 @@
 using FlashcardsApp.Configuration;
 using FlashcardsApp.Data;
-using FlashcardsApp.Hubs; 
+using FlashcardsApp.Hubs;
 using FlashcardsApp.Interfaces;
 using FlashcardsApp.Interfaces.Achievements;
 using FlashcardsApp.Models;
+using FlashcardsApp.Resources;
 using FlashcardsApp.Services;
 using FlashcardsApp.Services.Achievements;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Globalization;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -20,16 +24,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 
-var logger = LoggerFactory.Create(config =>
-{
-    config.AddConsole();
-}).CreateLogger("Startup");
+var logger = LoggerFactory.Create(config => { config.AddConsole(); }).CreateLogger("Startup");
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-        options.JsonSerializerOptions.PropertyNamingPolicy = null; 
+        options.JsonSerializerOptions.PropertyNamingPolicy = null;
     });
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -40,11 +41,30 @@ if (string.IsNullOrEmpty(connectionString))
     throw new Exception("Connection string is not configured.");
 }
 
+builder.Services.AddLocalization();
+
+var supportedCultures = new[]
+{
+    new CultureInfo("ru"),
+    new CultureInfo("en")
+};
+
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    options.DefaultRequestCulture = new RequestCulture("ru");
+    options.SupportedCultures = supportedCultures;
+    options.SupportedUICultures = supportedCultures;
+    options.FallBackToParentUICultures = true;
+});
+
+// Database
 builder.Services.AddDbContext<ApplicationDbContext>(options
     => options.UseNpgsql(connectionString));
 
+// Identity с локализацией
 builder.Services.AddIdentity<User, IdentityRole<Guid>>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddErrorDescriber<LocalizedIdentityErrorDescriber>()
     .AddDefaultTokenProviders();
 
 // JWT
@@ -82,11 +102,9 @@ builder.Services.AddAuthentication(options =>
         {
             OnMessageReceived = context =>
             {
-                // Читаем токен из query string для SignalR соединений
                 var accessToken = context.Request.Query["access_token"];
-
-                // Если запрос идет к нашему Hub'у
                 var path = context.HttpContext.Request.Path;
+
                 if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs/notifications"))
                 {
                     context.Token = accessToken;
@@ -97,10 +115,9 @@ builder.Services.AddAuthentication(options =>
         };
     });
 
-// РЕГИСТРИРУЕМ SignalR
+// SignalR
 builder.Services.AddSignalR(options =>
 {
-    // Настройки для production
     options.EnableDetailedErrors = builder.Environment.IsDevelopment();
     options.KeepAliveInterval = TimeSpan.FromSeconds(15);
     options.ClientTimeoutInterval = TimeSpan.FromSeconds(30);
@@ -124,7 +141,7 @@ builder.Services.AddSwaggerGen(options =>
         Type = SecuritySchemeType.ApiKey,
         Scheme = "Bearer"
     });
-    
+
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
@@ -166,12 +183,9 @@ builder.Services.AddScoped<INotificationService, SignalRNotificationService>();
 builder.Services.AddScoped<IAchievementService, AchievementService>();
 builder.Services.AddScoped<IAchievementRewardService, AchievementRewardService>();
 builder.Services.AddScoped<IAchievementLeaderboardService, AchievementLeaderboardService>();
-
-// Базовые сервисы (не зависят от других Achievement сервисов)
 builder.Services.AddScoped<IAchievementProgressService, AchievementProgressService>();
 builder.Services.AddScoped<IAchievementMotivationService, AchievementMotivationService>();
 builder.Services.AddScoped<IAchievementEstimationService, AchievementEstimationService>();
-// Оркестратор (зависит от всех трех выше)
 builder.Services.AddScoped<IAchievementRecommendationService, AchievementRecommendationService>();
 
 // CORS Configuration
@@ -202,7 +216,7 @@ if (allowedOrigins.Length > 0)
             policyBuilder.WithOrigins(allowedOrigins)
                 .AllowAnyHeader()
                 .AllowAnyMethod()
-                .AllowCredentials(); 
+                .AllowCredentials();
         });
     });
 }
@@ -226,13 +240,17 @@ if (builder.Environment.IsDevelopment() && !IsRunningInDocker())
 
 var app = builder.Build();
 
+// ВАЖНО: Применяем локализацию СРАЗУ после builder.Build()
+var localizationOptions = app.Services.GetRequiredService<IOptions<RequestLocalizationOptions>>();
+app.UseRequestLocalization(localizationOptions.Value);
+
 if (!app.Environment.IsProduction())
 {
     app.UseHttpsRedirection();
 }
 
 // Middleware
-app.UseCors(); 
+app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -244,12 +262,13 @@ if (!app.Environment.IsProduction())
 
 // Auto-migration and Seed
 var autoMigrate = builder.Configuration.GetValue<bool>("AutoMigrate", false);
+
 if (autoMigrate)
 {
     logger.LogInformation("=== AUTO MIGRATION ENABLED ===");
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    
+
     logger.LogInformation("Running migrations...");
     db.Database.Migrate();
     logger.LogInformation("Migrations completed!");
