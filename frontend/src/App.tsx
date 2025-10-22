@@ -5,6 +5,7 @@ import { HomePage } from "./pages/Home";
 import AboutPage from "./pages/About";
 import StudyPage from "./pages/Study";
 import LoginPage from "./pages/Login";
+import { NotFoundPage } from "./pages/NotFound";
 import { PrivateRoute } from "./layout/PrivateRoute";
 import { GuestRoute } from "./layout/GuestRoute";
 
@@ -31,6 +32,10 @@ const router = createBrowserRouter([
       {
         path: "/about",
         element: <AboutPage />,
+      },
+      {
+        path: "*",
+        element: <NotFoundPage />,
       },
     ],
   },

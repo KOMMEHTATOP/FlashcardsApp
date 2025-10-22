@@ -100,11 +100,14 @@ export default function LoginPage() {
         handleSelect("login");
       })
       .catch((err) => {
-        setError(
-          err.response?.data.errors.map((e: string) => e + "\n") ||
-            "Произошла ошибка"
-        );
-        setLoading(false);
+        const errors = err.response?.data?.errors;
+
+        if (errors && typeof errors === "object") {
+          const messages = Object.values(errors).flat().join("\n");
+          setError(messages);
+        } else {
+          setError("Произошла ошибка при регистрации");
+        }
       })
       .finally(() => {
         setTimeout(() => {

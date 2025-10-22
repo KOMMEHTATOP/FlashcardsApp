@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import type {
   UserData,
   AchievementsType,
@@ -7,54 +13,12 @@ import type {
   ConfrimModalState,
   SettingType,
   MotivationType,
+  AppContextType,
+  CurrentLessonState,
 } from "../types/types";
-import apiFetch from "../utils/apiFetch";
-
-type AppContextType = {
-  user: UserData | undefined;
-  setUser: React.Dispatch<React.SetStateAction<UserData | undefined>>;
-  logout: () => void;
-
-  setting: SettingType;
-  setSetting: React.Dispatch<React.SetStateAction<SettingType>>;
-
-  achivment: AchievementsType[] | undefined;
-
-  groups: GroupType[] | undefined;
-  setGroups: React.Dispatch<React.SetStateAction<GroupType[]>>;
-  setNewGroups: (newGroup: GroupType) => void;
-  putGroups: (group: GroupType) => void;
-
-  handleSelectLesson: (
-    subject: GroupCardType[],
-    group: GroupType,
-    index?: number
-  ) => void;
-
-  currentLesson: CurrentLessonState | undefined;
-
-  handleCompliteLesson: () => void;
-  questionAnswered: (id: string, ratting: number) => Promise<number>;
-
-  deleteGroup: (id: string) => void;
-  deleteCard: (id: string) => void;
-
-  handleOpenConfrimModal: (modal: ConfrimModalState) => void;
-  handleCloseConfrimModal: () => void;
-  confrimModal: ConfrimModalState | undefined;
-  loading: boolean;
-
-  motivationText: MotivationType | undefined;
-};
+import { service } from "../utils/apiService";
 
 const AppContext = createContext<AppContextType | null>(null);
-
-type CurrentLessonState = {
-  group: GroupType;
-  cards: GroupCardType[];
-  initialIndex: number;
-  length: number;
-};
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserData>();
@@ -77,65 +41,60 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [motivationText, setMotivationText] = useState<MotivationType>();
 
   useEffect(() => {
-    fetchData();
+    withLoading(fetchData);
   }, []);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
+    try {
+      const { user, groups, achievements } = await service.getDashboard();
+      setUser(user);
+      setGroups(groups);
+      setAchivment(achievements);
+      // подгрузка настроек
+      const settings = await service.getSettings();
+      setSetting(settings);
+      // подгружаем мотивацию
+      const motivation = await service.getMotivation();
+      setMotivationText(motivation);
+    } catch (err) {
+      console.error("Ошибка при загрузке данных:", err);
+    }
+  }, []);
+
+  const withLoading = useCallback(async (callback: () => Promise<void>) => {
     try {
       setLoading(true);
-      const res = await apiFetch.get("/User/me/dashboard");
-      if (res.status === 200) {
-        setUser(res.data);
-        setGroups(res.data.Groups);
-        setAchivment(res.data.Achievements);
-        await apiFetch
-          .get("/StudySettings")
-          .then((res) => {
-            setSetting(res.data);
-          })
-          .catch((err) => {
-            console.log(err);
-          });
-        await apiFetch
-          .get("/UserStatistics/motivational-message")
-          .then((res) => {
-            setMotivationText(res.data);
-          });
-      }
-    } catch (err) {
+      await callback();
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const handleOpenConfrimModal = (modal: ConfrimModalState) => {
+  const handleOpenConfrimModal = useCallback((modal: ConfrimModalState) => {
     setModalConfrimDetail(modal);
-  };
+  }, []);
 
-  const handleCloseConfrimModal = () => {
+  const handleCloseConfrimModal = useCallback(() => {
     setModalConfrimDetail(undefined);
-  };
+  }, []);
 
-  const handleSelectLesson = (
-    cards: GroupCardType[],
-    group: GroupType,
-    index: number = 0
-  ) => {
-    setCurrentLesson({
-      group,
-      cards,
-      initialIndex: index,
-      length: cards.length || 0,
-    });
-  };
+  const handleSelectLesson = useCallback(
+    (cards: GroupCardType[], group: GroupType, index: number = 0) => {
+      setCurrentLesson({
+        group,
+        cards,
+        initialIndex: index,
+        length: cards.length,
+      });
+    },
+    []
+  );
 
-  const logout = async () => {
-    await apiFetch.post("/Auth/logout").then(() => {
-      setUser(undefined);
-      localStorage.removeItem("accessToken");
-      window.location.href = "/login";
-    });
-  };
+  const logout = useCallback(async () => {
+    if (!user) return;
+    await service.logout();
+    setUser(undefined);
+  }, [user]);
 
   const setNewGroups = (newGroup: GroupType) => {
     setGroups((groups) => [newGroup, ...groups]);
@@ -147,78 +106,80 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const deleteGroup = async (id: string) => {
     setGroups((prev) => prev.filter((group) => group.Id !== id));
-    await apiFetch.delete(`/Group/${id}`);
+    await service.deleteGroup(id);
   };
 
   const deleteCard = async (id: string) => {
-    await apiFetch.delete(`/Cards/${id}`);
+    await service.deleteCard(id);
   };
 
-  const handleCompliteLesson = () => {
+  const handleCompliteLesson = useCallback(() => {
     setCurrentLesson(undefined);
-  };
+  }, []);
 
-  const questionAnswered = async (id: string, ratting: number) => {
-    const res = await apiFetch
-      .post(`/Study/record`, { CardId: id, Rating: ratting })
-      .then((res) => {
-        const data = res.data;
-        setCurrentLesson(
-          (prev) =>
-            prev && {
-              ...prev,
-              cards: prev.cards.map((card) =>
-                card.CardId === id ? { ...card, LastRating: ratting } : card
-              ),
-            }
-        );
-
-        setUser(
-          (prev) =>
-            prev && {
-              ...prev,
-              Statistics: {
-                ...prev?.Statistics,
-                Level: data.CurrentLevel,
-                XPProgressInCurrentLevel: data.CurrentLevelXP,
-                XPForNextLevel: data.XPToNextLevel,
-                XPRequiredForCurrentLevel: data.XPForNextLevel,
-              },
-            }
-        );
-        return data.XPEarned;
-      })
-      .catch((err) => {
-        console.log(err);
-        return 0;
-      });
-    return res;
+  const questionAnswered = async (CardId: string, Rating: number) => {
+    try {
+      const data = await service.answerQuestion(CardId, Rating);
+      setCurrentLesson(
+        (prev) =>
+          prev && {
+            ...prev,
+            cards: prev.cards.map((card) =>
+              card.CardId === CardId ? { ...card, LastRating: Rating } : card
+            ),
+          }
+      );
+      setUser(
+        (prev) =>
+          prev && {
+            ...prev,
+            Statistics: {
+              ...prev?.Statistics,
+              Level: data.CurrentLevel,
+              XPProgressInCurrentLevel: data.CurrentLevelXP,
+              XPForNextLevel: data.XPToNextLevel,
+              XPRequiredForCurrentLevel: data.XPForNextLevel,
+            },
+          }
+      );
+      return data.XPEarned;
+    } catch (err) {
+      console.log(err);
+      return 0;
+    }
   };
 
   const value: AppContextType = {
+    // state of user
     user,
     setUser,
     logout,
+
+    // Settings & motivation
     setting,
     setSetting,
+    motivationText,
 
+    // groups & lessons
     groups,
     setGroups,
-    putGroups,
     setNewGroups,
-    handleSelectLesson,
+    putGroups,
     currentLesson,
+    handleSelectLesson,
     handleCompliteLesson,
-    achivment,
-    questionAnswered,
     deleteGroup,
     deleteCard,
+
+    // achievements
+    achivment,
+    questionAnswered,
+
+    // UI state
+    confrimModal,
     handleOpenConfrimModal,
     handleCloseConfrimModal,
-    confrimModal,
     loading,
-
-    motivationText,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

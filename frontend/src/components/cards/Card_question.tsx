@@ -73,7 +73,7 @@ export default function CardQuestion({
               ))}
             </div>
           </div>
-          <div className="opacity-0 group-hover:opacity-100 transition-all duration-600 flex gap-3 ">
+          <div className="opacity-0 group-hover:opacity-100 transition-all duration-600 flex mx-4 gap-2">
             <ButtonCircle
               onClick={(e) => {
                 e.stopPropagation();

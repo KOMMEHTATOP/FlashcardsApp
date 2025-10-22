@@ -1,3 +1,47 @@
+type AppContextType = {
+  user: UserData | undefined;
+  setUser: React.Dispatch<React.SetStateAction<UserData | undefined>>;
+  logout: () => void;
+
+  setting: SettingType;
+  setSetting: React.Dispatch<React.SetStateAction<SettingType>>;
+
+  achivment: AchievementsType[] | undefined;
+
+  groups: GroupType[] | undefined;
+  setGroups: React.Dispatch<React.SetStateAction<GroupType[]>>;
+  setNewGroups: (newGroup: GroupType) => void;
+  putGroups: (group: GroupType) => void;
+
+  handleSelectLesson: (
+    subject: GroupCardType[],
+    group: GroupType,
+    index?: number
+  ) => void;
+
+  currentLesson: CurrentLessonState | undefined;
+
+  handleCompliteLesson: () => void;
+  questionAnswered: (id: string, ratting: number) => Promise<number>;
+
+  deleteGroup: (id: string) => void;
+  deleteCard: (id: string) => void;
+
+  handleOpenConfrimModal: (modal: ConfrimModalState) => void;
+  handleCloseConfrimModal: () => void;
+  confrimModal: ConfrimModalState | undefined;
+  loading: boolean;
+
+  motivationText: MotivationType | undefined;
+};
+
+type CurrentLessonState = {
+  group: GroupType;
+  cards: GroupCardType[];
+  initialIndex: number;
+  length: number;
+};
+
 interface UserData {
   Id: String;
   Login?: String;
@@ -95,4 +139,6 @@ export type {
   ConfrimModalState,
   SettingType,
   MotivationType,
+  AppContextType,
+  CurrentLessonState,
 };
