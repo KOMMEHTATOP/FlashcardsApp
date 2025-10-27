@@ -10,7 +10,7 @@ namespace FlashcardsApp.Api.Infrastructure.Notifications;
 /// Инкапсулирует логику работы с IHubContext
 /// </summary>
 public class SignalRNotificationService : INotificationService
-{
+{ 
     private readonly IHubContext<NotificationHub> _hubContext;
     private readonly ILogger<SignalRNotificationService> _logger;
 
