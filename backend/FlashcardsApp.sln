@@ -1,0 +1,45 @@
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlashcardsApp.Api", "FlashcardsApp.Api\FlashcardsApp.Api.csproj", "{BCF5E325-D3B3-4083-B871-67D3CF46CFDB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{781D0569-0AF5-4AC2-B07B-50ECA7DD1019}"
+	ProjectSection(SolutionItems) = preProject
+		docker-compose.yml = docker-compose.yml
+		.env = .env
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlashcardsApp.Models", "FlashcardsApp.Models\FlashcardsApp.Models.csproj", "{2EF79742-0AF4-44E9-A783-4EBCFA5598CC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlashcardsApp.DAL", "FlashcardsApp.DAL\FlashcardsApp.DAL.csproj", "{65C310CE-C190-4D7A-8C0A-E1DD7D0B3453}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlashcardsApp.Services", "FlashcardsApp.Services\FlashcardsApp.Services.csproj", "{525FB273-40E4-4A77-8AAB-B949A0A5472B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlashcardsApp.BLL", "FlashcardsApp.BLL\FlashcardsApp.BLL.csproj", "{9CC89898-109E-4293-B99E-DE76BD4AB78D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BCF5E325-D3B3-4083-B871-67D3CF46CFDB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BCF5E325-D3B3-4083-B871-67D3CF46CFDB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BCF5E325-D3B3-4083-B871-67D3CF46CFDB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BCF5E325-D3B3-4083-B871-67D3CF46CFDB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2EF79742-0AF4-44E9-A783-4EBCFA5598CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2EF79742-0AF4-44E9-A783-4EBCFA5598CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2EF79742-0AF4-44E9-A783-4EBCFA5598CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2EF79742-0AF4-44E9-A783-4EBCFA5598CC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{65C310CE-C190-4D7A-8C0A-E1DD7D0B3453}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{65C310CE-C190-4D7A-8C0A-E1DD7D0B3453}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{65C310CE-C190-4D7A-8C0A-E1DD7D0B3453}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{65C310CE-C190-4D7A-8C0A-E1DD7D0B3453}.Release|Any CPU.Build.0 = Release|Any CPU
+		{525FB273-40E4-4A77-8AAB-B949A0A5472B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{525FB273-40E4-4A77-8AAB-B949A0A5472B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{525FB273-40E4-4A77-8AAB-B949A0A5472B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{525FB273-40E4-4A77-8AAB-B949A0A5472B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9CC89898-109E-4293-B99E-DE76BD4AB78D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9CC89898-109E-4293-B99E-DE76BD4AB78D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9CC89898-109E-4293-B99E-DE76BD4AB78D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9CC89898-109E-4293-B99E-DE76BD4AB78D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

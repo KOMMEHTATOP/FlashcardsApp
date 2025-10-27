@@ -1,0 +1,65 @@
+using FlashcardsApp.BLL.Interfaces;
+using FlashcardsApp.DAL.Models;
+using FlashcardsApp.Models.DTOs.Cards.Requests;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+
+namespace FlashcardsApp.Api.Controllers
+{
+    [Route("api/groups/{groupId:guid}/cards")]
+    [ApiController]
+    [Authorize]
+    public class GroupCardsController : ControllerBase
+    {
+        private readonly UserManager<User> _userManager;
+        private readonly ICardService _cardService;
+
+        public GroupCardsController(UserManager<User> userManager, ICardService cardService)
+        {
+            _userManager = userManager;
+            _cardService = cardService;
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> GetCardsByGroupId(Guid groupId)
+        {
+            var userId = GetCurrentUserId();
+            var result = await _cardService.GetCardsByGroupAsync(groupId, userId);
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result.Errors);
+            }
+
+            return Ok(result.Data);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateCard(Guid groupId,[FromBody] CreateCardDto dto)
+        {
+            var userId = GetCurrentUserId();
+            var newCard = await _cardService.CreateCardAsync(userId, groupId, dto);
+
+            if (!newCard.IsSuccess)
+            {
+                return BadRequest(newCard.Errors);
+            }
+
+            return Created($"/api/cards/{newCard.Data!.CardId}", newCard.Data);
+        }
+
+        private Guid GetCurrentUserId()
+        {
+            var userId = _userManager.GetUserId(User);
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                throw new UnauthorizedAccessException();
+            }
+
+            return Guid.Parse(userId);
+        }
+    }
+}
