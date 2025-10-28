@@ -7,7 +7,7 @@ namespace FlashcardsApp.BLL.Interfaces.Achievements;
 /// Сервис для вычисления прогресса достижений
 /// Отвечает ТОЛЬКО за расчет прогресса (текущее значение, требуемое значение, процент)
 /// </summary>
-public interface IAchievementProgressService
+public interface IAchievementProgressBL
 {
     /// <summary>
     /// Вычислить процент выполнения достижения

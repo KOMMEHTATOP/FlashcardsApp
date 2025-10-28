@@ -7,7 +7,7 @@ namespace FlashcardsApp.BLL.Implementations.Achievements;
 /// Сервис для генерации мотивационных сообщений
 /// Отвечает за текстовую мотивацию и локализацию (склонения слов)
 /// </summary>
-public class AchievementMotivationService : IAchievementMotivationService
+public class AchievementMotivationBL : IAchievementMotivationBL
 {
     /// <summary>
     /// Сгенерировать мотивационное сообщение для достижения

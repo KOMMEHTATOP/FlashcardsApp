@@ -6,7 +6,7 @@ namespace FlashcardsApp.BLL.Interfaces.Achievements;
 /// <summary>
 /// Сервис для работы с таблицей лидеров по достижениям (будущая функциональность)
 /// </summary>
-public interface IAchievementLeaderboardService
+public interface IAchievementLeaderboardBL
 {
     /// <summary>
     /// Получить топ пользователей по количеству достижений

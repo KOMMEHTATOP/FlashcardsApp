@@ -2,7 +2,7 @@ using FlashcardsApp.Models.Enums;
 
 namespace FlashcardsApp.BLL.Interfaces.Achievements;
 
-public interface IAchievementMotivationService
+public interface IAchievementMotivationBL
 {
     /// <summary>
     /// Сгенерировать мотивационное сообщение для достижения

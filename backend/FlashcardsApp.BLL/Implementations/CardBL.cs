@@ -13,16 +13,16 @@ namespace FlashcardsApp.BLL.Implementations;
 public class CardBL : ICardBL
 {
     private readonly ApplicationDbContext _context;
-    private readonly IAchievementService _achievementService;
+    private readonly IAchievementBL _achievementBL;
     private readonly ILogger<CardBL> _logger;
 
     public CardBL(
         ApplicationDbContext context,
-        IAchievementService achievementService,
+        IAchievementBL achievementBL,
         ILogger<CardBL> logger)
     {
         _context = context;
-        _achievementService = achievementService;
+        _achievementBL = achievementBL;
         _logger = logger;
     }
 
@@ -180,7 +180,7 @@ public class CardBL : ICardBL
                 userStats.TotalCardsCreated);
 
             await _context.SaveChangesAsync();
-            await _achievementService.CheckAndUnlockAchievementsAsync(userId);
+            await _achievementBL.CheckAndUnlockAchievementsAsync(userId);
         }
         else
         {

@@ -9,14 +9,14 @@ namespace FlashcardsApp.BLL.Implementations.Achievements;
 /// <summary>
 /// Сервис для работы с таблицей лидеров по достижениям
 /// </summary>
-public class AchievementLeaderboardService : IAchievementLeaderboardService
+public class AchievementLeaderboardBL : IAchievementLeaderboardBL
 {
     private readonly ApplicationDbContext _context;
-    private readonly ILogger<AchievementLeaderboardService> _logger;
+    private readonly ILogger<AchievementLeaderboardBL> _logger;
 
-    public AchievementLeaderboardService(
+    public AchievementLeaderboardBL(
         ApplicationDbContext context,
-        ILogger<AchievementLeaderboardService> logger)
+        ILogger<AchievementLeaderboardBL> logger)
     {
         _context = context;
         _logger = logger;

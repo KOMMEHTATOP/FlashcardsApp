@@ -10,20 +10,20 @@ namespace FlashcardsApp.Api.Controllers;
 [Authorize]
 public class AchievementsController : ControllerBase
 {
-    private readonly IAchievementService _achievementService;
-    private readonly IAchievementProgressService _progressService;
-    private readonly IAchievementRecommendationService _recommendationService;
+    private readonly IAchievementBL _achievementBL;
+    private readonly IAchievementProgressBL _progressBl;
+    private readonly IAchievementRecommendationBL _recommendationBl;
     private readonly ILogger<AchievementsController> _logger;
 
     public AchievementsController(
-        IAchievementService achievementService,
-        IAchievementProgressService progressService,
-        IAchievementRecommendationService recommendationService,
+        IAchievementBL achievementBL,
+        IAchievementProgressBL progressBl,
+        IAchievementRecommendationBL recommendationBl,
         ILogger<AchievementsController> logger)
     {
-        _achievementService = achievementService;
-        _progressService = progressService;
-        _recommendationService = recommendationService;
+        _achievementBL = achievementBL;
+        _progressBl = progressBl;
+        _recommendationBl = recommendationBl;
         _logger = logger;
     }
 
@@ -34,7 +34,7 @@ public class AchievementsController : ControllerBase
     [HttpGet("all")]
     public async Task<IActionResult> GetAllAchievements()
     {
-        var result = await _achievementService.GetAllAchievementsAsync();
+        var result = await _achievementBL.GetAllAchievementsAsync();
 
         if (!result.IsSuccess)
         {
@@ -66,7 +66,7 @@ public class AchievementsController : ControllerBase
             });
         }
 
-        var result = await _progressService.CalculateAchievementProgressAsync(userId.Value, achievementId);
+        var result = await _progressBl.CalculateAchievementProgressAsync(userId.Value, achievementId);
 
         if (!result.IsSuccess)
         {
@@ -107,7 +107,7 @@ public class AchievementsController : ControllerBase
             });
         }
 
-        var result = await _progressService.GetAllAchievementsProgressAsync(userId.Value);
+        var result = await _progressBl.GetAllAchievementsProgressAsync(userId.Value);
 
         if (!result.IsSuccess)
         {
@@ -151,7 +151,7 @@ public class AchievementsController : ControllerBase
             });
         }
 
-        var result = await _recommendationService.GetAchievementRecommendationsAsync(userId.Value, count);
+        var result = await _recommendationBl.GetAchievementRecommendationsAsync(userId.Value, count);
 
         if (!result.IsSuccess)
         {
@@ -186,7 +186,7 @@ public class AchievementsController : ControllerBase
             });
         }
 
-        var result = await _achievementService.GetUserAchievementsAsync(userId.Value);
+        var result = await _achievementBL.GetUserAchievementsAsync(userId.Value);
 
         if (!result.IsSuccess)
         {
@@ -217,7 +217,7 @@ public class AchievementsController : ControllerBase
             });
         }
 
-        var result = await _achievementService.GetAllAchievementsWithStatusAsync(userId.Value);
+        var result = await _achievementBL.GetAllAchievementsWithStatusAsync(userId.Value);
 
         if (!result.IsSuccess)
         {
@@ -248,7 +248,7 @@ public class AchievementsController : ControllerBase
             });
         }
 
-        var result = await _achievementService.CheckAndUnlockAchievementsAsync(userId.Value);
+        var result = await _achievementBL.CheckAndUnlockAchievementsAsync(userId.Value);
 
         if (!result.IsSuccess)
         {

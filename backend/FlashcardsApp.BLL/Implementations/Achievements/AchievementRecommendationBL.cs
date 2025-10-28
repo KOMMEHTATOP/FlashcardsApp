@@ -12,24 +12,24 @@ namespace FlashcardsApp.BLL.Implementations.Achievements;
 /// Отвечает ТОЛЬКО за создание списка рекомендаций на основе прогресса
 /// Оркестрирует работу других сервисов: Progress + Motivation + Estimation
 /// </summary>
-public class AchievementRecommendationService : IAchievementRecommendationService
+public class AchievementRecommendationBL : IAchievementRecommendationBL
 {
-    private readonly IAchievementProgressService _progressService;
-    private readonly IAchievementMotivationService _motivationService;
-    private readonly IAchievementEstimationService _estimationService;
+    private readonly IAchievementProgressBL _progressBl;
+    private readonly IAchievementMotivationBL _motivationBl;
+    private readonly IAchievementEstimationBL _estimationBl;
     private readonly ApplicationDbContext _context;
-    private readonly ILogger<AchievementRecommendationService> _logger;
+    private readonly ILogger<AchievementRecommendationBL> _logger;
 
-    public AchievementRecommendationService(
-        IAchievementProgressService progressService,
-        IAchievementMotivationService motivationService,
-        IAchievementEstimationService estimationService,
+    public AchievementRecommendationBL(
+        IAchievementProgressBL progressBl,
+        IAchievementMotivationBL motivationBl,
+        IAchievementEstimationBL estimationBl,
         ApplicationDbContext context,
-        ILogger<AchievementRecommendationService> logger)
+        ILogger<AchievementRecommendationBL> logger)
     {
-        _progressService = progressService;
-        _motivationService = motivationService;
-        _estimationService = estimationService;
+        _progressBl = progressBl;
+        _motivationBl = motivationBl;
+        _estimationBl = estimationBl;
         _context = context;
         _logger = logger;
     }
@@ -50,7 +50,7 @@ public class AchievementRecommendationService : IAchievementRecommendationServic
             }
 
             // 1. Получаем прогресс всех достижений
-            var allProgressResult = await _progressService.GetAllAchievementsProgressAsync(userId);
+            var allProgressResult = await _progressBl.GetAllAchievementsProgressAsync(userId);
             
             if (!allProgressResult.IsSuccess || allProgressResult.Data == null)
             {
@@ -80,13 +80,13 @@ public class AchievementRecommendationService : IAchievementRecommendationServic
                     var remainingValue = p.ConditionValue - p.CurrentValue;
                     
                     // 4. Генерируем мотивационное сообщение
-                    var motivationalMessage = _motivationService.GenerateMotivationalMessage(
+                    var motivationalMessage = _motivationBl.GenerateMotivationalMessage(
                         p.ConditionType,
                         remainingValue,
                         p.Name);
                     
                     // 5. Оцениваем время до получения
-                    var estimatedDays = _estimationService.EstimateDaysToComplete(
+                    var estimatedDays = _estimationBl.EstimateDaysToComplete(
                         p.ConditionType,
                         remainingValue,
                         userStats);

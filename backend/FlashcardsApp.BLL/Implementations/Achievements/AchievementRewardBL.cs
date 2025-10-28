@@ -13,16 +13,16 @@ namespace FlashcardsApp.BLL.Implementations.Achievements;
 /// <summary>
 /// Сервис для начисления наград за достижения
 /// </summary>
-public class AchievementRewardService : IAchievementRewardService
+public class AchievementRewardBL : IAchievementRewardBL
 {
     private readonly ApplicationDbContext _context;
-    private readonly ILogger<AchievementRewardService> _logger;
+    private readonly ILogger<AchievementRewardBL> _logger;
     private readonly IGamificationBL _gamificationBl;
     private readonly RewardSettings _settings;
 
-    public AchievementRewardService(
+    public AchievementRewardBL(
         ApplicationDbContext context,
-        ILogger<AchievementRewardService> logger,
+        ILogger<AchievementRewardBL> logger,
         IGamificationBL gamificationBl,
         IOptions<RewardSettings> settingsOptions)
     {

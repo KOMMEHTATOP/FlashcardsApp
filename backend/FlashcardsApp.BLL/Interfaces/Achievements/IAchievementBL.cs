@@ -7,7 +7,7 @@ namespace FlashcardsApp.BLL.Interfaces.Achievements;
 /// Сервис для управления достижениями пользователей
 /// Отвечает за получение, разблокировку и проверку условий достижений
 /// </summary>
-public interface IAchievementService
+public interface IAchievementBL
 {
     /// <summary>
     /// Получить список всех доступных достижений в системе

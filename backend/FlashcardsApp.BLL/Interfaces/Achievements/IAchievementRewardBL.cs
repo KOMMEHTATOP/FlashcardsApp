@@ -6,7 +6,7 @@ namespace FlashcardsApp.BLL.Interfaces.Achievements;
 /// <summary>
 /// Сервис для начисления наград за достижения
 /// </summary>
-public interface IAchievementRewardService
+public interface IAchievementRewardBL
 {
     /// <summary>
     /// Начислить награду за выполнение достижения (XP).

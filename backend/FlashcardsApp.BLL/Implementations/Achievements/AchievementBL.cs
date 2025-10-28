@@ -11,22 +11,22 @@ using Microsoft.Extensions.Logging;
 
 namespace FlashcardsApp.BLL.Implementations.Achievements;
 
-public class AchievementService : IAchievementService
+public class AchievementBL : IAchievementBL
 {
     private readonly ApplicationDbContext _context;
-    private readonly ILogger<AchievementService> _logger;
-    private readonly IAchievementRewardService _rewardService;
+    private readonly ILogger<AchievementBL> _logger;
+    private readonly IAchievementRewardBL _rewardBl;
     private readonly INotificationService _notificationService;
 
-    public AchievementService(
+    public AchievementBL(
         ApplicationDbContext context,
-        ILogger<AchievementService> logger,
-        IAchievementRewardService rewardService,
+        ILogger<AchievementBL> logger,
+        IAchievementRewardBL rewardBl,
         INotificationService notificationService)
     {
         _context = context;
         _logger = logger;
-        _rewardService = rewardService;
+        _rewardBl = rewardBl;
         _notificationService = notificationService;
     }
 
@@ -176,7 +176,7 @@ public class AchievementService : IAchievementService
             await _context.SaveChangesAsync();
 
             // Начисляем награду за достижение
-            var rewardResult = await _rewardService.AwardBonusForAchievementAsync(userId, achievementId);
+            var rewardResult = await _rewardBl.AwardBonusForAchievementAsync(userId, achievementId);
             var bonusXP = rewardResult.IsSuccess ? rewardResult.Data.XPAwarded : 0;
 
             // ОТПРАВЛЯЕМ УВЕДОМЛЕНИЕ через SignalR
@@ -288,7 +288,7 @@ public class AchievementService : IAchievementService
 
                 foreach (var achievementDto in newlyUnlocked)
                 {
-                    var rewardResult = await _rewardService.AwardBonusForAchievementAsync(
+                    var rewardResult = await _rewardBl.AwardBonusForAchievementAsync(
                         userId, achievementDto.Id);
                     
                     var bonusXP = rewardResult.IsSuccess ? rewardResult.Data.XPAwarded : 0;

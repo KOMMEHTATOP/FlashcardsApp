@@ -3,7 +3,7 @@ using FlashcardsApp.Models.DTOs.Achievements.Responses;
 
 namespace FlashcardsApp.BLL.Interfaces.Achievements;
 
-public interface IAchievementRecommendationService
+public interface IAchievementRecommendationBL
 {
     /// <summary>
     /// Получить рекомендации: какие достижения пользователь скоро получит

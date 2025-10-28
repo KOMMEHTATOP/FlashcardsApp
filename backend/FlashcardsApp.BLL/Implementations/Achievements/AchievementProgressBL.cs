@@ -12,14 +12,14 @@ namespace FlashcardsApp.BLL.Implementations.Achievements;
 /// Сервис для вычисления прогресса выполнения достижений
 /// Отвечает ТОЛЬКО за расчет прогресса (текущее значение, требуемое значение, процент)
 /// </summary>
-public class AchievementProgressService : IAchievementProgressService
+public class AchievementProgressBL : IAchievementProgressBL
 {
     private readonly ApplicationDbContext _context;
-    private readonly ILogger<AchievementProgressService> _logger;
+    private readonly ILogger<AchievementProgressBL> _logger;
 
-    public AchievementProgressService(
+    public AchievementProgressBL(
         ApplicationDbContext context,
-        ILogger<AchievementProgressService> logger)
+        ILogger<AchievementProgressBL> logger)
     {
         _context = context;
         _logger = logger;

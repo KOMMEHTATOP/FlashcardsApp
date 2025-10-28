@@ -3,7 +3,7 @@ using FlashcardsApp.Models.Enums;
 
 namespace FlashcardsApp.BLL.Interfaces.Achievements;
 
-public interface IAchievementEstimationService
+public interface IAchievementEstimationBL
 {
     /// <summary>
     /// Оценить количество дней до выполнения достижения

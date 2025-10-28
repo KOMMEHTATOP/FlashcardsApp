@@ -9,11 +9,11 @@ namespace FlashcardsApp.BLL.Implementations.Achievements;
 /// Сервис для оценки времени до получения достижения
 /// Отвечает за расчет оценки дней на основе статистики пользователя
 /// </summary>
-public class AchievementEstimationService : IAchievementEstimationService
+public class AchievementEstimationBL : IAchievementEstimationBL
 {
     private readonly IGamificationBL _gamificationBl;
 
-    public AchievementEstimationService(IGamificationBL gamificationBl)
+    public AchievementEstimationBL(IGamificationBL gamificationBl)
     {
         _gamificationBl = gamificationBl;
     }

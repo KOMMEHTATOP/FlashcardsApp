@@ -14,20 +14,20 @@ public class UserBL : IUserBL
     private readonly UserManager<User> _userManager;
     private readonly IUserStatisticsBL _statisticsBl;
     private readonly IGroupBL _groupBl;
-    private readonly IAchievementService _achievementService;
+    private readonly IAchievementBL _achievementBL;
     private readonly ILogger<UserBL> _logger;
 
     public UserBL(
         UserManager<User> userManager,
         IUserStatisticsBL statisticsBl,
         IGroupBL groupBl,
-        IAchievementService achievementService,
+        IAchievementBL achievementBL,
         ILogger<UserBL> logger)
     {
         _userManager = userManager;
         _statisticsBl = statisticsBl;
         _groupBl = groupBl;
-        _achievementService = achievementService;
+        _achievementBL = achievementBL;
         _logger = logger;
     }
 
@@ -46,7 +46,7 @@ public class UserBL : IUserBL
 
             var statisticsResult = await _statisticsBl.GetUserStatsAsync(userId);
             var groupsResult = await _groupBl.GetGroupsAsync(userId);
-            var achievementsResult = await _achievementService.GetAllAchievementsWithStatusAsync(userId);
+            var achievementsResult = await _achievementBL.GetAllAchievementsWithStatusAsync(userId);
 
             // Агрегируем результаты
             var dashboard = new UserDashboardDto
