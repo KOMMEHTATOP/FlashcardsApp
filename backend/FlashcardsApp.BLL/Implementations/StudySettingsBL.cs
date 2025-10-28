@@ -9,11 +9,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FlashcardsApp.BLL.Implementations;
 
-public class StudySettingsService : IStudySettingsService
+public class StudySettingsBL : IStudySettingsBL
 {
     private readonly ApplicationDbContext _context;
     
-    public StudySettingsService(ApplicationDbContext context)
+    public StudySettingsBL(ApplicationDbContext context)
     {
         _context = context;
     }
@@ -32,17 +32,7 @@ public class StudySettingsService : IStudySettingsService
             return ServiceResult<ResultSettingsDto>.Success(settings.ToDto());
         }
 
-        // Возвращаем дефолтные настройки (не сохраняем в БД)
-        var defaultSettings = new ResultSettingsDto
-        {
-            StudyOrder = StudyOrder.Random,
-            MinRating = 0,
-            MaxRating = 5,
-            CompletionThreshold = 5,
-            ShuffleOnRepeat = true
-        };
-
-        return ServiceResult<ResultSettingsDto>.Success(defaultSettings);
+        return ServiceResult<ResultSettingsDto>.Success(ResultSettingsDto.GetDefault());
     }
     
     /// <summary>
@@ -98,16 +88,6 @@ public class StudySettingsService : IStudySettingsService
             await _context.SaveChangesAsync();
         }
 
-        // Возвращаем дефолтные настройки
-        var defaultSettings = new ResultSettingsDto
-        {
-            StudyOrder = StudyOrder.Random,
-            MinRating = 0,
-            MaxRating = 5,
-            CompletionThreshold = 5,
-            ShuffleOnRepeat = true
-        };
-
-        return ServiceResult<ResultSettingsDto>.Success(defaultSettings);
+        return ServiceResult<ResultSettingsDto>.Success(ResultSettingsDto.GetDefault());
     }
 }

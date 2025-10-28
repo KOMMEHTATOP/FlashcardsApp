@@ -12,18 +12,18 @@ namespace FlashcardsApp.Api.Controllers
     [Authorize]
     public class GroupController : BaseController
     {
-        private readonly IGroupService _groupService;
+        private readonly IGroupBL _groupBl;
 
-        public GroupController(UserManager<User> userManager, IGroupService groupService):base(userManager)
+        public GroupController(UserManager<User> userManager, IGroupBL groupBl):base(userManager)
         {
-            _groupService = groupService;
+            _groupBl = groupBl;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAllGroups()
         {
             var userId = GetCurrentUserId();
-            var result = await _groupService.GetGroupsAsync(userId);
+            var result = await _groupBl.GetGroupsAsync(userId);
 
             return OkOrBadRequest(result);
         }
@@ -33,7 +33,7 @@ namespace FlashcardsApp.Api.Controllers
         public async Task<IActionResult> GetGroup(Guid id)
         {
             var userId = GetCurrentUserId();
-            var result = await _groupService.GetGroupByIdAsync(id, userId);
+            var result = await _groupBl.GetGroupByIdAsync(id, userId);
 
             return OkOrBadRequest(result);
         }
@@ -42,7 +42,7 @@ namespace FlashcardsApp.Api.Controllers
         public async Task<IActionResult> CreateGroup(CreateGroupDto dto)
         {
             var userId = GetCurrentUserId();
-            var newGroup = await _groupService.CreateNewGroupAsync(dto, userId);
+            var newGroup = await _groupBl.CreateNewGroupAsync(dto, userId);
 
             if (!newGroup.IsSuccess)
             {
@@ -59,14 +59,14 @@ namespace FlashcardsApp.Api.Controllers
         public async Task<IActionResult> UpdateGroup(CreateGroupDto dto, Guid groupId)
         {
             var userId = GetCurrentUserId();
-            var currentGroup = await _groupService.GetGroupByIdAsync(groupId, userId);
+            var currentGroup = await _groupBl.GetGroupByIdAsync(groupId, userId);
 
             if (!currentGroup.IsSuccess)
             {
                 return BadRequest(currentGroup.Errors);
             }
 
-            var updateResult = await _groupService.UpdateGroupAsync(groupId, userId, dto);
+            var updateResult = await _groupBl.UpdateGroupAsync(groupId, userId, dto);
 
             return OkOrBadRequest(updateResult);
         }
@@ -75,7 +75,7 @@ namespace FlashcardsApp.Api.Controllers
         public async Task<IActionResult> DeleteGroup(Guid id)
         {
             var userId = GetCurrentUserId();
-            var currentGroup = await _groupService.DeleteGroupAsync(id, userId);
+            var currentGroup = await _groupBl.DeleteGroupAsync(id, userId);
             if (!currentGroup.IsSuccess)
             {
                 return BadRequest(currentGroup.Errors);
@@ -88,7 +88,7 @@ namespace FlashcardsApp.Api.Controllers
         public async Task<IActionResult> ReorderGroups([FromBody] List<ReorderGroupDto> groupOrders)
         {
             var userId = GetCurrentUserId();
-            var result = await _groupService.UpdateGroupsOrderAsync(groupOrders, userId);
+            var result = await _groupBl.UpdateGroupsOrderAsync(groupOrders, userId);
     
             return OkOrBadRequest(result);
         }

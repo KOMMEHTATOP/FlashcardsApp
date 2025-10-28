@@ -12,11 +12,11 @@ namespace FlashcardsApp.Api.Controllers
     [Authorize]
     public class CardsController : BaseController
     {
-        private readonly ICardService _cardService;
+        private readonly ICardBL _cardBl;
 
-        public CardsController(UserManager<User> userManager, ICardService cardService) : base(userManager)
+        public CardsController(UserManager<User> userManager, ICardBL cardBl) : base(userManager)
         {
-            _cardService = cardService;
+            _cardBl = cardBl;
         }
 
 
@@ -24,7 +24,7 @@ namespace FlashcardsApp.Api.Controllers
         public async Task<IActionResult> GetAllCards(int? rating = null)
         {
             var userId = GetCurrentUserId();
-            var cards = await _cardService.GetAllCardsAsync(userId, rating);
+            var cards = await _cardBl.GetAllCardsAsync(userId, rating);
 
             return OkOrBadRequest(cards);
         }
@@ -33,7 +33,7 @@ namespace FlashcardsApp.Api.Controllers
         public async Task<IActionResult> GetCardById(Guid id)
         {
             var userId = GetCurrentUserId();
-            var card = await _cardService.GetCardAsync(id, userId);
+            var card = await _cardBl.GetCardAsync(id, userId);
 
             return OkOrBadRequest(card);
         }
@@ -43,7 +43,7 @@ namespace FlashcardsApp.Api.Controllers
         public async Task<IActionResult> UpdateCard(Guid cardId, CreateCardDto cardDto)
         {
             var userId = GetCurrentUserId();
-            var updateResult = await _cardService.UpdateCardAsync(cardId, userId, cardDto);
+            var updateResult = await _cardBl.UpdateCardAsync(cardId, userId, cardDto);
 
             return OkOrBadRequest(updateResult);
         }
@@ -52,7 +52,7 @@ namespace FlashcardsApp.Api.Controllers
         public async Task<IActionResult> DeleteCard(Guid cardId)
         {
             var userId = GetCurrentUserId();
-            var deleteResult = await _cardService.DeleteCardAsync(cardId, userId);
+            var deleteResult = await _cardBl.DeleteCardAsync(cardId, userId);
 
             if (!deleteResult.IsSuccess)
             {

@@ -12,11 +12,11 @@ namespace FlashcardsApp.Api.Controllers
     [Authorize]
     public class GroupCardsController : BaseController
     {
-        private readonly ICardService _cardService;
+        private readonly ICardBL _cardBl;
 
-        public GroupCardsController(UserManager<User> userManager, ICardService cardService):base(userManager)
+        public GroupCardsController(UserManager<User> userManager, ICardBL cardBl):base(userManager)
         {
-            _cardService = cardService;
+            _cardBl = cardBl;
         }
 
 
@@ -24,7 +24,7 @@ namespace FlashcardsApp.Api.Controllers
         public async Task<IActionResult> GetCardsByGroupId(Guid groupId)
         {
             var userId = GetCurrentUserId();
-            var result = await _cardService.GetCardsByGroupAsync(groupId, userId);
+            var result = await _cardBl.GetCardsByGroupAsync(groupId, userId);
 
             return OkOrBadRequest(result);
         }
@@ -33,7 +33,7 @@ namespace FlashcardsApp.Api.Controllers
         public async Task<IActionResult> CreateCard(Guid groupId,[FromBody] CreateCardDto dto)
         {
             var userId = GetCurrentUserId();
-            var newCard = await _cardService.CreateCardAsync(userId, groupId, dto);
+            var newCard = await _cardBl.CreateCardAsync(userId, groupId, dto);
 
             if (!newCard.IsSuccess)
             {

@@ -11,20 +11,20 @@ using Microsoft.Extensions.Logging;
 
 namespace FlashcardsApp.BLL.Implementations;
 
-public class AuthService : IAuthService
+public class AuthBL : IAuthBL
 {
     private readonly UserManager<User> _userManager;
     private readonly SignInManager<User> _signInManager;
     private readonly ITokenService _tokenService;
     private readonly ApplicationDbContext _context;
-    private readonly ILogger<AuthService> _logger;
+    private readonly ILogger<AuthBL> _logger;
 
-    public AuthService(
+    public AuthBL(
         UserManager<User> userManager,
         SignInManager<User> signInManager,
         ITokenService tokenService,
         ApplicationDbContext context,
-        ILogger<AuthService> logger)
+        ILogger<AuthBL> logger)
     {
         _userManager = userManager;
         _signInManager = signInManager;

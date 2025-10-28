@@ -63,7 +63,7 @@ public class TokenService : ITokenService
     // Convenience метод для совместимости с контроллером
     public string GenerateAccessToken(User user)
     {
-        var roles = _userManager.GetRolesAsync(user).Result; // sync wrapper
+        var roles = _userManager.GetRolesAsync(user).Result; 
         return GenerateAccessToken(user.Id, user.Email ?? string.Empty, roles);
     }
 

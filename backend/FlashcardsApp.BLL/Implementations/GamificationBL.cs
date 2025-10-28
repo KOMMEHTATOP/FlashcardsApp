@@ -7,12 +7,12 @@ using Microsoft.Extensions.Options;
 
 namespace FlashcardsApp.BLL.Implementations;
 
-public class GamificationService : IGamificationService
+public class GamificationBL : IGamificationBL
 {
     private readonly ApplicationDbContext _context;
     private readonly RewardSettings _settings;
 
-    public GamificationService(
+    public GamificationBL(
         ApplicationDbContext context,
         IOptions<RewardSettings> settingsOptions)
     {

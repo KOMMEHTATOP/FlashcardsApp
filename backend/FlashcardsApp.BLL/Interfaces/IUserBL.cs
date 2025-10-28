@@ -3,7 +3,7 @@ using FlashcardsApp.Models.DTOs.Auth.Responses;
 
 namespace FlashcardsApp.BLL.Interfaces;
 
-public interface IUserService
+public interface IUserBL
 {
     Task<ServiceResult<UserDashboardDto>> GetUserDashboardAsync(Guid userId);
 

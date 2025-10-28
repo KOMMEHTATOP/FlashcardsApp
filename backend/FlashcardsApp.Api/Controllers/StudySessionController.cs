@@ -12,18 +12,18 @@ namespace FlashcardsApp.Api.Controllers
     [Authorize]
     public class StudySessionController : BaseController
     {
-        private readonly IStudySessionService _studySessionService;
+        private readonly IStudySessionBL _studySessionBl;
 
-        public StudySessionController(IStudySessionService studySessionService, UserManager<User> userManager) : base(userManager)
+        public StudySessionController(IStudySessionBL studySessionBl, UserManager<User> userManager) : base(userManager)
         {
-            _studySessionService = studySessionService;
+            _studySessionBl = studySessionBl;
         }
 
         [HttpPost("start")]
         public async Task<IActionResult> StartSession([FromQuery] Guid groupId, [FromQuery] bool useDefaultSettings = false)
         {
             var userId = GetCurrentUserId();
-            var result = await _studySessionService.StartSessionAsync(userId, groupId);
+            var result = await _studySessionBl.StartSessionAsync(userId, groupId);
 
             return OkOrBadRequest(result); 
         }

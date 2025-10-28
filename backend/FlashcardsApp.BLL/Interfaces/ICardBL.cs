@@ -7,7 +7,7 @@ namespace FlashcardsApp.BLL.Interfaces;
 /// <summary>
 /// Сервис для управления карточками (flashcards)
 /// </summary>
-public interface ICardService
+public interface ICardBL
 {
     /// <summary>
     /// Получает все карточки пользователя с опциональной фильтрацией по рейтингу

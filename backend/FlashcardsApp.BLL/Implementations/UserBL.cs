@@ -9,24 +9,24 @@ using Microsoft.Extensions.Logging;
 
 namespace FlashcardsApp.BLL.Implementations;
 
-public class UserService : IUserService
+public class UserBL : IUserBL
 {
     private readonly UserManager<User> _userManager;
-    private readonly IUserStatisticsService _statisticsService;
-    private readonly IGroupService _groupService;
+    private readonly IUserStatisticsBL _statisticsBl;
+    private readonly IGroupBL _groupBl;
     private readonly IAchievementService _achievementService;
-    private readonly ILogger<UserService> _logger;
+    private readonly ILogger<UserBL> _logger;
 
-    public UserService(
+    public UserBL(
         UserManager<User> userManager,
-        IUserStatisticsService statisticsService,
-        IGroupService groupService,
+        IUserStatisticsBL statisticsBl,
+        IGroupBL groupBl,
         IAchievementService achievementService,
-        ILogger<UserService> logger)
+        ILogger<UserBL> logger)
     {
         _userManager = userManager;
-        _statisticsService = statisticsService;
-        _groupService = groupService;
+        _statisticsBl = statisticsBl;
+        _groupBl = groupBl;
         _achievementService = achievementService;
         _logger = logger;
     }
@@ -44,8 +44,8 @@ public class UserService : IUserService
                 return ServiceResult<UserDashboardDto>.Failure("Пользователь не найден");
             }
 
-            var statisticsResult = await _statisticsService.GetUserStatsAsync(userId);
-            var groupsResult = await _groupService.GetGroupsAsync(userId);
+            var statisticsResult = await _statisticsBl.GetUserStatsAsync(userId);
+            var groupsResult = await _groupBl.GetGroupsAsync(userId);
             var achievementsResult = await _achievementService.GetAllAchievementsWithStatusAsync(userId);
 
             // Агрегируем результаты

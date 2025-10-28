@@ -6,15 +6,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FlashcardsApp.BLL.Implementations;
 
-public class UserStatisticsService: IUserStatisticsService
+public class UserStatisticsBL: IUserStatisticsBL
 {
     private readonly ApplicationDbContext _context;
-    private readonly IGamificationService _gamificationService;
+    private readonly IGamificationBL _gamificationBl;
 
-    public UserStatisticsService(ApplicationDbContext context, IGamificationService gamificationService)
+    public UserStatisticsBL(ApplicationDbContext context, IGamificationBL gamificationBl)
     {
         _context = context;
-        _gamificationService = gamificationService;
+        _gamificationBl = gamificationBl;
     }
 
     /// <summary>
@@ -47,8 +47,8 @@ public class UserStatisticsService: IUserStatisticsService
         }
 
         // Рассчитываем DTO
-        var xpForCurrentLevel = _gamificationService.CalculateXPForLevel(stats.Level);
-        var xpForNextLevel = _gamificationService.CalculateXPForLevel(stats.Level + 1);
+        var xpForCurrentLevel = _gamificationBl.CalculateXPForLevel(stats.Level);
+        var xpForNextLevel = _gamificationBl.CalculateXPForLevel(stats.Level + 1);
 
         var xpNeeded = xpForNextLevel - stats.TotalXP;
         var xpProgressInCurrentLevel = stats.TotalXP - xpForCurrentLevel;

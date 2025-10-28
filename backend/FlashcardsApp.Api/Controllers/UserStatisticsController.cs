@@ -10,15 +10,15 @@ namespace FlashcardsApp.Api.Controllers;
 [Authorize]
 public class UserStatisticsController : ControllerBase
 {
-    private readonly IUserStatisticsService _statisticsService;
-    private readonly IGamificationService _gamificationService;
+    private readonly IUserStatisticsBL _statisticsBl;
+    private readonly IGamificationBL _gamificationBl;
 
     public UserStatisticsController(
-        IUserStatisticsService statisticsService,
-        IGamificationService gamificationService)
+        IUserStatisticsBL statisticsBl,
+        IGamificationBL gamificationBl)
     {
-        _statisticsService = statisticsService;
-        _gamificationService = gamificationService;
+        _statisticsBl = statisticsBl;
+        _gamificationBl = gamificationBl;
     }
 
     // Один эндпоинт для получения статистики
@@ -26,7 +26,7 @@ public class UserStatisticsController : ControllerBase
     public async Task<IActionResult> GetUserStats()
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        var result = await _statisticsService.GetUserStatsAsync(userId);
+        var result = await _statisticsBl.GetUserStatsAsync(userId);
 
         if (!result.IsSuccess)
         {
@@ -40,7 +40,7 @@ public class UserStatisticsController : ControllerBase
     public async Task<IActionResult> GetMotivationalMessage()
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        var result = await _gamificationService.GetMotivationalMessageAsync(userId);
+        var result = await _gamificationBl.GetMotivationalMessageAsync(userId);
 
         if (!result.IsSuccess)
         {

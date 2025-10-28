@@ -7,7 +7,7 @@ namespace FlashcardsApp.BLL.Interfaces;
 /// <summary>
 /// Сервис для управления группами карточек
 /// </summary>
-public interface IGroupService
+public interface IGroupBL
 {
     /// <summary>
     /// Получить группу по ID с проверкой прав доступа

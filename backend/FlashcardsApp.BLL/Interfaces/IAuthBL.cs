@@ -6,7 +6,7 @@ using FlashcardsApp.Models.DTOs.Requests;
 
 namespace FlashcardsApp.BLL.Interfaces;
 
-public interface IAuthService
+public interface IAuthBL
 {
     Task<ServiceResult<RegisterUserDto>> Register(RegisterModel model);
     Task<ServiceResult<User>> Login(LoginModel model);

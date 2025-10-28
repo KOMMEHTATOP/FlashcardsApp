@@ -9,11 +9,11 @@ namespace FlashcardsApp.Api.Controllers;
 [Route("api/[controller]")]
 public class UserController : ControllerBase
 {
-    private readonly IUserService _userService;
+    private readonly IUserBL _userBl;
 
-    public UserController(IUserService userService)
+    public UserController(IUserBL userBl)
     {
-        _userService = userService;
+        _userBl = userBl;
     }
 
     /// <summary>
@@ -30,7 +30,7 @@ public class UserController : ControllerBase
             return Unauthorized(new { message = "Пользователь не аутентифицирован" });
         }
 
-        var result = await _userService.GetUserDashboardAsync(userId);
+        var result = await _userBl.GetUserDashboardAsync(userId);
         
         if (!result.IsSuccess)
         {

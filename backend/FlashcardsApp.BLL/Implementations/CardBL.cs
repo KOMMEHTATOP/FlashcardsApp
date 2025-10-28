@@ -10,16 +10,16 @@ using Microsoft.Extensions.Logging;
 
 namespace FlashcardsApp.BLL.Implementations;
 
-public class CardService : ICardService
+public class CardBL : ICardBL
 {
     private readonly ApplicationDbContext _context;
     private readonly IAchievementService _achievementService;
-    private readonly ILogger<CardService> _logger;
+    private readonly ILogger<CardBL> _logger;
 
-    public CardService(
+    public CardBL(
         ApplicationDbContext context,
         IAchievementService achievementService,
-        ILogger<CardService> logger)
+        ILogger<CardBL> logger)
     {
         _context = context;
         _achievementService = achievementService;

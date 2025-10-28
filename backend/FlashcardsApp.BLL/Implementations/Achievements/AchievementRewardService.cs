@@ -17,18 +17,18 @@ public class AchievementRewardService : IAchievementRewardService
 {
     private readonly ApplicationDbContext _context;
     private readonly ILogger<AchievementRewardService> _logger;
-    private readonly IGamificationService _gamificationService;
+    private readonly IGamificationBL _gamificationBl;
     private readonly RewardSettings _settings;
 
     public AchievementRewardService(
         ApplicationDbContext context,
         ILogger<AchievementRewardService> logger,
-        IGamificationService gamificationService,
+        IGamificationBL gamificationBl,
         IOptions<RewardSettings> settingsOptions)
     {
         _context = context;
         _logger = logger;
-        _gamificationService = gamificationService;
+        _gamificationBl = gamificationBl;
         _settings = settingsOptions.Value;
     }
 
@@ -54,7 +54,7 @@ public class AchievementRewardService : IAchievementRewardService
             var coins = _settings.Base.CoinsPerAchievement;
 
             // Начисляем XP через GamificationService
-            var addResult = await _gamificationService.AddXPToUserAsync(userId, baseXP);
+            var addResult = await _gamificationBl.AddXPToUserAsync(userId, baseXP);
 
             if (!addResult.IsSuccess)
             {

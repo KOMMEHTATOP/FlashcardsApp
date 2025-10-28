@@ -11,11 +11,11 @@ namespace FlashcardsApp.BLL.Implementations.Achievements;
 /// </summary>
 public class AchievementEstimationService : IAchievementEstimationService
 {
-    private readonly IGamificationService _gamificationService;
+    private readonly IGamificationBL _gamificationBl;
 
-    public AchievementEstimationService(IGamificationService gamificationService)
+    public AchievementEstimationService(IGamificationBL gamificationBl)
     {
-        _gamificationService = gamificationService;
+        _gamificationBl = gamificationBl;
     }
     
     // Константы для оценки среднего темпа (можно вынести в конфигурацию)
@@ -136,7 +136,7 @@ public class AchievementEstimationService : IAchievementEstimationService
     private int EstimateDaysForLevel(int targetLevel, UserStatistics userStats)
     {
         var currentXP = userStats.TotalXP;
-        var requiredXP = _gamificationService.CalculateXPForLevel(targetLevel);
+        var requiredXP = _gamificationBl.CalculateXPForLevel(targetLevel);
         var remainingXP = requiredXP - currentXP;
 
         if (remainingXP <= 0)

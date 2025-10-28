@@ -13,12 +13,12 @@ namespace FlashcardsApp.Api.Controllers;
 [Authorize]
 public class StudySettingsController : BaseController
 {
-    private readonly IStudySettingsService _studySettingsService;
+    private readonly IStudySettingsBL _studySettingsBl;
 
-    public StudySettingsController(IStudySettingsService studySettingsService, UserManager<User> userManager) :
+    public StudySettingsController(IStudySettingsBL studySettingsBl, UserManager<User> userManager) :
         base(userManager)
     {
-        _studySettingsService = studySettingsService;
+        _studySettingsBl = studySettingsBl;
     }
 
     /// <summary>
@@ -28,7 +28,7 @@ public class StudySettingsController : BaseController
     public async Task<IActionResult> GetSettings()
     {
         var userId = GetCurrentUserId();
-        var result = await _studySettingsService.GetStudySettingsAsync(userId);
+        var result = await _studySettingsBl.GetStudySettingsAsync(userId);
 
         return OkOrBadRequest(result);
     }
@@ -40,7 +40,7 @@ public class StudySettingsController : BaseController
     public async Task<IActionResult> SaveSettings(CreateSettingsDto dto)
     {
         var userId = GetCurrentUserId();
-        var result = await _studySettingsService.SaveStudySettingsAsync(userId, dto);
+        var result = await _studySettingsBl.SaveStudySettingsAsync(userId, dto);
         
         return OkOrBadRequest(result);
     }
@@ -52,7 +52,7 @@ public class StudySettingsController : BaseController
     public async Task<IActionResult> ResetSettings()
     {
         var userId = GetCurrentUserId();
-        var result = await _studySettingsService.ResetToDefaultAsync(userId);
+        var result = await _studySettingsBl.ResetToDefaultAsync(userId);
 
         return OkOrBadRequest(result); 
 

@@ -6,7 +6,7 @@ namespace FlashcardsApp.BLL.Interfaces;
 /// <summary>
 /// Сервис для управления игровыми механиками: XP, уровни, streak
 /// </summary>
-public interface IGamificationService
+public interface IGamificationBL
 {
     /// <summary>
     /// Рассчитывает XP за изученную карточку.

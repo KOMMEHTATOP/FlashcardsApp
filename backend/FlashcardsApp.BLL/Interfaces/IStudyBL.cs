@@ -7,7 +7,7 @@ namespace FlashcardsApp.BLL.Interfaces;
 /// <summary>
 /// Сервис для управления процессом изучения карточек и записи прогресса
 /// </summary>
-public interface IStudyService
+public interface IStudyBL
 {
     /// <summary>
     /// Записывает сессию изучения карточки и начисляет награды.

@@ -12,16 +12,16 @@ namespace FlashcardsApp.Api.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly IAuthService _authService;
+        private readonly IAuthBL _authBl;
         private readonly ITokenService _tokenService;
         private readonly IConfiguration _configuration;
         
         public AuthController(
-            IAuthService authService,
+            IAuthBL authBl,
             ITokenService tokenService,
             IConfiguration configuration)
         {
-            _authService = authService;
+            _authBl = authBl;
             _tokenService = tokenService;
             _configuration = configuration;
         }
@@ -30,7 +30,7 @@ namespace FlashcardsApp.Api.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterModel model)
         {
-            var result = await _authService.Register(model);
+            var result = await _authBl.Register(model);
             
             if (!result.IsSuccess)
             {
@@ -44,7 +44,7 @@ namespace FlashcardsApp.Api.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginModel model)
         {
-            var result = await _authService.Login(model);
+            var result = await _authBl.Login(model);
     
             if (!result.IsSuccess)
             {
@@ -84,7 +84,7 @@ namespace FlashcardsApp.Api.Controllers
             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
             var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
 
-            var result = await _authService.RefreshAccessToken(refreshTokenValue, ipAddress, userAgent);
+            var result = await _authBl.RefreshAccessToken(refreshTokenValue, ipAddress, userAgent);
             
             if (!result.IsSuccess)
             {
@@ -104,7 +104,7 @@ namespace FlashcardsApp.Api.Controllers
             // HTTP- логика: чтение cookie
             Request.Cookies.TryGetValue("refreshToken", out var refreshTokenValue);
 
-            await _authService.Logout(refreshTokenValue);
+            await _authBl.Logout(refreshTokenValue);
 
             // HTTP- логика: удаление cookie
             Response.Cookies.Delete("refreshToken", new CookieOptions

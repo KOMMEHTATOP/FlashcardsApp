@@ -8,15 +8,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FlashcardsApp.BLL.Implementations;
 
-public class StudySessionService : IStudySessionService
+public class StudySessionBL : IStudySessionBL
 {
     private readonly ApplicationDbContext _context;
-    private readonly IStudySettingsService _studySettingsService;
+    private readonly IStudySettingsBL _studySettingsBl;
 
-    public StudySessionService(ApplicationDbContext context, IStudySettingsService studySettingsService)
+    public StudySessionBL(ApplicationDbContext context, IStudySettingsBL studySettingsBl)
     {
         _context = context;
-        _studySettingsService = studySettingsService;
+        _studySettingsBl = studySettingsBl;
     }
 
     /// <summary>
@@ -25,7 +25,7 @@ public class StudySessionService : IStudySessionService
     public async Task<ServiceResult<ResultStudySessionDto>> StartSessionAsync(Guid userId, Guid groupId)
     {
         // Получаем глобальные настройки пользователя (или дефолтные)
-        var settingsResult = await _studySettingsService.GetStudySettingsAsync(userId);
+        var settingsResult = await _studySettingsBl.GetStudySettingsAsync(userId);
 
         if (!settingsResult.IsSuccess || settingsResult.Data == null)
         {

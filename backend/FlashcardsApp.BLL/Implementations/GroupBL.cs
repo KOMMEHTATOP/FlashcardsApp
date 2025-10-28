@@ -10,14 +10,14 @@ using Npgsql;
 
 namespace FlashcardsApp.BLL.Implementations;
 
-public class GroupService : IGroupService
+public class GroupBL : IGroupBL
 {
     private readonly ApplicationDbContext _context;
-    private readonly ILogger<GroupService> _logger;
+    private readonly ILogger<GroupBL> _logger;
 
-    public GroupService(
+    public GroupBL(
         ApplicationDbContext context,
-        ILogger<GroupService> logger)
+        ILogger<GroupBL> logger)
     {
         _context = context;
         _logger = logger;

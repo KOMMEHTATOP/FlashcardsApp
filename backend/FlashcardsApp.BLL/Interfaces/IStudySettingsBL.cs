@@ -4,7 +4,7 @@ using FlashcardsApp.Models.DTOs.Responses;
 
 namespace FlashcardsApp.BLL.Interfaces;
 
-public interface IStudySettingsService
+public interface IStudySettingsBL
 {
     Task<ServiceResult<ResultSettingsDto>> GetStudySettingsAsync(Guid userId);
     Task<ServiceResult<ResultSettingsDto>> SaveStudySettingsAsync(Guid userId, CreateSettingsDto dto);

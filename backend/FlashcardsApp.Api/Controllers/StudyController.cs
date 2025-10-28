@@ -12,18 +12,18 @@ namespace FlashcardsApp.Api.Controllers;
 [Authorize]
 public class StudyController : BaseController
 {
-    private readonly IStudyService _studyService;
+    private readonly IStudyBL _studyBl;
 
-    public StudyController(UserManager<User> userManager, IStudyService studyService) : base(userManager)
+    public StudyController(UserManager<User> userManager, IStudyBL studyBl) : base(userManager)
     {
-        _studyService = studyService;
+        _studyBl = studyBl;
     }
 
     [HttpPost("record")]
     public async Task<IActionResult> RecordStudy([FromBody] RecordStudyDto dto)
     {
         var userId = GetCurrentUserId();
-        var result = await _studyService.RecordStudySessionAsync(userId, dto);
+        var result = await _studyBl.RecordStudySessionAsync(userId, dto);
 
         return OkOrBadRequest(result);
     }
@@ -32,7 +32,7 @@ public class StudyController : BaseController
     public async Task<IActionResult> GetStudyHistory([FromQuery] int? limit)
     {
         var userId = GetCurrentUserId();
-        var result = await _studyService.GetStudyHistoryAsync(userId, limit);
+        var result = await _studyBl.GetStudyHistoryAsync(userId, limit);
 
         return OkOrBadRequest(result);
     }
