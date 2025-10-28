@@ -10,14 +10,12 @@ namespace FlashcardsApp.Api.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class GroupController : ControllerBase
+    public class GroupController : BaseController
     {
-        private readonly UserManager<User> _userManager;
         private readonly IGroupService _groupService;
 
-        public GroupController(UserManager<User> userManager, IGroupService groupService)
+        public GroupController(UserManager<User> userManager, IGroupService groupService):base(userManager)
         {
-            _userManager = userManager;
             _groupService = groupService;
         }
 
@@ -27,12 +25,7 @@ namespace FlashcardsApp.Api.Controllers
             var userId = GetCurrentUserId();
             var result = await _groupService.GetGroupsAsync(userId);
 
-            if (!result.IsSuccess)
-            {
-                return BadRequest(result.Errors);
-            }
-
-            return Ok(result.Data);
+            return OkOrBadRequest(result);
         }
 
 
@@ -42,10 +35,7 @@ namespace FlashcardsApp.Api.Controllers
             var userId = GetCurrentUserId();
             var result = await _groupService.GetGroupByIdAsync(id, userId);
 
-            if (!result.IsSuccess)
-                return BadRequest(result.Errors);
-
-            return Ok(result.Data);
+            return OkOrBadRequest(result);
         }
 
         [HttpPost]
@@ -78,12 +68,7 @@ namespace FlashcardsApp.Api.Controllers
 
             var updateResult = await _groupService.UpdateGroupAsync(groupId, userId, dto);
 
-            if (!updateResult.IsSuccess)
-            {
-                return BadRequest(updateResult.Errors);
-            }
-
-            return Ok(updateResult.Data);
+            return OkOrBadRequest(updateResult);
         }
 
         [HttpDelete("{id:guid}")]
@@ -105,25 +90,7 @@ namespace FlashcardsApp.Api.Controllers
             var userId = GetCurrentUserId();
             var result = await _groupService.UpdateGroupsOrderAsync(groupOrders, userId);
     
-            if (!result.IsSuccess)
-            {
-                return BadRequest(result.Errors);
-            }
-    
-            return Ok();
-        }
-        
-        
-        private Guid GetCurrentUserId()
-        {
-            var userId = _userManager.GetUserId(User);
-
-            if (string.IsNullOrEmpty(userId))
-            {
-                throw new UnauthorizedAccessException("You are not authorized to access this resource.");
-            }
-
-            return Guid.Parse(userId);
+            return OkOrBadRequest(result);
         }
     }
 }

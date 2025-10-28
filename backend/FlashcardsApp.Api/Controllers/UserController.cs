@@ -10,14 +10,10 @@ namespace FlashcardsApp.Api.Controllers;
 public class UserController : ControllerBase
 {
     private readonly IUserService _userService;
-    private readonly ILogger<UserController> _logger;
 
-    public UserController(
-        IUserService userService,
-        ILogger<UserController> logger)
+    public UserController(IUserService userService)
     {
         _userService = userService;
-        _logger = logger;
     }
 
     /// <summary>

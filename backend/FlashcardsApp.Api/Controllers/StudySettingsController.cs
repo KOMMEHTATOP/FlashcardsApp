@@ -11,77 +11,50 @@ namespace FlashcardsApp.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class StudySettingsController : ControllerBase
+public class StudySettingsController : BaseController
 {
     private readonly IStudySettingsService _studySettingsService;
-    private readonly UserManager<User> _userManager;
 
-    public StudySettingsController(IStudySettingsService studySettingsService, UserManager<User> userManager)
+    public StudySettingsController(IStudySettingsService studySettingsService, UserManager<User> userManager) :
+        base(userManager)
     {
         _studySettingsService = studySettingsService;
-        _userManager = userManager;
     }
 
     /// <summary>
     /// Получить глобальные настройки
     /// </summary>
     [HttpGet]
-    public async Task<ActionResult<ResultSettingsDto>> GetSettings()
+    public async Task<IActionResult> GetSettings()
     {
         var userId = GetCurrentUserId();
         var result = await _studySettingsService.GetStudySettingsAsync(userId);
 
-        if (!result.IsSuccess)
-        {
-            return BadRequest(result.Errors);
-        }
-
-        return Ok(result.Data);
+        return OkOrBadRequest(result);
     }
 
     /// <summary>
     /// Сохранить глобальные настройки
     /// </summary>
     [HttpPost]
-    public async Task<ActionResult<ResultSettingsDto>> SaveSettings(CreateSettingsDto dto)
+    public async Task<IActionResult> SaveSettings(CreateSettingsDto dto)
     {
         var userId = GetCurrentUserId();
         var result = await _studySettingsService.SaveStudySettingsAsync(userId, dto);
-
-        if (!result.IsSuccess)
-        {
-            return BadRequest(result.Errors);
-        }
-
-        return Ok(result.Data);
+        
+        return OkOrBadRequest(result);
     }
 
     /// <summary>
     /// Сбросить к дефолтным настройкам
     /// </summary>
     [HttpDelete]
-    public async Task<ActionResult<ResultSettingsDto>> ResetSettings()
+    public async Task<IActionResult> ResetSettings()
     {
         var userId = GetCurrentUserId();
         var result = await _studySettingsService.ResetToDefaultAsync(userId);
 
-        if (!result.IsSuccess)
-        {
-            return BadRequest(result.Errors);
-        }
+        return OkOrBadRequest(result); 
 
-        return Ok(result.Data);
-    }
-
-    private Guid GetCurrentUserId()
-    {
-        var userId = _userManager.GetUserId(User);
-
-        if (string.IsNullOrEmpty(userId))
-        {
-            throw new UnauthorizedAccessException("You are not authorized to access this resource.");
-        }
-
-        return Guid.Parse(userId);
     }
 }

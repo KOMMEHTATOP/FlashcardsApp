@@ -10,14 +10,12 @@ namespace FlashcardsApp.Api.Controllers
     [Route("api/groups/{groupId:guid}/cards")]
     [ApiController]
     [Authorize]
-    public class GroupCardsController : ControllerBase
+    public class GroupCardsController : BaseController
     {
-        private readonly UserManager<User> _userManager;
         private readonly ICardService _cardService;
 
-        public GroupCardsController(UserManager<User> userManager, ICardService cardService)
+        public GroupCardsController(UserManager<User> userManager, ICardService cardService):base(userManager)
         {
-            _userManager = userManager;
             _cardService = cardService;
         }
 
@@ -28,12 +26,7 @@ namespace FlashcardsApp.Api.Controllers
             var userId = GetCurrentUserId();
             var result = await _cardService.GetCardsByGroupAsync(groupId, userId);
 
-            if (!result.IsSuccess)
-            {
-                return BadRequest(result.Errors);
-            }
-
-            return Ok(result.Data);
+            return OkOrBadRequest(result);
         }
 
         [HttpPost]
@@ -48,18 +41,6 @@ namespace FlashcardsApp.Api.Controllers
             }
 
             return Created($"/api/cards/{newCard.Data!.CardId}", newCard.Data);
-        }
-
-        private Guid GetCurrentUserId()
-        {
-            var userId = _userManager.GetUserId(User);
-
-            if (string.IsNullOrEmpty(userId))
-            {
-                throw new UnauthorizedAccessException();
-            }
-
-            return Guid.Parse(userId);
         }
     }
 }

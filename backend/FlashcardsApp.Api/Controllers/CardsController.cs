@@ -10,15 +10,12 @@ namespace FlashcardsApp.Api.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class CardsController : ControllerBase
+    public class CardsController : BaseController
     {
-
-        private readonly UserManager<User> _userManager;
         private readonly ICardService _cardService;
 
-        public CardsController(UserManager<User> userManager, ICardService cardService)
+        public CardsController(UserManager<User> userManager, ICardService cardService) : base(userManager)
         {
-            _userManager = userManager;
             _cardService = cardService;
         }
 
@@ -29,12 +26,7 @@ namespace FlashcardsApp.Api.Controllers
             var userId = GetCurrentUserId();
             var cards = await _cardService.GetAllCardsAsync(userId, rating);
 
-            if (!cards.IsSuccess)
-            {
-                return BadRequest(cards.Errors);
-            }
-
-            return Ok(cards.Data);
+            return OkOrBadRequest(cards);
         }
 
         [HttpGet("{id:guid}")]
@@ -43,12 +35,7 @@ namespace FlashcardsApp.Api.Controllers
             var userId = GetCurrentUserId();
             var card = await _cardService.GetCardAsync(id, userId);
 
-            if (!card.IsSuccess)
-            {
-                return BadRequest(card.Errors);
-            }
-
-            return Ok(card.Data);
+            return OkOrBadRequest(card);
         }
 
 
@@ -58,12 +45,7 @@ namespace FlashcardsApp.Api.Controllers
             var userId = GetCurrentUserId();
             var updateResult = await _cardService.UpdateCardAsync(cardId, userId, cardDto);
 
-            if (!updateResult.IsSuccess)
-            {
-                return BadRequest(updateResult.Errors);
-            }
-
-            return Ok(updateResult.Data);
+            return OkOrBadRequest(updateResult);
         }
 
         [HttpDelete("{cardId:guid}")]
@@ -78,18 +60,6 @@ namespace FlashcardsApp.Api.Controllers
             }
 
             return NoContent();
-        }
-
-        private Guid GetCurrentUserId()
-        {
-            var userId = _userManager.GetUserId(User);
-
-            if (string.IsNullOrEmpty(userId))
-            {
-                throw new UnauthorizedAccessException("You are not authorized to access this resource.");
-            }
-
-            return Guid.Parse(userId);
         }
     }
 }
