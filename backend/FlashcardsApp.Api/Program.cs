@@ -5,8 +5,9 @@ using FlashcardsApp.BLL.Implementations;
 using FlashcardsApp.BLL.Implementations.Achievements;
 using FlashcardsApp.BLL.Interfaces;
 using FlashcardsApp.BLL.Interfaces.Achievements;
-using FlashcardsApp.DAL.Data;
+using FlashcardsApp.DAL;
 using FlashcardsApp.DAL.Models;
+using FlashcardsApp.DAL.Seeds;
 using FlashcardsApp.Models.Constants;
 using FlashcardsApp.Services.Implementations;
 using FlashcardsApp.Services.Interfaces;
@@ -278,7 +279,7 @@ if (autoMigrate)
 
     logger.LogInformation("Starting seed...");
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
-    await DbSeeder.SeedAsync(db, userManager);
+    await SeedManager.SeedAsync(db, userManager);
     logger.LogInformation("Seed completed!");
 }
 else

@@ -1,7 +1,7 @@
 using FlashcardsApp.BLL.Interfaces;
 using FlashcardsApp.BLL.Interfaces.Achievements;
 using FlashcardsApp.BLL.Mapping;
-using FlashcardsApp.DAL.Data;
+using FlashcardsApp.DAL;
 using FlashcardsApp.DAL.Models;
 using FlashcardsApp.Models.DTOs.Cards.Requests;
 using FlashcardsApp.Models.DTOs.Cards.Responses;

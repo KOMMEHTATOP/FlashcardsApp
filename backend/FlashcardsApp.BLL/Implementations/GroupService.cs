@@ -1,6 +1,6 @@
 using FlashcardsApp.BLL.Interfaces;
 using FlashcardsApp.BLL.Mapping;
-using FlashcardsApp.DAL.Data;
+using FlashcardsApp.DAL;
 using FlashcardsApp.DAL.Models;
 using FlashcardsApp.Models.DTOs.Groups.Requests;
 using FlashcardsApp.Models.DTOs.Groups.Responses;

@@ -1,5 +1,5 @@
 using FlashcardsApp.BLL.Interfaces;
-using FlashcardsApp.DAL.Data;
+using FlashcardsApp.DAL;
 using FlashcardsApp.DAL.Models;
 using FlashcardsApp.Models.DTOs.Statistics.Responses;
 using Microsoft.EntityFrameworkCore;

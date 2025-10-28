@@ -1,5 +1,5 @@
 using FlashcardsApp.BLL.Interfaces.Achievements;
-using FlashcardsApp.DAL.Data;
+using FlashcardsApp.DAL;
 using FlashcardsApp.Models.DTOs.Achievements.Responses;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;

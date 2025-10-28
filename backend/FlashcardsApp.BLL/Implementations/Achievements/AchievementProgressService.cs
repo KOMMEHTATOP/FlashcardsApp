@@ -1,5 +1,5 @@
 using FlashcardsApp.BLL.Interfaces.Achievements;
-using FlashcardsApp.DAL.Data;
+using FlashcardsApp.DAL;
 using FlashcardsApp.DAL.Models;
 using FlashcardsApp.Models.DTOs.Achievements.Responses;
 using FlashcardsApp.Models.Enums;

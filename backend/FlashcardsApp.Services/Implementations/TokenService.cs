@@ -3,7 +3,6 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using FlashcardsApp.DAL;
-using FlashcardsApp.DAL.Data;
 using FlashcardsApp.DAL.Models;
 using FlashcardsApp.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;

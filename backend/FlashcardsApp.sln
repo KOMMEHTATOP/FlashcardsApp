@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlashcardsApp.Services", "F
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlashcardsApp.BLL", "FlashcardsApp.BLL\FlashcardsApp.BLL.csproj", "{9CC89898-109E-4293-B99E-DE76BD4AB78D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlashcardsApp.Tests", "..\tests\FlashcardsApp.Tests\FlashcardsApp.Tests.csproj", "{D542D571-2D26-4852-BB5C-7C2032C9A99F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,5 +43,9 @@ Global
 		{9CC89898-109E-4293-B99E-DE76BD4AB78D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9CC89898-109E-4293-B99E-DE76BD4AB78D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9CC89898-109E-4293-B99E-DE76BD4AB78D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D542D571-2D26-4852-BB5C-7C2032C9A99F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D542D571-2D26-4852-BB5C-7C2032C9A99F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D542D571-2D26-4852-BB5C-7C2032C9A99F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D542D571-2D26-4852-BB5C-7C2032C9A99F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

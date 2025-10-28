@@ -4,9 +4,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
-namespace FlashcardsApp.DAL.Data;
+namespace FlashcardsApp.DAL.Seeds;
 
-public static class DbSeeder
+public static class SeedManager
 {
     public static async Task SeedAsync(ApplicationDbContext context, UserManager<User> userManager)
     {

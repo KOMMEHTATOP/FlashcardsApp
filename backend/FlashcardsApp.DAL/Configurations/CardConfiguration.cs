@@ -2,7 +2,7 @@ using FlashcardsApp.DAL.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace FlashcardsApp.DAL.Data.Configurations;
+namespace FlashcardsApp.DAL.Configurations;
 
 public class CardConfiguration : IEntityTypeConfiguration<Card>
 {
