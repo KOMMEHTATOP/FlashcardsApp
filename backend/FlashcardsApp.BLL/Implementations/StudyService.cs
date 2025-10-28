@@ -18,7 +18,7 @@ public class StudyService : IStudyService
     private readonly ILogger<StudyService> _logger;
 
     public StudyService(
-        ApplicationDbContext context, 
+        ApplicationDbContext context,
         IGamificationService gamificationService,
         IAchievementService achievementService,
         ILogger<StudyService> logger)
@@ -36,14 +36,14 @@ public class StudyService : IStudyService
     {
         // Проверяем что карточка принадлежит пользователю
         var cardExists = await _context.Cards.AnyAsync(c => c.CardId == dto.CardId && c.UserId == userId);
-        
+
         if (!cardExists)
         {
             return ServiceResult<StudyRewardDto>.Failure("Card not found or access denied");
         }
 
         await using var transaction = await _context.Database.BeginTransactionAsync();
-        
+
         try
         {
             // 1. Рассчитываем XP за карточку
@@ -63,6 +63,7 @@ public class StudyService : IStudyService
 
             // 3. Добавляем XP пользователю и проверяем level up
             var addXpResult = await _gamificationService.AddXPToUserAsync(userId, xpEarned);
+
             if (!addXpResult.IsSuccess)
             {
                 await transaction.RollbackAsync();
@@ -73,6 +74,7 @@ public class StudyService : IStudyService
 
             // 4. Обновляем streak
             var streakResult = await _gamificationService.UpdateStreakAsync(userId);
+
             if (!streakResult.IsSuccess)
             {
                 await transaction.RollbackAsync();
@@ -92,7 +94,7 @@ public class StudyService : IStudyService
             }
 
             userStats.TotalCardsStudied++;
-            
+
             // Обновляем Perfect Ratings Streak
             if (dto.Rating == 5)
             {
@@ -107,17 +109,17 @@ public class StudyService : IStudyService
 
             // 6. Проверяем достижения (после сохранения статистики)
             var achievementResult = await _achievementService.CheckAndUnlockAchievementsAsync(userId);
-            
-            var newAchievements = achievementResult.IsSuccess 
-                ? achievementResult.Data 
+
+            var newAchievements = achievementResult.IsSuccess
+                ? achievementResult.Data
                 : new List<AchievementDto>();
 
             if (newAchievements.Any())
             {
                 _logger.LogInformation(
                     "{Count} new achievements unlocked for user {UserId}: {Achievements}",
-                    newAchievements.Count, 
-                    userId, 
+                    newAchievements.Count,
+                    userId,
                     string.Join(", ", newAchievements.Select(a => a.Name)));
             }
 
@@ -132,15 +134,16 @@ public class StudyService : IStudyService
                 return ServiceResult<StudyRewardDto>.Failure("User statistics not found");
             }
 
+            await transaction.CommitAsync();
+
             // 8. Рассчитываем прогресс до следующего уровня
             var xpForCurrentLevel = _gamificationService.CalculateXPForLevel(updatedStats.Level);
             var xpForNextLevel = _gamificationService.CalculateXPForLevel(updatedStats.Level + 1);
-            
+
             var currentLevelXP = updatedStats.TotalXP - xpForCurrentLevel;
             var xpNeededForLevel = xpForNextLevel - xpForCurrentLevel;
             var xpToNextLevel = xpForNextLevel - updatedStats.TotalXP;
 
-            await transaction.CommitAsync();
 
             // 9. Формируем ответ
             var reward = new StudyRewardDto
@@ -150,16 +153,16 @@ public class StudyService : IStudyService
                 TotalXP = updatedStats.TotalXP,
                 CurrentLevel = updatedStats.Level,
                 LeveledUp = leveledUp,
-                
+
                 // Прогресс до следующего уровня
                 CurrentLevelXP = currentLevelXP,
                 XPForNextLevel = xpNeededForLevel,
                 XPToNextLevel = xpToNextLevel,
-                
+
                 // Streak
                 StreakIncreased = streakIncreased,
                 CurrentStreak = updatedStats.CurrentStreak,
-                
+
                 // Достижения
                 NewAchievements = newAchievements.Select(a => new AchievementUnlockedDto
                 {
@@ -180,11 +183,11 @@ public class StudyService : IStudyService
             return ServiceResult<StudyRewardDto>.Failure($"Error recording study session: {ex.Message}");
         }
     }
-    
+
     /// <summary>
     /// Получить историю изучения
     /// </summary>
-    public async Task<ServiceResult<IEnumerable<StudyHistoryDto>>> GetStudyHistoryAsync(Guid userId, int? limit = 50)
+    public async Task<ServiceResult<IEnumerable<StudyHistoryDto>>> GetStudyHistoryAsync(Guid userId, int? limit = null)
     {
         var history = await _context.StudyHistory
             .AsNoTracking()
@@ -196,7 +199,7 @@ public class StudyService : IStudyService
             {
                 Id = sh.Id,
                 CardId = sh.CardId,
-                CardQuestion = sh.Card != null ? sh.Card.Question : "",
+                CardQuestion = sh.Card != null ? sh.Card.Question : string.Empty,
                 Rating = sh.Rating,
                 XPEarned = sh.XPEarned,
                 StudiedAt = sh.StudiedAt
