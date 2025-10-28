@@ -171,14 +171,12 @@ public class GroupService : IGroupService
             var groupIds = groupOrders.Select(g => g.Id).ToList();
             var groups = await _context.Groups
                 .Where(g => groupIds.Contains(g.Id) && g.UserId == userId)
-                .ToListAsync();
-
-            var groupDictionary = groups.ToDictionary(g => g.Id);
-
+                .ToDictionaryAsync(g => g.Id);
+            
             // Обновляем порядок
             foreach (var item in groupOrders)
             {
-                if (groupDictionary.TryGetValue(item.Id, out var group))
+                if (groups.TryGetValue(item.Id, out var group))
                 {
                     group.Order = item.Order;
                 }
