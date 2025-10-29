@@ -4,14 +4,14 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Логирование
+// LOGGING
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 
-var logger = LoggerFactory.Create(config => { config.AddConsole(); })
+var logger = LoggerFactory.Create(config => config.AddConsole())
     .CreateLogger("Startup");
 
-// Контроллеры с JSON настройками
+// ASP.NET CORE SERVICES
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -19,51 +19,44 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.PropertyNamingPolicy = null;
     });
 
-// ===== ВСЕ НАСТРОЙКИ ЧЕРЕЗ EXTENSION METHODS =====
-
-// База данных (внутри: connectionString + DbContext)
+// INFRASTRUCTURE LAYER
 builder.Services.AddDatabaseConfiguration(builder.Configuration, logger);
-
-// Локализация (внутри: AddLocalization + RequestLocalizationOptions)
-builder.Services.AddLocalizationConfiguration();
-
-// Identity с локализацией
 builder.Services.AddIdentityConfiguration();
-
-// JWT (внутри: проверка ключа + все настройки authentication)
 builder.Services.AddJwtAuthentication(builder.Configuration, logger);
 
-// SignalR
-builder.Services.AddSignalRConfiguration(builder.Environment);
+// APPLICATION LAYER
+builder.Services.AddApplicationServices();
 
-// Swagger
-builder.Services.AddSwaggerDocumentation();
-
-// CORS (внутри: чтение конфига + allowedOrigins + настройка)
-builder.Services.AddCorsConfiguration(builder.Configuration, builder.Environment, logger);
-
-// Настройки наград
 builder.Services.Configure<RewardSettings>(
     builder.Configuration.GetSection("RewardSettings"));
 
-// Регистрация ВСЕХ сервисов приложения
-builder.Services.AddApplicationServices();
+// CROSS-CUTTING CONCERNS
+builder.Services.AddLocalizationConfiguration();
+builder.Services.AddCorsConfiguration(builder.Configuration, builder.Environment, logger);
 
-// Порт для локальной разработки
-if (builder.Environment.IsDevelopment() && !IsRunningInDocker())
+// FEATURES
+builder.Services.AddSignalRConfiguration(builder.Environment);
+
+// DEVELOPMENT TOOLS
+if (builder.Environment.IsDevelopment())
 {
-    builder.WebHost.UseUrls("http://localhost:5000");
-    logger.LogInformation("🔧 Port fixed to 5000 for local development");
+    builder.Services.AddSwaggerDocumentation();
+    
+    if (!IsRunningInDocker())
+    {
+        builder.WebHost.UseUrls("http://localhost:5000");
+        logger.LogInformation("🔧 Port fixed to 5000 for local development");
+    }
 }
 
+// BUILD & CONFIGURE PIPELINE
 var app = builder.Build();
 
-// ===== MIDDLEWARE PIPELINE + МИГРАЦИИ + МАППИНГ =====
 app.ConfigureMiddleware(builder.Configuration, logger, builder.Environment);
 
 app.Run();
 
-// Вспомогательный метод
+// HELPERS
 static bool IsRunningInDocker()
 {
     return Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true";

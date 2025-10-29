@@ -15,7 +15,7 @@ namespace FlashcardsApp.Api.Controllers
             _userManager = userManager;
         }
 
-        public Guid GetCurrentUserId()
+        protected Guid GetCurrentUserId()
         {
             var userId = _userManager.GetUserId(User);
 

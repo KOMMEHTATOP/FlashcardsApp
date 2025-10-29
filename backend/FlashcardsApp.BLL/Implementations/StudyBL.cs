@@ -10,18 +10,18 @@ using Microsoft.Extensions.Logging;
 
 namespace FlashcardsApp.BLL.Implementations;
 
-public class StudyService : IStudyBL
+public class StudyBL : IStudyBL
 {
     private readonly ApplicationDbContext _context;
     private readonly IGamificationBL _gamificationBL;
     private readonly IAchievementBL _achievementBL;
-    private readonly ILogger<StudyService> _logger;
+    private readonly ILogger<StudyBL> _logger;
 
-    public StudyService(
+    public StudyBL(
         ApplicationDbContext context, 
         IGamificationBL gamificationBL,
         IAchievementBL achievementBL,
-        ILogger<StudyService> logger)
+        ILogger<StudyBL> logger)
     {
         _context = context;
         _gamificationBL = gamificationBL;

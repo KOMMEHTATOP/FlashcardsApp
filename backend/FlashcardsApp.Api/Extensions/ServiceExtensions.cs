@@ -14,8 +14,21 @@ public static class ServiceExtensions
     {
         // Core services
         services.AddScoped<ITokenService, TokenService>();
-
+        services.AddScoped<IUserBL, UserBL>();
+        services.AddScoped<IAuthBL, AuthBL>();
+        services.AddScoped<IGroupBL, GroupBL>();
+        services.AddScoped<ICardBL, CardBL>();
+        
+        //Обучение
+        services.AddScoped<IStudyBL, StudyBL>();
+        services.AddScoped<IStudySessionBL, StudySessionBL>();
+        services.AddScoped<IStudySettingsBL, StudySettingsBL>();
+        
+        // Statistic
+        services.AddScoped<IUserStatisticsBL, UserStatisticsBL>();
+        
         // Gamification
+        services.AddScoped<IGamificationBL, GamificationBL>();
 
         // Notifications
         services.AddScoped<INotificationService, SignalRNotificationService>();
