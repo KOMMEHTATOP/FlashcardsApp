@@ -1,10 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
-    <PropertyGroup>
-        <TargetFramework>net9.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
-    </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\FlashcardsApp.Models\FlashcardsApp.Models.csproj" />
         <ProjectReference Include="..\FlashcardsApp.DAL\FlashcardsApp.DAL.csproj" />
@@ -14,10 +8,7 @@
         <FrameworkReference Include="Microsoft.AspNetCore.App" />
     </ItemGroup>
     <ItemGroup>
-      <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.8" />
-      <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.8" />
-
+      <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore"/>
+      <PackageReference Include="Microsoft.Extensions.Logging.Abstractions"/>
     </ItemGroup>
-
-
 </Project>

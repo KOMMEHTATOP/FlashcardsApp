@@ -1,8 +1,8 @@
 using FlashcardsApp.Api.Extensions;
-using FlashcardsApp.Models.Constants;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
+var services = builder.Services;
 
 // LOGGING
 builder.Logging.ClearProviders();
@@ -12,7 +12,7 @@ var logger = LoggerFactory.Create(config => config.AddConsole())
     .CreateLogger("Startup");
 
 // ASP.NET CORE SERVICES
-builder.Services.AddControllers()
+services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
@@ -20,27 +20,29 @@ builder.Services.AddControllers()
     });
 
 // INFRASTRUCTURE LAYER
-builder.Services.AddDatabaseConfiguration(builder.Configuration, logger);
-builder.Services.AddIdentityConfiguration();
-builder.Services.AddJwtAuthentication(builder.Configuration, logger);
+services
+    .AddDatabaseConfiguration(builder.Configuration, logger)
+    .AddIdentityConfiguration()
+    .AddJwtAuthentication(builder.Configuration, logger);
 
 // APPLICATION LAYER
-builder.Services.AddApplicationServices();
-
-builder.Services.Configure<RewardSettings>(
-    builder.Configuration.GetSection("RewardSettings"));
+services
+    .AddBusinessLogics()
+    .AddConfigures(builder)
+    .AddServices();
 
 // CROSS-CUTTING CONCERNS
-builder.Services.AddLocalizationConfiguration();
-builder.Services.AddCorsConfiguration(builder.Configuration, builder.Environment, logger);
+services
+    .AddLocalizationConfiguration()
+    .AddCorsConfiguration(builder.Configuration, builder.Environment, logger);
 
-// FEATURES
-builder.Services.AddSignalRConfiguration(builder.Environment);
+// OTHER
+services.AddSignalRConfiguration(builder.Environment);
 
 // DEVELOPMENT TOOLS
 if (builder.Environment.IsDevelopment())
 {
-    builder.Services.AddSwaggerDocumentation();
+    services.AddSwaggerDocumentation();
     
     if (!IsRunningInDocker())
     {
