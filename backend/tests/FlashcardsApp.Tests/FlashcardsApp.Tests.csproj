@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="coverlet.collector"/>
+        <PackageReference Include="FluentAssertions"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory"/>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" />
+        <PackageReference Include="Moq"/>
+        <PackageReference Include="xunit"/>
+        <PackageReference Include="xunit.runner.visualstudio"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Using Include="Xunit" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\FlashcardsApp.Api\FlashcardsApp.Api.csproj" />
+      <ProjectReference Include="..\..\FlashcardsApp.BLL\FlashcardsApp.BLL.csproj" />
+      <ProjectReference Include="..\..\FlashcardsApp.DAL\FlashcardsApp.DAL.csproj" />
+      <ProjectReference Include="..\..\FlashcardsApp.Models\FlashcardsApp.Models.csproj" />
+      <ProjectReference Include="..\..\FlashcardsApp.Services\FlashcardsApp.Services.csproj" />
+      <ProjectReference Include="..\FlashcardsApp.BLL\FlashcardsApp.BLL.csproj" />
+      <ProjectReference Include="..\FlashcardsApp.DAL\FlashcardsApp.DAL.csproj" />
+      <ProjectReference Include="..\FlashcardsApp.Models\FlashcardsApp.Models.csproj" />
+      <ProjectReference Include="..\FlashcardsApp.Services\FlashcardsApp.Services.csproj" />
+    </ItemGroup>
+
+</Project>
