@@ -19,9 +19,12 @@ namespace FlashcardsApp.Api.Controllers
             _cardBl = cardBl;
         }
 
-
+        /// <summary>
+        /// Получить все карточки пользователя с опциональной фильтрацией по рейтингу
+        /// </summary>
+        /// <param name="rating">Фильтр по рейтингу (опционально)</param>
         [HttpGet]
-        public async Task<IActionResult> GetAllCards(int? rating = null)
+        public async Task<IActionResult> GetAllCards([FromQuery] int? rating = null)
         {
             var userId = GetCurrentUserId();
             var cards = await _cardBl.GetAllCardsAsync(userId, rating);
@@ -29,37 +32,44 @@ namespace FlashcardsApp.Api.Controllers
             return OkOrBadRequest(cards);
         }
 
-        [HttpGet("{id:guid}")]
-        public async Task<IActionResult> GetCardById(Guid id)
+        /// <summary>
+        /// Получить карточку по ID
+        /// </summary>
+        /// <param name="cardId"></param>
+        [HttpGet("{cardId:guid}")]
+        public async Task<IActionResult> GetCardById(Guid cardId)
         {
             var userId = GetCurrentUserId();
-            var card = await _cardBl.GetCardAsync(id, userId);
+            var card = await _cardBl.GetCardAsync(cardId, userId);
 
-            return OkOrBadRequest(card);
+            return OkOrNotFound(card);
         }
 
-
+        /// <summary>
+        /// Обновить карточку
+        /// </summary>
+        /// <param name="cardId">ID карточки</param>
+        /// <param name="cardDto">Данные для обновления</param>
         [HttpPut("{cardId:guid}")]
-        public async Task<IActionResult> UpdateCard(Guid cardId, CreateCardDto cardDto)
+        public async Task<IActionResult> UpdateCard(Guid cardId, [FromBody] CreateCardDto cardDto)
         {
             var userId = GetCurrentUserId();
             var updateResult = await _cardBl.UpdateCardAsync(cardId, userId, cardDto);
 
-            return OkOrBadRequest(updateResult);
+            return OkOrNotFound(updateResult);
         }
 
+        /// <summary>
+        /// Удалить карточку
+        /// </summary>
+        /// <param name="cardId">ID карточки</param>
         [HttpDelete("{cardId:guid}")]
         public async Task<IActionResult> DeleteCard(Guid cardId)
         {
             var userId = GetCurrentUserId();
             var deleteResult = await _cardBl.DeleteCardAsync(cardId, userId);
 
-            if (!deleteResult.IsSuccess)
-            {
-                return BadRequest(deleteResult.Errors);
-            }
-
-            return NoContent();
+            return NoContentOrBadRequest(deleteResult);
         }
     }
 }

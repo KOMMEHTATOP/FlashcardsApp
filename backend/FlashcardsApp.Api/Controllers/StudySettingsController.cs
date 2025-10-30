@@ -37,7 +37,7 @@ public class StudySettingsController : BaseController
     /// Сохранить глобальные настройки
     /// </summary>
     [HttpPost]
-    public async Task<IActionResult> SaveSettings(CreateSettingsDto dto)
+    public async Task<IActionResult> SaveSettings([FromBody] CreateSettingsDto dto)
     {
         var userId = GetCurrentUserId();
         var result = await _studySettingsBl.SaveStudySettingsAsync(userId, dto);
@@ -54,7 +54,6 @@ public class StudySettingsController : BaseController
         var userId = GetCurrentUserId();
         var result = await _studySettingsBl.ResetToDefaultAsync(userId);
 
-        return OkOrBadRequest(result); 
-
+        return NoContentOrBadRequest(result);
     }
 }

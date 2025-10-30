@@ -9,6 +9,10 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
+# КРИТИЧНО: Сначала копируем файлы управления пакетами
+COPY ["Directory.Build.props", "./"]
+COPY ["Directory.Packages.props", "./"]
+
 # Copy all project files for restore
 COPY ["FlashcardsApp.Api/FlashcardsApp.Api.csproj", "FlashcardsApp.Api/"]
 COPY ["FlashcardsApp.BLL/FlashcardsApp.BLL.csproj", "FlashcardsApp.BLL/"]

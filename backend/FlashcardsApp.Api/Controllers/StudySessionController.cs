@@ -19,6 +19,11 @@ namespace FlashcardsApp.Api.Controllers
             _studySessionBl = studySessionBl;
         }
 
+        /// <summary>
+        /// Начать новую учебную сессию
+        /// </summary>
+        /// <param name="groupId">ID группы для изучения</param>
+        /// <param name="useDefaultSettings">Параметр не используется (deprecated, оставлен для совместимости с фронтендом)</param>
         [HttpPost("start")]
         public async Task<IActionResult> StartSession([FromQuery] Guid groupId, [FromQuery] bool useDefaultSettings = false)
         {

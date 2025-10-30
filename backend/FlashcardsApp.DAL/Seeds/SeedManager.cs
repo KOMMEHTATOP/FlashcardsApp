@@ -80,62 +80,67 @@ public static class SeedManager
     /// <summary>
     /// Загрузить достижения из JSON файла
     /// </summary>
-    private static async Task SeedAchievementsFromJsonAsync(ApplicationDbContext context)
+private static async Task SeedAchievementsFromJsonAsync(ApplicationDbContext context)
+{
+    try
     {
-        try
+        // Читаем из Embedded Resource
+        var assembly = typeof(SeedManager).Assembly;
+        var resourceName = "FlashcardsApp.DAL.Seeds.achievements.json";
+
+        await using var stream = assembly.GetManifestResourceStream(resourceName);
+        
+        if (stream == null)
         {
-            // Путь к JSON файлу
-            var jsonPath = Path.Combine(AppContext.BaseDirectory, "Data", "Seeds", "achievements.json");
-            
-            if (!File.Exists(jsonPath))
+            Console.WriteLine($"⚠️ Embedded resource not found: {resourceName}");
+            Console.WriteLine("Available resources:");
+            foreach (var name in assembly.GetManifestResourceNames())
             {
-                Console.WriteLine($"⚠️ Achievements file not found: {jsonPath}");
-                Console.WriteLine($"   Looking in: {AppContext.BaseDirectory}");
-                return;
+                Console.WriteLine($"  - {name}");
             }
-
-            // Читаем JSON
-            var jsonContent = await File.ReadAllTextAsync(jsonPath);
-            
-            // Десериализуем
-            var achievementsData = JsonSerializer.Deserialize<AchievementsJsonData>(jsonContent, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
-
-            if (achievementsData?.Achievements == null || !achievementsData.Achievements.Any())
-            {
-                Console.WriteLine("⚠️ No achievements found in JSON file");
-                return;
-            }
-
-            // Конвертируем JSON DTO в Entity модели
-            var achievements = achievementsData.Achievements.Select(a => new Achievement
-            {
-                Id = Guid.Parse(a.Id),
-                Name = a.Name,
-                Description = a.Description,
-                IconUrl = a.IconUrl,
-                Gradient = a.Gradient,
-                ConditionType = (AchievementConditionType)a.ConditionType,
-                ConditionValue = a.ConditionValue,
-                Rarity = (AchievementRarity)a.Rarity,
-                DisplayOrder = a.DisplayOrder,
-                IsActive = a.IsActive
-            }).ToList();
-
-            context.Achievements.AddRange(achievements);
-            await context.SaveChangesAsync();
-            
-            Console.WriteLine($"✅ {achievements.Count} achievements loaded from JSON!");
+            return;
         }
-        catch (Exception ex)
+
+        using var reader = new StreamReader(stream);
+        var jsonContent = await reader.ReadToEndAsync();
+        
+        var achievementsData = JsonSerializer.Deserialize<AchievementsJsonData>(jsonContent, new JsonSerializerOptions
         {
-            Console.WriteLine($"❌ Error loading achievements from JSON: {ex.Message}");
-            throw;
+            PropertyNameCaseInsensitive = true
+        });
+
+        if (achievementsData?.Achievements == null || !achievementsData.Achievements.Any())
+        {
+            Console.WriteLine("⚠️ No achievements found in JSON file");
+            return;
         }
+
+        var achievements = achievementsData.Achievements.Select(a => new Achievement
+        {
+            Id = Guid.Parse(a.Id),
+            Name = a.Name,
+            Description = a.Description,
+            IconUrl = a.IconUrl,
+            Gradient = a.Gradient,
+            ConditionType = (AchievementConditionType)a.ConditionType,
+            ConditionValue = a.ConditionValue,
+            Rarity = (AchievementRarity)a.Rarity,
+            DisplayOrder = a.DisplayOrder,
+            IsActive = a.IsActive
+        }).ToList();
+
+        context.Achievements.AddRange(achievements);
+        await context.SaveChangesAsync();
+        
+        Console.WriteLine($"✅ {achievements.Count} achievements loaded from embedded resource!");
     }
-
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ Error loading achievements: {ex.Message}");
+        throw;
+    }
+}
+    
     /// <summary>
     /// Разблокировать достижения для тестового пользователя
     /// </summary>
@@ -185,9 +190,9 @@ public static class SeedManager
     {
         var groupsData = new[]
         {
-            new { Name = "Английский язык", Color = "" },
-            new { Name = "Программирование", Color = "" },
-            new { Name = "История", Color = "" }
+            new { Name = "Английский язык", Color = "from-green-500 to-emerald-500" },
+            new { Name = "Программирование", Color = "from-orange-500 to-yellow-500" },
+            new { Name = "История", Color = "from-purple-500 to-pink-500" }
         };
 
         var groups = new List<Group>();

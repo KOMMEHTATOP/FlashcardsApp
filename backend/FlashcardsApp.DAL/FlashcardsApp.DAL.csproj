@@ -6,4 +6,7 @@
     <ItemGroup>
       <ProjectReference Include="..\FlashcardsApp.Models\FlashcardsApp.Models.csproj" />
     </ItemGroup>
+    <ItemGroup>
+        <EmbeddedResource Include="Seeds\achievements.json" />
+    </ItemGroup>
 </Project>

@@ -48,18 +48,18 @@ namespace FlashcardsApp.Api.Controllers
     
             if (!result.IsSuccess)
             {
-                return Unauthorized(new { message = string.Join(", ", result.Errors) });
+                return Unauthorized(new { errors = result.Errors });
             }
 
             var user = result.Data!;
     
-            // HTTP- логика: извлечение данных из запроса
+            // HTTP-логика: извлечение данных из запроса
             var accessToken = _tokenService.GenerateAccessToken(user);
             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
             var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
             var refreshToken = await _tokenService.GenerateRefreshToken(user.Id, ipAddress, userAgent);
 
-            // HTTP- логика: установка cookie
+            // HTTP-логика: установка cookie
             SetRefreshTokenCookie(refreshToken.Token);
 
             return Ok(new LoginResponseDto
@@ -74,13 +74,13 @@ namespace FlashcardsApp.Api.Controllers
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh()
         {
-            // HTTP- логика: чтение cookie
+            // HTTP-логика: чтение cookie
             if (!Request.Cookies.TryGetValue("refreshToken", out var refreshTokenValue))
             {
-                return Unauthorized(new { message = "Refresh токен не найден" });
+                return Unauthorized(new { errors = new[] { "Refresh токен не найден" } });
             }
 
-            // HTTP- логика: извлечение данных из запроса
+            // HTTP-логика: извлечение данных из запроса
             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
             var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
 
@@ -88,10 +88,10 @@ namespace FlashcardsApp.Api.Controllers
             
             if (!result.IsSuccess)
             {
-                return Unauthorized(new { message = string.Join(", ", result.Errors) });
+                return Unauthorized(new { errors = result.Errors });
             }
 
-            // HTTP- логика: установка cookie
+            // HTTP-логика: установка cookie
             SetRefreshTokenCookie(result.Data!.RefreshToken);
 
             return Ok(new { accessToken = result.Data.AccessToken });
@@ -101,12 +101,12 @@ namespace FlashcardsApp.Api.Controllers
         [Authorize]
         public async Task<IActionResult> Logout()
         {
-            // HTTP- логика: чтение cookie
+            // HTTP-логика: чтение cookie
             Request.Cookies.TryGetValue("refreshToken", out var refreshTokenValue);
 
             await _authBl.Logout(refreshTokenValue);
 
-            // HTTP- логика: удаление cookie
+            // HTTP-логика: удаление cookie
             Response.Cookies.Delete("refreshToken", new CookieOptions
             {
                 HttpOnly = true,

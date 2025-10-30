@@ -1,17 +1,19 @@
 using FlashcardsApp.BLL.Interfaces;
+using FlashcardsApp.DAL.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace FlashcardsApp.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class UserController : ControllerBase
+[Authorize]
+public class UserController : BaseController
 {
     private readonly IUserBL _userBl;
 
-    public UserController(IUserBL userBl)
+    public UserController(IUserBL userBl, UserManager<User> userManager) : base(userManager)
     {
         _userBl = userBl;
     }
@@ -20,24 +22,11 @@ public class UserController : ControllerBase
     /// Получить полный dashboard пользователя
     /// </summary>
     [HttpGet("me/dashboard")]
-    [Authorize]
     public async Task<IActionResult> GetUserDashboard()
     {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        
-        if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
-        {
-            return Unauthorized(new { message = "Пользователь не аутентифицирован" });
-        }
-
+        var userId = GetCurrentUserId();
         var result = await _userBl.GetUserDashboardAsync(userId);
-        
-        if (!result.IsSuccess)
-        {
-            return NotFound(new { message = string.Join(", ", result.Errors) });
-        }
 
-        return Ok(result.Data);
+        return OkOrNotFound(result);
     }
-
 }

@@ -44,6 +44,7 @@
       - "3000:3000"
     environment:
       - VITE_API_URL=http://localhost:5001/api
+      - VITE_APP_TITLE=FlashcardsLoop
     depends_on:
       - api
     networks:

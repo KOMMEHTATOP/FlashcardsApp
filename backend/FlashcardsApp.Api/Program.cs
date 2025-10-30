@@ -1,4 +1,5 @@
 using FlashcardsApp.Api.Extensions;
+using Microsoft.AspNetCore.Mvc;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,6 +18,19 @@ services.AddControllers()
     {
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
         options.JsonSerializerOptions.PropertyNamingPolicy = null;
+    })
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        // Автоматическая валидация ModelState с единообразным форматом ошибок
+        options.InvalidModelStateResponseFactory = context =>
+        {
+            var errors = context.ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage)
+                .ToList();
+
+            return new BadRequestObjectResult(new { errors });
+        };
     });
 
 // INFRASTRUCTURE LAYER
