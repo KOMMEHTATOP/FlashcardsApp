@@ -36,6 +36,8 @@ public static class BusinessExtensions
         services.AddScoped<IAchievementEstimationBL, AchievementEstimationBL>();
         services.AddScoped<IAchievementRecommendationBL, AchievementRecommendationBL>();
         
+        //Создание групп и карточек
+        services.AddScoped<IImportBL, ImportBL>();
         return services;
     }
 }

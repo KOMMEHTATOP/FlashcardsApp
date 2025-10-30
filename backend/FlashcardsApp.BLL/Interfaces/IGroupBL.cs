@@ -30,7 +30,7 @@ public interface IGroupBL
     /// <param name="model">Данные новой группы</param>
     /// <param name="userId">ID владельца группы</param>
     /// <returns>Результат с созданной группой или ошибкой</returns>
-    Task<ServiceResult<ResultGroupDto>> CreateNewGroupAsync(CreateGroupDto model, Guid userId);
+    Task<ServiceResult<ResultGroupDto>> CreateGroupAsync(CreateGroupDto model, Guid userId);
 
     /// <summary>
     /// Обновить группу с валидацией прав доступа

@@ -52,7 +52,7 @@ namespace FlashcardsApp.Api.Controllers
         public async Task<IActionResult> CreateGroup([FromBody] CreateGroupDto dto)
         {
             var userId = GetCurrentUserId();
-            var newGroup = await _groupBl.CreateNewGroupAsync(dto, userId);
+            var newGroup = await _groupBl.CreateGroupAsync(dto, userId);
 
             return OkOrBadRequest(newGroup);
         }

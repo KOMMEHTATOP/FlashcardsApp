@@ -60,7 +60,7 @@ public class GroupBL : IGroupBL
         return ServiceResult<IEnumerable<ResultGroupDto>>.Success(groupDtos);
     }
 
-    public async Task<ServiceResult<ResultGroupDto>> CreateNewGroupAsync(CreateGroupDto model, Guid userId)
+    public async Task<ServiceResult<ResultGroupDto>> CreateGroupAsync(CreateGroupDto model, Guid userId)
     {
         _logger.LogInformation("Creating new group '{GroupName}' for user {UserId}", model.Name, userId);
 
