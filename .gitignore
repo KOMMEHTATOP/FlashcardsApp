@@ -21,6 +21,10 @@ obj/
 
 ## Environment variables (ВАЖНО!)
 .env
+.env.local
+# НЕ игнорируем .env.production - он нужен для деплоя
+# .env.production
+
 appsettings.Development.json
 appsettings.Production.json
 

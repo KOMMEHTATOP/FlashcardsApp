@@ -1,0 +1,47 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: flashcards-db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "AstanaFlashcardsLoop2025"
+      POSTGRES_DB: flashcards
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - flashcards-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: FlashcardsApp.Api/Dockerfile
+    container_name: flashcards-api
+    restart: unless-stopped
+    env_file: ./backend/.env.production
+    environment:
+      - LOGS_PATH=/app/logs
+    ports:
+      - "80:8080"
+    volumes:
+      - /var/log/flashcardsapp:/app/logs
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - flashcards-net
+
+volumes:
+  pgdata:
+    driver: local
+
+networks:
+  flashcards-net:
+    driver: bridge
