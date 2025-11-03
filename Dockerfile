@@ -2,18 +2,19 @@
 # FlashcardsApp API - Production Dockerfile
 # ===========================================
 # Multi-stage build for optimal image size and security
+# Using .NET 9.0 to match project target framework
 
 # ===========================================
 # Stage 1: BUILD
 # ===========================================
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
 # Copy solution and project files for dependency caching
 # Docker caches each layer - if .csproj files don't change, restore is cached
-COPY FlashcardsApp.sln ./
-COPY Directory.Build.props ./
-COPY Directory.Packages.props ./
+COPY backend/FlashcardsApp.sln ./backend/
+COPY backend/Directory.Build.props ./backend/
+COPY backend/Directory.Packages.props ./backend/
 
 # Copy all .csproj files to their respective directories
 COPY backend/FlashcardsApp.Api/FlashcardsApp.Api.csproj ./backend/FlashcardsApp.Api/
@@ -24,10 +25,11 @@ COPY backend/FlashcardsApp.Services/FlashcardsApp.Services.csproj ./backend/Flas
 COPY backend/FlashcardsApp.Tools/FlashcardsApp.Tools.csproj ./backend/FlashcardsApp.Tools/
 
 # Restore NuGet packages - this layer is cached if .csproj files don't change
-RUN dotnet restore "backend/FlashcardsApp.Api/FlashcardsApp.Api.csproj"
+WORKDIR /src/backend
+RUN dotnet restore "FlashcardsApp.Api/FlashcardsApp.Api.csproj"
 
 # Copy the rest of the source code
-COPY backend/. ./backend/
+COPY backend/. ./
 
 # Build and publish the application
 WORKDIR /src/backend/FlashcardsApp.Api
@@ -41,7 +43,7 @@ RUN dotnet publish "FlashcardsApp.Api.csproj" \
 # ===========================================
 # Stage 2: RUNTIME
 # ===========================================
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 
 # Create non-root user for security
 # Running as root is a security risk in production

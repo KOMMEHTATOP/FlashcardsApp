@@ -39,8 +39,10 @@ public static class DatabaseExtensions
             try
             {
                 var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                var connectionString = context.Database.GetConnectionString();
                 
                 Logger.Info("Проверка подключения к базе данных...");
+                Logger.Info($"Connection string: {connectionString}");
                 
                 // Проверка что БД доступна
                 if (context.Database.CanConnect())

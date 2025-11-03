@@ -1,42 +1,102 @@
+version: '3.8'
+
+# ===========================================
+# Docker Compose - Production
+# ===========================================
+# Usage on server: docker-compose -f docker-compose.prod.yml up -d
+# 
+# Access:
+# - API will be behind reverse proxy (Nginx/Caddy)
+# - Frontend is on Cloudflare Pages (https://flashcardsloop.org)
+# 
+# IMPORTANT:
+# 1. Copy env.production to server first
+# 2. Set permissions: chmod 600 env.production
+# 3. Run: docker-compose -f docker-compose.prod.yml up -d --build
+
 services:
+  # ===========================================
+  # PostgreSQL Database - Production
+  # ===========================================
   db:
     image: postgres:16-alpine
-    container_name: flashcards-db
+    container_name: flashcards-db-prod
     restart: always
-    env_file: ./backend/.env
-    ports:
-      - "5432:5432"
+    
+    # Load production secrets
+    env_file: env.production
+    
+    # DO NOT expose ports externally in production!
+    # Database is only accessible within Docker network
+    # ports:
+    #   - "5432:5432"  ← COMMENTED OUT for security
+    
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata-prod:/var/lib/postgresql/data
+    
     networks:
       - flashcards-net
+    
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 30s
+      timeout: 10s
       retries: 5
+      start_period: 30s
 
+  # ===========================================
+  # FlashcardsApp API - Production
+  # ===========================================
   api:
     build:
-      context: ./backend
-      dockerfile: FlashcardsApp.Api/Dockerfile
-    container_name: flashcards-api
-    restart: unless-stopped
-    env_file: ./backend/.env
+      context: .
+      dockerfile: Dockerfile
+      args:
+        BUILD_CONFIGURATION: Release
+    
+    container_name: flashcards-api-prod
+    restart: always
+    
+    # Load production secrets
+    env_file: env.production
+    
+    # Expose API port for reverse proxy
+    # Reverse proxy (Nginx/Caddy) will forward traffic here
     ports:
-      - "5001:8080"
+      - "127.0.0.1:8080:8080"  # Only accessible from localhost (reverse proxy)
+    
     depends_on:
       db:
         condition: service_healthy
+    
     networks:
       - flashcards-net
+    
+    # Production environment
     environment:
-      - ASPNETCORE_ENVIRONMENT=Prod
+      - ASPNETCORE_ENVIRONMENT=Production
+    
+    # Optional: Health check for container orchestration
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
+# ===========================================
+# Volumes - Production
+# ===========================================
 volumes:
-  pgdata:
+  pgdata-prod:
     driver: local
+    # Production data - NEVER delete this volume!
+    # Backup regularly: docker run --rm -v pgdata-prod:/data -v $(pwd):/backup alpine tar czf /backup/db-backup.tar.gz /data
 
+# ===========================================
+# Networks - Production
+# ===========================================
 networks:
   flashcards-net:
     driver: bridge
+    name: flashcards-network-prod
