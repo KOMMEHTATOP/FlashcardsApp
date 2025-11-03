@@ -5,7 +5,7 @@ services:
     restart: always
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: "123"
+      POSTGRES_PASSWORD: "AstanaFlashcardsLoop2025"
       POSTGRES_DB: flashcards
     ports:
       - "5432:5432"
@@ -25,31 +25,16 @@ services:
       dockerfile: FlashcardsApp.Api/Dockerfile
     container_name: flashcards-api
     restart: unless-stopped
-    env_file: ./backend/.env
+    env_file: ./backend/.env.production
     environment:
-      - LOGS_PATH=/app/logs  # путь к логам внутри контейнера
+      - LOGS_PATH=/app/logs
     ports:
       - "5001:8080"
     volumes:
-      - ./logs:/app/logs  # монтируем папку логов на хост
+      - /var/log/flashcardsapp:/app/logs
     depends_on:
       db:
         condition: service_healthy
-    networks:
-      - flashcards-net
-
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile.prod
-    container_name: flashcards-frontend
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
-    environment:
-      - VITE_API_URL=http://localhost:5001/api
-    depends_on:
-      - api
     networks:
       - flashcards-net
 
