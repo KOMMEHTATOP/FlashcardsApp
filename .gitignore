@@ -1,4 +1,26 @@
-## ASP.NET Core
+# ===========================================
+# FlashcardsApp .gitignore
+# ===========================================
+
+# ===========================================
+# SECRETS & ENVIRONMENT FILES (КРИТИЧНО!)
+# ===========================================
+# ВСЕГДА игнорируем файлы с секретами!
+.env
+.env.*
+!.env.example
+env.production
+*.env.production
+*.env.local
+
+# Персональные appsettings (НЕ стандартные Development/Production!)
+appsettings.Local.json
+appsettings.*.Local.json
+secrets.json
+
+# ===========================================
+# ASP.NET CORE BUILD ARTIFACTS
+# ===========================================
 bin/
 obj/
 *.user
@@ -6,35 +28,70 @@ obj/
 *.cache
 *.log
 
-## Rider
+# ===========================================
+# RIDER / JETBRAINS
+# ===========================================
 .idea/
 *.sln.iml
+*.DotSettings.user
 
-## Visual Studio
+# ===========================================
+# VISUAL STUDIO
+# ===========================================
 .vs/
 *.rsuser
+.vscode/
 
-## Database
+# ===========================================
+# DATABASE FILES (локальные БД для тестов)
+# ===========================================
 *.db
 *.db-shm
 *.db-wal
+*.sqlite
+*.sqlite3
 
-## Environment variables (ВАЖНО!)
-.env
-.env.local
-# НЕ игнорируем .env.production - он нужен для деплоя
-# .env.production
-
-appsettings.Development.json
-appsettings.Production.json
-
-## Docker
+# ===========================================
+# DOCKER
+# ===========================================
 docker-compose.override.yml
 
-## Node (если есть)
+# ===========================================
+# NODE.JS / FRONTEND
+# ===========================================
 node_modules/
 dist/
+npm-debug.log*
+yarn-error.log*
 
-## Logs
+# ===========================================
+# LOGS
+# ===========================================
 logs/
 *.log
+
+# ===========================================
+# OPERATING SYSTEM FILES
+# ===========================================
+# Windows
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+._*
+
+# Linux
+*~
+.directory
+
+# ===========================================
+# CERTIFICATES & KEYS
+# ===========================================
+*.pfx
+*.p12
+*.key
+*.pem
+*.crt
+*.cer
