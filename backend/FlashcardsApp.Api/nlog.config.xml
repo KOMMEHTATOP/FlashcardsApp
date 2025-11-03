@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<nlog autoReload="true">
+
+    <!-- Путь к логам:
+         - Development (локально): рядом с приложением
+         - Production (Docker/сервер): из переменной LOGS_PATH или /var/log/flashcardsapp
+    -->
+    <variable name="isDevelopment" value="${when:when='${environment:ASPNETCORE_ENVIRONMENT}'=='Development':inner=true:else=false}"/>
+    <variable name="logDirectory" value="${environment:LOGS_PATH:whenEmpty=${when:when=${isDevelopment}==true:inner=${basedir}/logs:else=/var/log/flashcardsapp}}"/>
+
+    <targets>
+        <!-- Консоль -->
+        <target name="console"
+                type="Console"
+                layout="${time}|${level:uppercase=true}|${logger:shortName=true}|${message}" />
+
+        <!-- Все логи -->
+        <target name="allfile"
+                type="File"
+                fileName="${logDirectory}/all-${shortdate}.log"
+                layout="${longdate}|${level:uppercase=true}|${logger}|${message} ${exception:format=tostring}"
+                archiveFileName="${logDirectory}/archive/all-{#}.log"
+                archiveEvery="Day"
+                archiveNumbering="Date"
+                archiveDateFormat="yyyy-MM-dd"
+                maxArchiveFiles="30"
+                concurrentWrites="true"
+                keepFileOpen="false"
+                encoding="utf-8" />
+
+        <!-- Только ошибки (храним 90 дней) -->
+        <target name="errorfile"
+                type="File"
+                fileName="${logDirectory}/errors-${shortdate}.log"
+                layout="${longdate}|${level:uppercase=true}|${logger}|${message}${newline}${exception:format=tostring}${newline}${exception:format=stacktrace}"
+                archiveFileName="${logDirectory}/archive/errors-{#}.log"
+                archiveEvery="Day"
+                archiveNumbering="Date"
+                archiveDateFormat="yyyy-MM-dd"
+                maxArchiveFiles="90"
+                concurrentWrites="true"
+                keepFileOpen="false"
+                encoding="utf-8" />
+    </targets>
+
+    <rules>
+        <!-- Игнорируем DEBUG от Microsoft и System -->
+        <logger name="Microsoft.EntityFrameworkCore.*" maxlevel="Warn" final="true" />
+        <logger name="Microsoft.AspNetCore.*" maxlevel="Warn" final="true" />
+        <logger name="Microsoft.Extensions.*" maxlevel="Warn" final="true" />
+        <logger name="Microsoft.Hosting.*" maxlevel="Warn" final="true" />
+        <logger name="System.*" maxlevel="Warn" final="true" />
+
+        <!-- Ошибки в отдельный файл -->
+        <logger name="*" minlevel="Error" writeTo="errorfile" />
+
+        <!-- Консоль -->
+        <logger name="*" minlevel="Debug" writeTo="console" />
+
+        <!-- Все логи в файл -->
+        <logger name="*" minlevel="Info" writeTo="allfile" />
+    </rules>
+
+</nlog>

@@ -1,37 +1,39 @@
 <Project>
-    <PropertyGroup>
-        <AspNetCoreVersion>9.0.8</AspNetCoreVersion>
-        <MicrosoftVersion>9.0.8</MicrosoftVersion>
-        <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    </PropertyGroup>
-    <ItemGroup>
-        <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="$(AspNetCoreVersion)" />
-        <PackageVersion Include="Microsoft.AspNetCore.Identity" Version="2.2.0" />
-        <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="$(AspNetCoreVersion)" />
-        <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="9.0.6" />
-        <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="$(MicrosoftVersion)" />
-        <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="$(MicrosoftVersion)">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageVersion>
-        <PackageVersion Include="Microsoft.Extensions.Localization" Version="$(MicrosoftVersion)" />
-        <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="$(MicrosoftVersion)" />
-        <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.8" />
-        <PackageVersion Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="9.0.0" />
-        <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
-        <PackageVersion Include="EPPlus" Version="8.2.1" />
-        <PackageVersion Include="Ookii.Dialogs.Wpf" Version="5.0.1" />
-        <PackageVersion Include="Swashbuckle.AspNetCore" Version="9.0.6" />
-        <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.14.0" />
-    </ItemGroup>
-    <!--TestProj -->
-    <ItemGroup>
-        <PackageVersion Include="coverlet.collector" Version="6.0.2" />
-        <PackageVersion Include="FluentAssertions" Version="8.8.0" />
-        <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.10" />
-        <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
-        <PackageVersion Include="Moq" Version="4.20.72" />
-        <PackageVersion Include="xunit" Version="2.9.2" />
-        <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
-    </ItemGroup>
+  <PropertyGroup>
+    <AspNetCoreVersion>9.0.8</AspNetCoreVersion>
+    <MicrosoftVersion>9.0.8</MicrosoftVersion>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="$(AspNetCoreVersion)" />
+    <PackageVersion Include="Microsoft.AspNetCore.Identity" Version="2.2.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="$(AspNetCoreVersion)" />
+    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="9.0.6" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="$(MicrosoftVersion)" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="$(MicrosoftVersion)">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageVersion>
+    <PackageVersion Include="Microsoft.Extensions.Localization" Version="$(MicrosoftVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="$(MicrosoftVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.8" />
+    <PackageVersion Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="9.0.0" />
+    <PackageVersion Include="NLog.Extensions.Logging" Version="6.0.5" />
+    <PackageVersion Include="NLog.Web.AspNetCore" Version="6.0.5" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
+    <PackageVersion Include="EPPlus" Version="8.2.1" />
+    <PackageVersion Include="Ookii.Dialogs.Wpf" Version="5.0.1" />
+    <PackageVersion Include="Swashbuckle.AspNetCore" Version="9.0.6" />
+    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.14.0" />
+  </ItemGroup>
+  <!--TestProj -->
+  <ItemGroup>
+    <PackageVersion Include="coverlet.collector" Version="6.0.2" />
+    <PackageVersion Include="FluentAssertions" Version="8.8.0" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.10" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageVersion Include="Moq" Version="4.20.72" />
+    <PackageVersion Include="xunit" Version="2.9.2" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
 </Project>

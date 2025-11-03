@@ -8,14 +8,12 @@ public static class JwtExtensions
 {
     public static IServiceCollection AddJwtAuthentication(
         this IServiceCollection services, 
-        IConfiguration configuration,
-        ILogger logger)
+        IConfiguration configuration)
     {
         var jwtKey = configuration["Jwt:Key"];
 
         if (string.IsNullOrEmpty(jwtKey))
         {
-            logger.LogCritical("❌ JWT key is not configured.");
             throw new Exception("JWT key is not configured.");
         }
 

@@ -17,6 +17,8 @@
         </PackageReference>
         <PackageReference Include="Microsoft.Extensions.Localization"/>
         <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design"/>
+        <PackageReference Include="NLog.Extensions.Logging" />
+        <PackageReference Include="NLog.Web.AspNetCore" />
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL"/>
         <PackageReference Include="Swashbuckle.AspNetCore"/>
         <PackageReference Include="System.IdentityModel.Tokens.Jwt"/>
@@ -24,6 +26,9 @@
     <ItemGroup>
         <None Update="Data\Seeds\achievements.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="nlog.config.xml">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
     </ItemGroup>
     <ItemGroup>

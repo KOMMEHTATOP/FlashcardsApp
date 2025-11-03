@@ -13,9 +13,11 @@ public static class MiddlewareExtensions
     public static WebApplication ConfigureMiddleware(
         this WebApplication app,
         IConfiguration configuration,
-        ILogger logger,
         IWebHostEnvironment environment)
     {
+        var loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();
+        var logger = loggerFactory.CreateLogger("MiddlewareConfiguration");
+    
         // Локализация
         var localizationOptions = app.Services
             .GetRequiredService<IOptions<RequestLocalizationOptions>>();
@@ -40,17 +42,17 @@ public static class MiddlewareExtensions
         }
 
         // Auto-migration
-        var autoMigrate = configuration.GetValue<bool>("AutoMigrate", false);
+        var autoMigrate = configuration.GetValue("AutoMigrate", false);
         if (autoMigrate)
         {
             app.ApplyMigrationsAndSeed(logger);
         }
         else
         {
-            logger.LogInformation("=== AUTO MIGRATION DISABLED ===");
+            logger.LogInformation("Auto migration disabled");
         }
 
-        logger.LogInformation("🚀 Application started in {Environment} mode", 
+        logger.LogInformation("Application started in {Environment} mode", 
             environment.EnvironmentName);
 
         // Контроллеры
@@ -58,7 +60,6 @@ public static class MiddlewareExtensions
 
         // SignalR Hub
         app.MapHub<NotificationHub>("/hubs/notifications");
-        logger.LogInformation("📡 SignalR Hub mapped to /hubs/notifications");
 
         return app;
     }
@@ -66,7 +67,7 @@ public static class MiddlewareExtensions
     private static void ApplyMigrationsAndSeed(this WebApplication app, ILogger logger)
     {
         logger.LogInformation("=== AUTO MIGRATION ENABLED ===");
-        
+
         using var scope = app.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 

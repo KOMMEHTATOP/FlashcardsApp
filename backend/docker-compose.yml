@@ -26,8 +26,12 @@ services:
     container_name: flashcards-api
     restart: unless-stopped
     env_file: ./backend/.env
+    environment:
+      - LOGS_PATH=/app/logs  # путь к логам внутри контейнера
     ports:
       - "5001:8080"
+    volumes:
+      - ./logs:/app/logs  # монтируем папку логов на хост
     depends_on:
       db:
         condition: service_healthy

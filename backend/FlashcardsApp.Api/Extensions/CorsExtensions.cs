@@ -5,8 +5,7 @@ public static class CorsExtensions
     public static IServiceCollection AddCorsConfiguration(
         this IServiceCollection services,
         IConfiguration configuration,
-        IWebHostEnvironment environment,
-        ILogger logger)
+        IWebHostEnvironment environment)
     {
         var allowedOrigins = configuration
             .GetSection("Cors:AllowedOrigins")
@@ -14,8 +13,7 @@ public static class CorsExtensions
 
         if (allowedOrigins.Length == 0 && environment.IsDevelopment())
         {
-            logger.LogWarning("⚠️ No CORS origins configured! Using defaults.");
-            allowedOrigins = 
+            allowedOrigins =
             [
                 "http://localhost:3000",
                 "http://localhost:5173",
@@ -26,8 +24,7 @@ public static class CorsExtensions
 
         if (allowedOrigins.Length > 0)
         {
-            logger.LogInformation("🌐 CORS enabled for: {Origins}", 
-                string.Join(", ", allowedOrigins));
+            string.Join(", ", allowedOrigins);
 
             services.AddCors(options =>
             {
@@ -42,7 +39,6 @@ public static class CorsExtensions
         }
         else if (environment.IsProduction())
         {
-            logger.LogCritical("❌ No CORS origins configured for Production!");
             throw new Exception("CORS origins must be configured for Production.");
         }
 

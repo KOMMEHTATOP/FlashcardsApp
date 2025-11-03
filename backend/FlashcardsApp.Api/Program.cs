@@ -1,76 +1,101 @@
 using FlashcardsApp.Api.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json.Serialization;
+using NLog;
+using NLog.Web;
 
-var builder = WebApplication.CreateBuilder(args);
-var services = builder.Services;
+var logger = LogManager.Setup()
+    .LoadConfigurationFromFile(Path.Combine(AppContext.BaseDirectory, "nlog.config.xml"))
+    .GetCurrentClassLogger();
 
-// LOGGING
-builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
+logger.Debug("Инициализация приложения");
 
-var logger = LoggerFactory.Create(config => config.AddConsole())
-    .CreateLogger("Startup");
-
-// ASP.NET CORE SERVICES
-services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-        options.JsonSerializerOptions.PropertyNamingPolicy = null;
-    })
-    .ConfigureApiBehaviorOptions(options =>
-    {
-        // Автоматическая валидация ModelState с единообразным форматом ошибок
-        options.InvalidModelStateResponseFactory = context =>
-        {
-            var errors = context.ModelState.Values
-                .SelectMany(v => v.Errors)
-                .Select(e => e.ErrorMessage)
-                .ToList();
-
-            return new BadRequestObjectResult(new { errors });
-        };
-    });
-
-// INFRASTRUCTURE LAYER
-services
-    .AddDatabaseConfiguration(builder.Configuration, logger)
-    .AddIdentityConfiguration()
-    .AddJwtAuthentication(builder.Configuration, logger);
-
-// APPLICATION LAYER
-services
-    .AddBusinessLogics()
-    .AddConfigures(builder)
-    .AddServices();
-
-// CROSS-CUTTING CONCERNS
-services
-    .AddLocalizationConfiguration()
-    .AddCorsConfiguration(builder.Configuration, builder.Environment, logger);
-
-// OTHER
-services.AddSignalRConfiguration(builder.Environment);
-
-// DEVELOPMENT TOOLS
-if (builder.Environment.IsDevelopment())
+try
 {
-    services.AddSwaggerDocumentation();
-    
-    if (!IsRunningInDocker())
+    var builder = WebApplication.CreateBuilder(args);
+    var services = builder.Services;
+
+    // LOGGING
+    builder.Logging.ClearProviders();
+    builder.Host.UseNLog();
+
+    // ASP.NET CORE SERVICES
+    services.AddControllers()
+        .AddJsonOptions(options =>
+        {
+            options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            options.JsonSerializerOptions.PropertyNamingPolicy = null;
+        })
+        .ConfigureApiBehaviorOptions(options =>
+        {
+            // Автоматическая валидация ModelState с единообразным форматом ошибок
+            options.InvalidModelStateResponseFactory = context =>
+            {
+                var errors = context.ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return new BadRequestObjectResult(new { errors });
+            };
+        });
+
+    // INFRASTRUCTURE LAYER
+    services
+        .AddDatabaseConfiguration(builder.Configuration)
+        .AddIdentityConfiguration()
+        .AddJwtAuthentication(builder.Configuration);
+
+    // APPLICATION LAYER
+    services
+        .AddBusinessLogics()
+        .AddConfigures(builder)
+        .AddServices();
+
+    // CROSS-CUTTING CONCERNS
+    services
+        .AddLocalizationConfiguration()
+        .AddCorsConfiguration(builder.Configuration, builder.Environment);
+
+    // OTHER
+    services.AddSignalRConfiguration(builder.Environment);
+
+    // DEVELOPMENT TOOLS
+    if (builder.Environment.IsDevelopment())
     {
-        builder.WebHost.UseUrls("http://localhost:5000");
-        logger.LogInformation("🔧 Port fixed to 5000 for local development");
+        services.AddSwaggerDocumentation();
     }
+
+    // BUILD & CONFIGURE PIPELINE
+    var app = builder.Build();
+
+    app.ConfigureMiddleware(builder.Configuration, builder.Environment);
+
+    if (app.Environment.IsDevelopment())
+    {
+        app.Use(async (context, next) =>
+        {
+            if (context.Request.Path == "/")
+            {
+                context.Response.Redirect("/swagger");
+                return;
+            }
+
+            await next();
+        });
+    }
+
+    app.Run();
 }
-
-// BUILD & CONFIGURE PIPELINE
-var app = builder.Build();
-
-app.ConfigureMiddleware(builder.Configuration, logger, builder.Environment);
-
-app.Run();
+catch (Exception exception)
+{
+    logger.Error(exception, "Приложение остановлено из-за исключения");
+    throw;
+}
+finally
+{
+    LogManager.Shutdown();
+}
 
 // HELPERS
 static bool IsRunningInDocker()
