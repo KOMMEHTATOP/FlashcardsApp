@@ -3,7 +3,6 @@ using FlashcardsApp.DAL;
 using FlashcardsApp.DAL.Models;
 using FlashcardsApp.DAL.Seeds;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 namespace FlashcardsApp.Api.Extensions;
@@ -41,15 +40,15 @@ public static class MiddlewareExtensions
             app.UseSwaggerUI();
         }
 
-        // Auto-migration
-        var autoMigrate = configuration.GetValue("AutoMigrate", false);
-        if (autoMigrate)
+        // Seed initial data (migrations are applied in DatabaseExtensions)
+        var autoSeed = configuration.GetValue("AutoSeed", false);
+        if (autoSeed)
         {
-            app.ApplyMigrationsAndSeed(logger);
+            app.ApplySeedData(logger);
         }
         else
         {
-            logger.LogInformation("Auto migration disabled");
+            logger.LogInformation("Auto seed disabled");
         }
 
         logger.LogInformation("Application started in {Environment} mode", 
@@ -64,20 +63,31 @@ public static class MiddlewareExtensions
         return app;
     }
 
-    private static void ApplyMigrationsAndSeed(this WebApplication app, ILogger logger)
+    /// <summary>
+    /// Заполнение базы данных начальными данными (seed)
+    /// Миграции должны быть применены ДО вызова этого метода
+    /// </summary>
+    private static void ApplySeedData(this WebApplication app, ILogger logger)
     {
-        logger.LogInformation("=== AUTO MIGRATION ENABLED ===");
+        logger.LogInformation("=== AUTO SEED ENABLED ===");
 
         using var scope = app.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-        logger.LogInformation("Running migrations...");
-        db.Database.Migrate();
-        logger.LogInformation("Migrations completed!");
-
-        logger.LogInformation("Starting seed...");
-        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
-        SeedManager.SeedAsync(db, userManager).GetAwaiter().GetResult();
-        logger.LogInformation("Seed completed!");
+        
+        try
+        {
+            logger.LogInformation("Starting database seeding...");
+            
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+            
+            SeedManager.SeedAsync(db, userManager).GetAwaiter().GetResult();
+            
+            logger.LogInformation("✓ Database seeding completed successfully!");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "✗ Error during database seeding");
+            // Не падаем - seed не критичен для запуска приложения
+        }
     }
 }

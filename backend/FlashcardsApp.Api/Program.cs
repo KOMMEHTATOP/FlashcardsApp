@@ -69,6 +69,9 @@ try
     // BUILD & CONFIGURE PIPELINE
     var app = builder.Build();
 
+    // APPLY DATABASE MIGRATIONS
+    app.ApplyDatabaseMigrations();
+
     app.ConfigureMiddleware(builder.Configuration, builder.Environment);
 
     if (app.Environment.IsDevelopment())

@@ -1,22 +1,109 @@
-﻿**/.dockerignore
-**/.env
+﻿# ===========================================
+# FlashcardsApp .dockerignore
+# ===========================================
+# Excludes files from Docker build context
+# Improves build speed and security
+
+# ===========================================
+# SECRETS & ENVIRONMENT FILES (КРИТИЧНО!)
+# ===========================================
+# Never include secrets in Docker image!
+.env
+.env.*
+!.env.example
+env.production
+*.env.production
+*.env.local
+appsettings.Local.json
+appsettings.*.Local.json
+secrets.json
+
+# ===========================================
+# GIT & VERSION CONTROL
+# ===========================================
+.git
+.gitignore
+.gitattributes
 **/.git
 **/.gitignore
-**/.vs
-**/.vscode
-**/.idea
-**/*.*proj.user
-**/*.dbmdl
-**/*.jfm
-**/bin
-**/obj
-**/charts
-**/docker-compose*
-**/compose*
-**/Dockerfile*
-**/node_modules
-**/npm-debug.log
-**/secrets.dev.yaml
-**/values.dev.yaml
+
+# ===========================================
+# IDE & EDITOR SETTINGS
+# ===========================================
+.idea/
+.vs/
+.vscode/
+*.suo
+*.user
+*.sln.docstates
+*.DotSettings.user
+
+# ===========================================
+# BUILD ARTIFACTS (will be rebuilt in container)
+# ===========================================
+**/bin/
+**/obj/
+**/out/
+*.dll
+*.exe
+*.pdb
+*.cache
+
+# ===========================================
+# NODE.JS (if frontend in same repo)
+# ===========================================
+**/node_modules/
+npm-debug.log*
+yarn-error.log*
+**/dist/
+
+# ===========================================
+# DOCKER FILES (don't need inside image)
+# ===========================================
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# ===========================================
+# DOCUMENTATION & TESTS
+# ===========================================
+docs/
+**/docs/
 README.md
-appsettings.Development.json
+*.md
+LICENSE
+tests/
+**/tests/
+**/*.Tests/
+
+# ===========================================
+# LOGS & TEMPORARY FILES
+# ===========================================
+**/*.log
+**/logs/
+*.tmp
+*.temp
+
+# ===========================================
+# DATABASE FILES (local dev databases)
+# ===========================================
+*.db
+*.sqlite
+*.sqlite3
+
+# ===========================================
+# CERTIFICATES & KEYS
+# ===========================================
+*.pfx
+*.p12
+*.key
+*.pem
+*.crt
+*.cer
+
+# ===========================================
+# OS FILES
+# ===========================================
+.DS_Store
+Thumbs.db
+Desktop.ini

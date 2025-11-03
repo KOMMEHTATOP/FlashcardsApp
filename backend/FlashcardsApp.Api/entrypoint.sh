@@ -1,8 +1,13 @@
 #!/bin/bash
 set -e
 
-echo "Применение миграций..."
-dotnet ef database update --no-build
+echo "==================================="
+echo "FlashcardsApp API Starting..."
+echo "==================================="
+echo "Environment: $ASPNETCORE_ENVIRONMENT"
+echo "==================================="
 
-echo "Запуск приложения..."
-exec dotnet FlashcardsApp.dll
+# Start the application
+# 'exec' replaces bash process with dotnet process
+# This ensures Docker signals (SIGTERM) are handled correctly
+exec dotnet FlashcardsApp.Api.dll

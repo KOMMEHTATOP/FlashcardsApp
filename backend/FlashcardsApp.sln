@@ -4,7 +4,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{781D0569-0AF5-4AC2-B07B-50ECA7DD1019}"
 	ProjectSection(SolutionItems) = preProject
 		docker-compose.yml = docker-compose.yml
-		.env = .env
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlashcardsApp.Models", "FlashcardsApp.Models\FlashcardsApp.Models.csproj", "{2EF79742-0AF4-44E9-A783-4EBCFA5598CC}"

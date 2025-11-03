@@ -21,6 +21,8 @@ public static class CorsExtensions
                 "https://localhost:7255"
             ];
         }
+        
+        
 
         if (allowedOrigins.Length > 0)
         {
