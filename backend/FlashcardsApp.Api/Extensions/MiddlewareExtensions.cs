@@ -16,7 +16,7 @@ public static class MiddlewareExtensions
     {
         var loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();
         var logger = loggerFactory.CreateLogger("MiddlewareConfiguration");
-    
+
         // Локализация
         var localizationOptions = app.Services
             .GetRequiredService<IOptions<RequestLocalizationOptions>>();
@@ -42,6 +42,7 @@ public static class MiddlewareExtensions
 
         // Seed initial data (migrations are applied in DatabaseExtensions)
         var autoSeed = configuration.GetValue("AutoSeed", false);
+
         if (autoSeed)
         {
             app.ApplySeedData(logger);
@@ -51,12 +52,34 @@ public static class MiddlewareExtensions
             logger.LogInformation("Auto seed disabled");
         }
 
-        logger.LogInformation("Application started in {Environment} mode", 
+        logger.LogInformation("Application started in {Environment} mode",
             environment.EnvironmentName);
 
         // Контроллеры
         app.MapControllers();
 
+        // Health Check endpoint с проверкой БД
+        app.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+        {
+            ResponseWriter = async (context, report) =>
+            {
+                context.Response.ContentType = "application/json";
+                var result = System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    status = report.Status.ToString(),
+                    checks = report.Entries.Select(e => new
+                    {
+                        name = e.Key,
+                        status = e.Value.Status.ToString(),
+                        duration = e.Value.Duration.TotalMilliseconds,
+                        exception = e.Value.Exception?.Message
+                    }),
+                    totalDuration = report.TotalDuration.TotalMilliseconds
+                });
+                await context.Response.WriteAsync(result);
+            }
+        });
+        
         // SignalR Hub
         app.MapHub<NotificationHub>("/hubs/notifications");
 
@@ -72,16 +95,16 @@ public static class MiddlewareExtensions
         logger.LogInformation("=== AUTO SEED ENABLED ===");
 
         using var scope = app.Services.CreateScope();
-        
+
         try
         {
             logger.LogInformation("Starting database seeding...");
-            
+
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
-            
+
             SeedManager.SeedAsync(db, userManager).GetAwaiter().GetResult();
-            
+
             logger.LogInformation("✓ Database seeding completed successfully!");
         }
         catch (Exception ex)

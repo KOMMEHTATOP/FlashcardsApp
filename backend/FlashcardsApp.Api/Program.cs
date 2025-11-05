@@ -49,6 +49,13 @@ try
     // APPLICATION LAYER
     services
         .AddBusinessLogics()
+        .AddHealthChecks()
+        .AddNpgSql(
+            connectionString: builder.Configuration.GetConnectionString("DefaultConnection")!,
+            name: "PostgreSQL Database",
+            timeout: TimeSpan.FromSeconds(3),
+            tags: new[] { "db", "sql", "postgres" })
+        .Services  
         .AddConfigures(builder)
         .AddServices();
 

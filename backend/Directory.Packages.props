@@ -5,6 +5,7 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup>
+    <PackageVersion Include="AspNetCore.HealthChecks.NpgSql" Version="9.0.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="$(AspNetCoreVersion)" />
     <PackageVersion Include="Microsoft.AspNetCore.Identity" Version="2.2.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="$(AspNetCoreVersion)" />
@@ -14,6 +15,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageVersion>
+    <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="9.0.10" />
     <PackageVersion Include="Microsoft.Extensions.Localization" Version="$(MicrosoftVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="$(MicrosoftVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.8" />
