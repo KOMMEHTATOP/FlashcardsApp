@@ -45,6 +45,9 @@ RUN dotnet publish "FlashcardsApp.Api.csproj" \
 # ===========================================
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 
+# Установка curl для healthcheck
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
 # Create non-root user for security
 # Running as root is a security risk in production
 RUN groupadd -r appuser && useradd -r -g appuser appuser

@@ -1,16 +1,5 @@
 ﻿version: '3.8'
 
-# ===========================================
-# Docker Compose - Local Development
-# ===========================================
-# Usage: docker-compose up
-# 
-# Access:
-# - Frontend: http://localhost:3000
-# - API:      http://localhost:5001
-# - Swagger:  http://localhost:5001/swagger
-# - DB:       localhost:5432
-
 services:
   # ===========================================
   # PostgreSQL Database
@@ -24,12 +13,11 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dev_password_123}
       POSTGRES_DB: ${POSTGRES_DB:-FlashcardsDb}
-      # CRITICAL: Force password authentication for all connections
       POSTGRES_HOST_AUTH_METHOD: scram-sha-256
       POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
     
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "5433:5432" 
     
     volumes:
       - pgdata-dev:/var/lib/postgresql/data
@@ -57,12 +45,17 @@ services:
     container_name: flashcards-api-dev
     restart: unless-stopped
     
-    env_file: .env
+    # ВАЖНО: Внутри Docker контейнеры общаются по имени сервиса 'db'
     environment:
-      - ConnectionStrings__DefaultConnection=${DB_CONNECTION_STRING}
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=FlashcardsDb;Username=postgres;Password=dev_password_123
+      - Jwt__Key=SuperSecretJwtKeyHere12345_ChangeThisToLongKey98765
+      - Jwt__Issuer=FlashcardsApp
+      - Jwt__Audience=FlashcardsAppUsers
+      - AutoMigrate=true
 
     ports:
-      - "${API_HTTP_PORT:-5001}:8080"
+      - "5001:8080"  # Локально доступен на :5001
     
     depends_on:
       db:
@@ -91,16 +84,10 @@ services:
     networks:
       - flashcards-net
 
-# ===========================================
-# Volumes
-# ===========================================
 volumes:
   pgdata-dev:
     driver: local
 
-# ===========================================
-# Networks
-# ===========================================
 networks:
   flashcards-net:
     driver: bridge

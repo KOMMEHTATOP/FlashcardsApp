@@ -32,11 +32,6 @@
         </None>
     </ItemGroup>
     <ItemGroup>
-  	<Content Include="..\..\..\.dockerignore">
-        <Link>.dockerignore</Link>
-      </Content>
-    </ItemGroup>
-    <ItemGroup>
         <EmbeddedResource Update="Resources\IdentityErrorMessages.resx">
             <Generator>PublicResXFileCodeGenerator</Generator>
             <LastGenOutput>IdentityErrorMessages.Designer.cs</LastGenOutput>
