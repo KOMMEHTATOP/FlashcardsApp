@@ -7,14 +7,18 @@ import { TITLE_APP } from "../test/data";
 export default function Header({
   user,
   onLogout,
+  className,
 }: {
   user: UserData | undefined;
   onLogout: () => void;
+  className?: string;
 }) {
   const navigate = useNavigate();
 
   return (
-    <header className="navbar backdrop-blur-md bg-base-200/20 shadow-lg py-3 items-center justify-center fixed top-0 z-50">
+    <header
+      className={`navbar backdrop-blur-md bg-base-200/20 shadow-lg py-3 items-center justify-center fixed top-0 z-50 ${className}`}
+    >
       <div className="flex-1 flex max-w-6xl">
         <motion.div
           initial={{ opacity: 0, x: -20 }}
@@ -66,7 +70,7 @@ export default function Header({
                          border-none text-white shadow-lg hover:shadow-xl 
                          transition-all duration-200 group"
               >
-                <span>Выйти</span>
+                <span className="md:block hidden">Выйти</span>
                 <motion.div
                   initial={{ x: 0 }}
                   whileHover={{ x: 2 }}

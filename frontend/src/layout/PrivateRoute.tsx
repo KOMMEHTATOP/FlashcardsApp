@@ -7,7 +7,7 @@ export function PrivateRoute({ children }: { children: JSX.Element }) {
   const { user, loading } = useApp();
 
   if (loading) return <SkeletonHome />;
-  if (!user) return <Navigate to={"/login"} replace />;
+  if (!user) return <Navigate to={"/about"} replace />;
 
   return children;
 }

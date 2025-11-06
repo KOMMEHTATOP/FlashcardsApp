@@ -1,5 +1,9 @@
 import "./App.css";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import {
+  createBrowserRouter,
+  Navigate,
+  RouterProvider,
+} from "react-router-dom";
 import AppLayout from "./layout/AppLayout";
 import { HomePage } from "./pages/Home";
 import StudyPage from "./pages/Study";
@@ -7,7 +11,8 @@ import LoginPage from "./pages/Login";
 import { NotFoundPage } from "./pages/NotFound";
 import { PrivateRoute } from "./layout/PrivateRoute";
 import { GuestRoute } from "./layout/GuestRoute";
-import LandingPage from "./pages/LandingPage.tsx";
+import { lazy } from "react";
+const LandingPage = lazy(() => import("./pages/LandingPage"));
 
 const router = createBrowserRouter([
   {
@@ -20,6 +25,7 @@ const router = createBrowserRouter([
             <HomePage />
           </PrivateRoute>
         ),
+        errorElement: <Navigate to="/about" replace />,
       },
       {
         path: "/study/:id",
@@ -30,14 +36,14 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: "/about",
-        element: <LandingPage />,
-      },
-      {
         path: "*",
         element: <NotFoundPage />,
       },
     ],
+  },
+  {
+    path: "/about",
+    element: <LandingPage />,
   },
   {
     path: "/login",

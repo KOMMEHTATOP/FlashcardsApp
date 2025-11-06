@@ -128,6 +128,12 @@ type MotivationType = {
   Type: string;
 };
 
+interface QuestionType {
+  question: string;
+  gradient: string;
+}
+
+
 export type {
   UserState,
   UserData,
@@ -141,4 +147,5 @@ export type {
   MotivationType,
   AppContextType,
   CurrentLessonState,
+  QuestionType
 };

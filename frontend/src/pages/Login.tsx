@@ -19,6 +19,7 @@ import useTitle from "../utils/useTitle";
 import { floatingIcons, TITLE_APP } from "../test/data";
 import apiFetch, { BASE_URL } from "../utils/apiFetch";
 import axios from "axios";
+import { Helmet } from "react-helmet-async";
 
 export default function LoginPage() {
   useTitle("Вход");
@@ -123,6 +124,10 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-base-300 via-base-100 to-base-300 flex items-center justify-center p-4 relative overflow-hidden">
+      <Helmet>
+        <title>Вход - {TITLE_APP}</title>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
       <div className="absolute inset-0 opacity-30">
         <div
           className="absolute inset-0"

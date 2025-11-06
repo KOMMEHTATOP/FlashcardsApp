@@ -212,7 +212,7 @@ export default function GroupForm({
                           </motion.div>
                         )}
                       </div>
-                      <p className="text-xs text-gray-600 mt-2 text-center">
+                      <p className="text-xs text-gray-600 mt-2 text-center line-clamp-2 text-ellipsis">
                         {item.name}
                       </p>
                     </motion.button>
