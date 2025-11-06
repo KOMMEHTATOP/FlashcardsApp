@@ -142,8 +142,8 @@ FlashcardsLoop - это современное веб-приложение дл�
 
 Нашли баг или есть предложение? Создайте Issue в репозитории!
 - Telegram:
-- Frondend @aisblack
-- Backend @bmbasharov
+- Frondend [@aisblack](https://t.me/aisblack)
+- Backend [@bmbasharov](https://t.me/BMBasharov)
 ---
 
 ## 📄 Лицензия
