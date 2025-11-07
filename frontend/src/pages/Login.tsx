@@ -64,7 +64,14 @@ export default function LoginPage() {
       })
       .catch((err) => {
         console.log(err);
-        setError(err.response?.data.message || "Произошла ошибка");
+        const errors = err.response?.data?.errors;
+
+        if (errors && typeof errors === "object") {
+          const messages = Object.values(errors).flat().join("\n");
+          setError(messages);
+        } else {
+          setError("Произошла ошибка при входе");
+        }
         setLoading(false);
       })
       .finally(() => {

@@ -22,7 +22,7 @@ export default function ConfrimModal({
       transition={{ duration: 0.1 }}
       className="fixed bg-black/60 inset-0 items-center justify-center flex z-50"
     >
-      <Card className="w-1/3 h-fit bg-white flex items-center p-4 justify-center">
+      <Card className="w-full m-4 max-w-2xl h-fit bg-white flex items-center p-4 justify-center">
         <div className="text-gray-600 text-center">
           <h1 className="text-xl">{text}</h1>
           <span className="text-lg text-red-400">{target}</span>

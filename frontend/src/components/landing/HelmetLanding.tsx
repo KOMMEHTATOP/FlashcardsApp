@@ -4,7 +4,7 @@ import { TITLE_APP } from "../../test/data";
 export const LandingHelmet = () => {
   return (
     <Helmet>
-      <title>{TITLE_APP} — Учись, развивайся, запоминай</title>
+      <title>{TITLE_APP} - Учись, развивайся, запоминай</title>
       <meta
         name="description"
         content={`${TITLE_APP} - современное веб-приложение для эффективного обучения с помощью карточек. Создавайте колоды, тренируйтесь и прокачивайтесь каждый день.`}

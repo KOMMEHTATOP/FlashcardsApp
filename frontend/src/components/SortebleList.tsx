@@ -13,7 +13,6 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { AnimatePresence, motion } from "framer-motion";
 import React, { useEffect, useRef, useState } from "react";
-import StudyCard from "./cards/Group_card";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import type {
@@ -27,56 +26,36 @@ import apiFetch from "../utils/apiFetch";
 import Card from "./ui/card";
 import shuffleArray from "../utils/shuffleArray";
 import { availableIcons } from "../test/data";
+import GroupCard from "./cards/Group_card";
 
 export function SortableItem({
   id,
   children,
-  index,
-}: {
+}: // index,
+{
   id: string;
-  children: React.ReactNode;
+  children: React.ReactElement<any>;
   index: number;
 }) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    // transition,
-    isDragging,
-  } = useSortable({ id });
+  const { attributes, listeners, setNodeRef, transform, isDragging } =
+    useSortable({ id });
 
-  const style = {
+  const style: React.CSSProperties = {
     transform: transform ? CSS.Transform.toString(transform) : undefined,
-    touchAction: "none" as const,
-
     zIndex: isDragging ? 50 : 1,
-
-    pointerEvents: isDragging ? "auto" : "auto",
   };
 
   return (
     <motion.div
       ref={setNodeRef}
-      {...attributes}
-      {...listeners}
-      layout
-      layoutId={id}
-      initial={{ opacity: 0 }}
-      animate={{ scale: isDragging ? 1.03 : 1, opacity: 1 }}
-      transition={{
-        type: "spring",
-        stiffness: 350,
-        damping: 30,
-        mass: 0.8,
-        delay: index * 0.1,
-      }}
-      className={`cursor-grab active:cursor-grabbing ${
-        isDragging ? "shadow-2xl" : ""
-      }`}
-      style={style as React.CSSProperties}
+      style={style}
+      animate={{ scale: isDragging ? 1.03 : 1 }}
+      transition={{ type: "spring", stiffness: 350, damping: 30 }}
+      className={`relative ${isDragging ? "shadow-2xl" : ""}`}
     >
-      {children}
+      {React.cloneElement(children, {
+        dragHandleProps: { ...attributes, ...listeners },
+      })}
     </motion.div>
   );
 }
@@ -228,29 +207,21 @@ export default function SortableList({
             />
             {items.map((item, index) => (
               <SortableItem key={item.Id} id={item?.Id || ""} index={index}>
-                <motion.div
-                  layout
-                  layoutId={`card-${item.Id}`}
-                  exit={{ opacity: 0, y: -30 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <StudyCard
-                    gradient={
-                      item.GroupColor || "from-green-400 to-emerald-500"
-                    }
-                    streak={item.CardCount}
-                    progress={(item.CardCount / 10) * 100}
-                    icon={
-                      availableIcons.find((i) => i.name === item.GroupIcon)
-                        ?.icon || BookHeartIcon
-                    }
-                    title={item.GroupName}
-                    onClick={() => navigate(`/study/${item.Id.toString()}`)}
-                    onDelete={() => handleDeleteGroup(item)}
-                    onEdit={() => handleEdit(item)}
-                    onLessonPlayer={() => handleStartLesson(item)}
-                  />
-                </motion.div>
+                <GroupCard
+                  id={item.Id}
+                  gradient={item.GroupColor || "from-green-400 to-emerald-500"}
+                  streak={item.CardCount}
+                  progress={(item.CardCount / 10) * 100}
+                  icon={
+                    availableIcons.find((i) => i.name === item.GroupIcon)
+                      ?.icon || BookHeartIcon
+                  }
+                  title={item.GroupName}
+                  onClick={() => navigate(`/study/${item.Id.toString()}`)}
+                  onDelete={() => handleDeleteGroup(item)}
+                  onEdit={() => handleEdit(item)}
+                  onLessonPlayer={() => handleStartLesson(item)}
+                />
               </SortableItem>
             ))}
           </AnimatePresence>

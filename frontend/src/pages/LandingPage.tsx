@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Brain,
   Trophy,
@@ -53,6 +53,7 @@ export default function LandingPage() {
   const benefits = useMemo(() => LandingContentService.getBenefits(), []);
 
   const [isMobile, setIsMobile] = useState<boolean>(false);
+  const [showScrollButton, setShowScrollButton] = useState<boolean>(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -63,6 +64,19 @@ export default function LandingPage() {
     return () => {
       window.removeEventListener("resize", handleResize);
     };
+  }, []);
+
+  useEffect(() => {
+    const handleScrollVisibility = () => {
+      if (window.scrollY > 200) {
+        setShowScrollButton(true);
+      } else {
+        setShowScrollButton(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScrollVisibility);
+    return () => window.removeEventListener("scroll", handleScrollVisibility);
   }, []);
 
   const handleScroll = (name: string) => {
@@ -79,14 +93,30 @@ export default function LandingPage() {
 
       {/* Навигация */}
       <Header user={user} onLogout={logout} />
-      <div className="fixed bottom-5 right-4 z-50 p-4">
-        <button
-          className="p-2 rounded-full bg-info hover:bg-info transition-all duration-300 hover:scale-110 opacity-60 hover:opacity-100"
-          onClick={() => handleScroll("top")}
-        >
-          <ArrowUpFromDotIcon className="w-10 h-10 text-white" />
-        </button>
-      </div>
+      <AnimatePresence>
+        {showScrollButton && (
+          <motion.div
+            key="scroll-button"
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            transition={{ duration: 0.3 }}
+            className="fixed bottom-5 right-4 z-50"
+          >
+            <motion.button
+              whileHover={{ scale: 1.15 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => handleScroll("top")}
+              className="p-3 rounded-full bg-info text-white 
+                   shadow-lg hover:bg-info/90 
+                   transition-all duration-300 
+                   opacity-80 hover:opacity-100"
+            >
+              <ArrowUpFromDotIcon className="w-7 h-7" />
+            </motion.button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Главный секция */}
       <section className="relative overflow-hidden pt-30 md:py-28 px-4 pb-4">
@@ -219,7 +249,7 @@ export default function LandingPage() {
               Превратите обучение в увлекательную игру
             </p>
           </motion.div>
-          <div className="absolute inset-0 items-center -bottom-10 md:bottom-0 right-30">
+          <div className="absolute inset-0 items-center -bottom-10 md:bottom-0 right-25">
             <CardSwap
               cardDistance={70}
               verticalDistance={60}
@@ -268,7 +298,7 @@ export default function LandingPage() {
         </div>
         <div className="relative max-w-7xl mx-auto">
           <ScrollStack
-            className="max-h-[60dvh] scroll-bar-none"
+            className="max-h-[70dvh] scroll-bar-none"
             baseScale={0.9}
             itemDistance={160}
             blurAmount={1}

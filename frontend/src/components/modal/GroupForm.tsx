@@ -8,6 +8,7 @@ import { Button, ButtonCircle } from "../ui/button";
 import apiFetch from "../../utils/apiFetch";
 import { useApp } from "../../context/AppContext";
 import type { GroupType } from "../../types/types";
+import { errorFormater } from "../../utils/errorFormater";
 
 interface GroupFromProps {
   targetGroup?: GroupType;
@@ -51,55 +52,42 @@ export default function GroupForm({
   const handleSubmit = async () => {
     setError("");
 
-    if (!name || name.trim() === "") {
+    if (!name.trim()) {
       setError("Введите название группы");
       return;
-    } else if (!selectColor) {
+    }
+
+    if (!selectColor) {
       setError("Выберите цвет группы");
       return;
     }
 
+    setLoading(true);
+
+    const data = {
+      Name: name,
+      Color: selectColor,
+      Order: 0,
+      GroupIcon: availableIcons[selectIcon].name,
+    };
+
     try {
-      setLoading(true);
-      const data = {
-        Name: name,
-        Color: selectColor,
-        Order: 0,
-        GroupIcon: availableIcons[selectIcon].name,
-      };
+      const res = targetGroup
+        ? await apiFetch.put(`/Group/${targetGroup.Id}`, data)
+        : await apiFetch.post("/Group", data);
 
       if (targetGroup) {
-        await apiFetch
-          .put(`/Group/${targetGroup.Id}`, data)
-          .then((res) => {
-            setTimeout(() => {
-              putGroups(res.data);
-              setLoading(false);
-              handleCancle();
-            }, 100);
-          })
-          .catch((err) =>
-            setError(err.response?.data.message || "Произошла ошибка")
-          );
+        putGroups(res.data);
       } else {
-        await apiFetch
-          .post("/Group", data)
-          .then((res) => {
-            setNewGroups(res.data);
-            setTimeout(() => {
-              setLoading(false);
-              handleCancle();
-              setName("");
-              setSelectColor(availableColors[0].gradient);
-              setSelectIcon(0);
-            }, 100);
-          })
-          .catch((err) =>
-            setError(err.response?.data.message || "Произошла ошибка")
-          );
+        setNewGroups(res.data);
+        setName("");
+        setSelectColor(availableColors[0].gradient);
+        setSelectIcon(0);
       }
-    } catch (err) {
-      console.log(err);
+
+      handleCancle(); // только при успехе
+    } catch (err: any) {
+      setError(errorFormater(err) || "Произошла ошибка");
     } finally {
       setLoading(false);
     }

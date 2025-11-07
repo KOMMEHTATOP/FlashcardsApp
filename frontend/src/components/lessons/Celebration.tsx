@@ -21,7 +21,7 @@ export default function Celebration({
   values,
 }: CelebrationProps) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-base-300 via-base-200 to-base-300 flex items-center justify-center p-2 md:p-4">
+    <div className="min-h-screen bg-gradient-to-br from-base-300 via-base-200 to-base-300 flex items-center justify-center  md:p-4">
       {floatingIcons.map((icon, index) => (
         <motion.div
           key={index}
@@ -49,7 +49,7 @@ export default function Celebration({
         className="max-w-2xl w-full text-center"
       >
         <Card
-          className={`p-1 py-3 md:p-12 bg-gradient-to-br ${subjectColor} border-none shadow-2xl relative overflow-hidden`}
+          className={`p-4 py-6 md:p-12 bg-gradient-to-br ${subjectColor} border-none shadow-2xl relative overflow-hidden`}
         >
           <div
             className="absolute inset-0 bg-white/10"

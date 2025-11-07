@@ -12,9 +12,10 @@ import { NotFoundPage } from "./pages/NotFound";
 import { PrivateRoute } from "./layout/PrivateRoute";
 import { GuestRoute } from "./layout/GuestRoute";
 import { lazy } from "react";
+import ScrollToTop from "./utils/scrollToTop";
 const LandingPage = lazy(() => import("./pages/LandingPage"));
 
-export const DEV = true;
+export const DEV = false;
 
 const router = createBrowserRouter([
   {
@@ -33,7 +34,10 @@ const router = createBrowserRouter([
         path: "/study/:id",
         element: (
           <PrivateRoute>
-            <StudyPage />
+            <>
+              <ScrollToTop />
+              <StudyPage />
+            </>
           </PrivateRoute>
         ),
       },
@@ -45,7 +49,12 @@ const router = createBrowserRouter([
   },
   {
     path: "/about",
-    element: <LandingPage />,
+    element: (
+      <>
+        <ScrollToTop />
+        <LandingPage />
+      </>
+    ),
   },
   {
     path: "/login",

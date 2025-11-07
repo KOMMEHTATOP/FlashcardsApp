@@ -1,10 +1,9 @@
-import { Link, Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import ThemeSwithcer from "../components/ThemeSwitcher";
 import { useApp } from "../context/AppContext";
 import LessonPlayer from "../pages/LessonPlayer";
 import ConfrimModal from "../components/modal/ConfrimModal";
-import { Brain } from "lucide-react";
 import Footer from "../components/Footer";
 
 export default function AppLayout() {

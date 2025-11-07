@@ -1,4 +1,4 @@
-import { CheckCheck, Edit, Play, Star, Trash } from "lucide-react";
+import { Edit, Star, Trash } from "lucide-react";
 import type { GroupCardType } from "../../types/types";
 import { ButtonCircle } from "../ui/button";
 
@@ -37,23 +37,22 @@ export default function CardQuestion({
         <div className="flex items-center overflow-hidden">
           {/* Иконка */}
           <div
-            className={`shrink-0 w-12 h-12 rounded-full flex items-center justify-center transition-all  ${
-              isCompleted
-                ? "bg-gradient-to-br from-green-400 to-emerald-500 animate-pulse"
-                : "bg-gray-400/70 hover:bg-green-400/80"
-            }`}
+            className={`shrink-0 w-12 h-12 rounded-full flex items-center justify-center transition-all bg-gray-400/70 hover:bg-green-400/80`}
           >
-            {isCompleted ? (
-              <CheckCheck className="w-6 h-6 text-white" />
-            ) : (
-              <Play className="w-6 h-6 text-white" />
-            )}
+            <ButtonCircle
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit?.();
+              }}
+            >
+              <Edit className="w-6 h-6 text-base-content" />
+            </ButtonCircle>
           </div>
 
           {/* Вопрос и рейтинг */}
           <div className="flex-1 ml-2">
             <h3
-              className={`mb-1 text-base font-medium ${
+              className={`mb-1 text-base font-medium line-clamp-2 ${
                 isCompleted ? "text-base-content" : "text-gray-400"
               }`}
             >
@@ -73,7 +72,7 @@ export default function CardQuestion({
               ))}
             </div>
           </div>
-          <div className="opacity-0 group-hover:opacity-100 transition-all duration-600 flex mx-4 gap-2">
+          <div className="md:opacity-0 group-hover:opacity-100 transition-all duration-600 flex mx-4 gap-2">
             <ButtonCircle
               onClick={(e) => {
                 e.stopPropagation();
@@ -82,19 +81,11 @@ export default function CardQuestion({
             >
               <Trash className="w-6 h-6 text-error" />
             </ButtonCircle>
-            <ButtonCircle
-              onClick={(e) => {
-                e.stopPropagation();
-                onEdit?.();
-              }}
-            >
-              <Edit className="w-6 h-6 text-base-content" />
-            </ButtonCircle>
           </div>
           {/* Кнопка “Обзор */}
           <button
             onClick={onClick}
-            className={`px-4 py-2 rounded text-base font-medium ${"bg-green-500 hover:bg-green-600 text-white"}`}
+            className={`px-4 py-2 rounded text-base font-medium hidden md:block ${"bg-green-500 hover:bg-green-600 text-white"}`}
           >
             Обзор
           </button>

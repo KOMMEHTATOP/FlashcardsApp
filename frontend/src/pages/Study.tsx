@@ -22,6 +22,7 @@ import apiFetch from "../utils/apiFetch";
 import AddFlashcardForm from "../components/modal/AddFlashcardForm";
 import SkeletonGroupDetail from "../components/StudySkeleton";
 import { availableIcons } from "../test/data";
+import { errorFormater } from "../utils/errorFormater";
 
 export default function StudyPage({}) {
   const { id } = useParams();
@@ -82,58 +83,46 @@ export default function StudyPage({}) {
     question: string,
     answer: string
   ): Promise<boolean> => {
-    setLoading(true);
-    const data = {
-      question,
-      answer,
-    };
-    let res;
-    if (targetCard) {
-      res = await apiFetch
-        .put(`/Cards/${targetCard.CardId}`, data)
-        .then(() => {
-          setDataDetail((prev) =>
-            prev.map((card) =>
-              card.CardId === targetCard.CardId
-                ? { ...card, Question: question, Answer: answer }
-                : card
-            )
-          );
-          setIsOpenAddModal(false);
-          setLoading(false);
-          return true;
-        })
-        .catch(() => {
-          setTimeout(() => {
-            setIsOpenAddModal(false);
-            setLoading(false);
-            setError("Произошла ошибка");
-            return false;
-          }, 500);
-        });
-    } else {
-      res = await apiFetch
-        .post(`/groups/${id}/cards`, data)
-        .then((res) => {
-          setLoading(false);
-          setDataDetail((prev) => [res.data, ...prev]);
-          setGroups((prev) =>
-            prev.map((g) =>
-              g.Id === id ? { ...g, CardCount: g.CardCount + 1 } : g
-            )
-          );
-          return true;
-        })
-        .catch(() => {
-          setTimeout(() => {
-            setIsOpenAddModal(false);
-            setLoading(false);
-            setError("Произошла ошибка");
-            return false;
-          }, 500);
-        });
+    try {
+      setLoading(true);
+      setError("");
+
+      const data = { question, answer };
+
+      if (targetCard) {
+        // Обновление существующей карточки
+        await apiFetch.put(`/Cards/${targetCard.CardId}`, data);
+
+        setDataDetail((prev) =>
+          prev.map((card) =>
+            card.CardId === targetCard.CardId
+              ? { ...card, Question: question, Answer: answer }
+              : card
+          )
+        );
+
+        setIsOpenAddModal(false);
+        return true;
+      } else {
+        // добавление новой карточки
+        const res = await apiFetch.post(`/groups/${id}/cards`, data);
+
+        setDataDetail((prev) => [res.data, ...prev]);
+        setGroups((prev) =>
+          prev.map((g) =>
+            g.Id === id ? { ...g, CardCount: g.CardCount + 1 } : g
+          )
+        );
+
+        setIsOpenAddModal(false);
+        return true;
+      }
+    } catch (err) {
+      setError(errorFormater(err) || "Произошла ошибка");
+      return false;
+    } finally {
+      setLoading(false);
     }
-    return res as boolean;
   };
 
   const handleDeleteCard = (card: GroupCardType) => {
@@ -173,11 +162,18 @@ export default function StudyPage({}) {
 
   return (
     <div className="min-h-screen">
+      <Link
+        to="/"
+        className="text-white hover:bg-white/20 mb-6 flex items-center rounded px-4 py-2 duration-300 transition w-fit"
+      >
+        <ArrowLeft className="w-5 h-5 mr-2" />
+        Назад на главную
+      </Link>
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className={`relative bg-gradient-to-br ${group?.GroupColor} px-4 sm:px-6 lg:px-8 py-12 overflow-hidden rounded-2xl shadow-xl flex  `}
+        className={`relative bg-gradient-to-br ${group?.GroupColor} px-4 sm:px-6 lg:px-8 py-12 overflow-hidden rounded-2xl shadow-xl flex `}
       >
         <div
           className="absolute inset-0 bg-white/10"
@@ -188,14 +184,6 @@ export default function StudyPage({}) {
           }}
         />
         <div className="max-w-7xl mx-auto relative z-10 w-full">
-          <Link
-            to="/"
-            className="text-white hover:bg-white/20 mb-6 flex items-center rounded px-4 py-2 duration-300 transition w-fit"
-          >
-            <ArrowLeft className="w-5 h-5 mr-2" />
-            Назад на главную
-          </Link>
-
           <div className="flex flex-col sm:flex-row items-center md:items-start sm:items-center gap-6 mb-8">
             <motion.div
               initial={{ scale: 0 }}
@@ -217,10 +205,12 @@ export default function StudyPage({}) {
                       repeat: Infinity,
                       repeatDelay: 2,
                     }}
-                    className="bg-orange-500 text-white px-3 py-2 rounded-full flex items-center gap-1 text-subtitle"
+                    className="bg-orange-500 text-white px-3 py-2 rounded-full flex items-center gap-1 text-subtitle line-clamp-1 truncate"
                   >
-                    <GalleryVerticalEndIcon className="w-5 h-5 text-yellow" />
-                    {group?.CardCount} карточек
+                    <GalleryVerticalEndIcon className="w-4 md:w-5 text-yellow" />
+                    <span className="text-xs md:text-md">
+                      {group?.CardCount} карточек
+                    </span>
                   </motion.div>
                 )}
               </div>
@@ -235,7 +225,7 @@ export default function StudyPage({}) {
                     {proggresGroup ? Number(proggresGroup).toFixed(0) : 0}%
                   </span>
                 </div>
-                <div className="relative z-10 w-full h-4 md:h-3 bg-white/10 rounded-full">
+                <div className="relative z-10 w-full h-4 bg-white/10 rounded-full">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${proggresGroup || 0}%` }}
@@ -246,8 +236,8 @@ export default function StudyPage({}) {
               </div>
             </div>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {/* {dataDetail.map((stat, index) => (
+          {/* <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {dataDetail.map((stat, index) => (
               <motion.div
                 key={stat.Question}
                 initial={{ opacity: 0, y: 20 }}
@@ -262,8 +252,8 @@ export default function StudyPage({}) {
                   {stat.Question}
                 </div>
               </motion.div>
-            ))} */}
-          </div>
+            ))}
+          </div> */}
         </div>
       </motion.div>
 

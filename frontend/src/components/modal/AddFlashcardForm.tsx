@@ -192,7 +192,9 @@ export default function AddFlashcardForm({
               )}
 
               {/* Ошибка */}
-              {error && <div className="text-red-500 mt-2">{error}</div>}
+              {error && (
+                <div className="text-red-500 mt-2 text-center">{error}</div>
+              )}
 
               {/* Кнопки */}
               <div className="flex gap-3 pt-4">
