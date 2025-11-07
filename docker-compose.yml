@@ -1,9 +1,6 @@
 ﻿version: '3.8'
 
 services:
-  # ===========================================
-  # PostgreSQL Database
-  # ===========================================
   db:
     image: postgres:16-alpine
     container_name: flashcards-db-dev
@@ -31,10 +28,6 @@ services:
       timeout: 5s
       retries: 10
       start_period: 30s
-
-  # ===========================================
-  # FlashcardsApp API
-  # ===========================================
   api:
     build:
       context: .
@@ -63,25 +56,23 @@ services:
 
     networks:
       - flashcards-net
-  # ===========================================
-  # Frontend (React + Vite)
-  # ===========================================
-  # frontend:
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile.prod
 
-  #   container_name: flashcards-frontend-dev
-  #   restart: unless-stopped
-
-  #   ports:
-  #     - "3000:3000"
-
-  #   depends_on:
-  #     - api
-
-  #   networks:
-  #     - flashcards-net
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    
+    container_name: flashcards-frontend-dev
+    restart: unless-stopped
+    
+    ports:
+      - "3000:3000"
+    
+    depends_on:
+      - api
+    
+    networks:
+      - flashcards-net
 
 volumes:
   pgdata-dev:

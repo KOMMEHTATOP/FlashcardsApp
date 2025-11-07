@@ -2,7 +2,6 @@ import { motion } from "framer-motion";
 
 type ConfrimBtnProps = {
   loading: boolean;
-  handleSubmit: () => void;
   icon?: any;
   text: string;
   iconLoading: any;
@@ -11,7 +10,6 @@ type ConfrimBtnProps = {
 
 export default function ConfrimBtn({
   loading,
-  handleSubmit,
   icon: Icon,
   text,
   iconLoading: IconLoading,
@@ -19,9 +17,8 @@ export default function ConfrimBtn({
 }: ConfrimBtnProps) {
   return (
     <button
-      type="button"
+      type="submit"
       disabled={loading}
-      onClick={handleSubmit}
       className="btn btn-block rounded-xl py-6 border-0 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg text-lg"
     >
       {loading ? (

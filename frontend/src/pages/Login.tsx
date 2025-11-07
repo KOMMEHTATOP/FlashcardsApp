@@ -19,7 +19,6 @@ import useTitle from "../utils/useTitle";
 import { floatingIcons, TITLE_APP } from "../test/data";
 import apiFetch, { BASE_URL } from "../utils/apiFetch";
 import axios from "axios";
-import { Helmet } from "react-helmet-async";
 
 export default function LoginPage() {
   useTitle("Вход");
@@ -39,49 +38,52 @@ export default function LoginPage() {
     setError(" ");
   };
 
-  const handleLogin = async () => {
-    if (!email) {
-      setError("Введите email");
-      return;
-    } else if (!password) {
-      setError("Введите пароль");
-      return;
-    }
-    setLoading(true);
+    const handleLogin = async (e?: React.FormEvent) => {
+        e?.preventDefault();
 
-    const data = {
-      email,
-      password,
-    };
-    await axios
-      .post(`${BASE_URL}/Auth/login`, data, { withCredentials: true })
-      .then((res) => {
-        console.log(res);
-        const token = res.data.accessToken;
-        localStorage.setItem("accessToken", token);
-        apiFetch.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-        window.location.href = "/";
-      })
-      .catch((err) => {
-        console.log(err);
-        const errors = err.response?.data?.errors;
-
-        if (errors && typeof errors === "object") {
-          const messages = Object.values(errors).flat().join("\n");
-          setError(messages);
-        } else {
-          setError("Произошла ошибка при входе");
+        if (!email) {
+            setError("Введите email");
+            return;
+        } else if (!password) {
+            setError("Введите пароль");
+            return;
         }
-        setLoading(false);
-      })
-      .finally(() => {
-        setTimeout(() => {
-          setLoading(false);
-        }, 2000);
-      });
-  };
+        setLoading(true);
 
-  const handleRegister = async () => {
+        const data = {
+            email,
+            password,
+        };
+        await axios
+            .post(`${BASE_URL}/Auth/login`, data, { withCredentials: true })
+            .then((res) => {
+                console.log(res);
+                const token = res.data.accessToken;
+                localStorage.setItem("accessToken", token);
+                apiFetch.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+                window.location.href = "/";
+            })
+            .catch((err) => {
+                console.log(err);
+                const errors = err.response?.data?.errors;
+
+                if (errors && typeof errors === "object") {
+                    const messages = Object.values(errors).flat().join("\n");
+                    setError(messages);
+                } else {
+                    setError("Произошла ошибка при входе");
+                }
+                setLoading(false);
+            })
+            .finally(() => {
+                setTimeout(() => {
+                    setLoading(false);
+                }, 2000);
+            });
+    };
+
+  const handleRegister = async (e?: React.FormEvent) => {
+      e?.preventDefault();
     if (!login) {
       setError("Введите логин");
       return;
@@ -131,10 +133,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-base-300 via-base-100 to-base-300 flex items-center justify-center p-4 relative overflow-hidden">
-      <Helmet>
-        <title>Вход - {TITLE_APP}</title>
-        <meta name="robots" content="noindex, nofollow" />
-      </Helmet>
       <div className="absolute inset-0 opacity-30">
         <div
           className="absolute inset-0"
@@ -268,14 +266,13 @@ export default function LoginPage() {
                           required={true}
                         />
 
-                        <ConfrimBtn
-                          loading={loading}
-                          handleSubmit={handleLogin}
-                          icon={BowArrow}
-                          iconRight={true}
-                          iconLoading={Sparkles}
-                          text="Войти"
-                        />
+                          <ConfrimBtn
+                              loading={loading}
+                              icon={BowArrow}
+                              iconRight={true}
+                              iconLoading={Sparkles}
+                              text="Войти"
+                          />
                         <button className="w-full text-purple-600 hover:text-purple-700 text-subtitle hover:bg-purple-300/20 py-2 rounded-xl">
                           Забыли пароль?
                         </button>
@@ -332,7 +329,6 @@ export default function LoginPage() {
                         />
                         <ConfrimBtn
                           loading={loading}
-                          handleSubmit={handleRegister}
                           icon={Rocket}
                           iconRight={true}
                           iconLoading={Sparkles}
