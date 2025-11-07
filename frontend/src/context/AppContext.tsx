@@ -45,6 +45,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const fetchData = useCallback(async () => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) return;
     try {
       const { user, groups, achievements } = await service.getDashboard();
       setUser(user);

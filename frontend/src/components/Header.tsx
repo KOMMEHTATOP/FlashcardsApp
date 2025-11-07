@@ -1,6 +1,6 @@
 import { Brain, LogOut, UserRound } from "lucide-react";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import type { UserData } from "../types/types";
 import { TITLE_APP } from "../test/data";
 
@@ -26,13 +26,16 @@ export default function Header({
           transition={{ duration: 0.3 }}
           className="flex items-center gap-2"
         >
-          <div className="bg-gradient-to-br from-purple-500 to-pink-500 p-2 rounded-2xl items-center justify-center flex">
+          <div className="bg-gradient-to-br from-purple-500 to-pink-500 p-2 rounded-2xl items-center justify-center hidden md:flex">
             <Brain className="h-8 w-8 text-white" />
           </div>
           <div className="flex flex-col ml-2">
-            <h1 className="text-2xl bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent text-title">
+            <Link
+              to={"/"}
+              className="text-2xl bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent text-title"
+            >
               {TITLE_APP}
-            </h1>
+            </Link>
             <p className="text-md text-base-content/70 text-subtitle">
               Учись и развивайся
             </p>

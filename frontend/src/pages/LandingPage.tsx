@@ -21,6 +21,8 @@ import FeaturesGrid from "../components/landing/FeatureGrid";
 import ScrollStack, { ScrollStackItem } from "../components/ScrollStack";
 import RotatingText from "../components/RotatingText";
 import { LandingHelmet } from "../components/landing/HelmetLanding";
+import { useApp } from "../context/AppContext";
+import Footer from "../components/Footer";
 
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   customClass?: string;
@@ -40,6 +42,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const { user, logout } = useApp();
   const features = useMemo(() => LandingContentService.getFeatures(), []);
   const gamificationFeatures = useMemo(
     () => LandingContentService.getGamificationFeatures(),
@@ -75,7 +78,7 @@ export default function LandingPage() {
       <LandingHelmet />
 
       {/* Навигация */}
-      <Header user={undefined} onLogout={() => {}} />
+      <Header user={user} onLogout={logout} />
       <div className="fixed bottom-5 right-4 z-50 p-4">
         <button
           className="p-2 rounded-full bg-info hover:bg-info transition-all duration-300 hover:scale-110 opacity-60 hover:opacity-100"
@@ -117,9 +120,9 @@ export default function LandingPage() {
                 mainClassName="px-2 sm:px-2 md:px-3 bg-gradient-to-r from-purple-600 to-pink-600 overflow-hidden py-0.5 sm:py-1 md:py-2 justify-center 
                 rounded-lg transition-all duration-300 ease-in-out"
                 staggerFrom={"last"}
-                initial={{ y: "100%" }}
-                animate={{ y: "0%" }}
-                exit={{ y: "-120%" }}
+                initial={{ y: 100 }}
+                animate={{ y: 0 }}
+                exit={{ y: 120 }}
                 staggerDuration={0.025}
                 splitLevelClassName="overflow-hidden pb-0.5 sm:pb-1 md:pb-1"
                 transition={{ type: "spring", damping: 30, stiffness: 400 }}
@@ -367,51 +370,7 @@ export default function LandingPage() {
         </motion.div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-base-300 py-8 px-4">
-        <div className="max-w-6xl mx-auto text-center">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center">
-              <Brain className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xl font-bold text-base-content">
-              FlashcardsLoop
-            </span>
-          </div>
-          <p className="text-base-content/60">
-            © 2025 FlashcardsLoop. Учись и развивайся.
-          </p>
-          <div className="space-x-2 flex justify-center text-base-content/60 items-center mt-2">
-            <h2 className="">Контакты для обратной связи: </h2>
-            <div className="flex items-center justify-center gap-1">
-              <img
-                src="tg_icon.svg"
-                alt=""
-                className="w-5 h-5"
-                loading="lazy"
-              />
-              <a href="https://t.me/aisblack" className="hover:underline">
-                Frontend: @aisblack
-              </a>
-            </div>
-            <div className="flex items-center justify-center gap-1">
-              <img
-                src="tg_icon.svg"
-                alt=""
-                className="w-5 h-5"
-                loading="lazy"
-              />
-              <a
-                href="https://t.me/BMBasharov"
-                className="hover:underline"
-                target="_blank"
-              >
-                Backend: @BMBasharov
-              </a>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

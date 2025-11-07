@@ -27,8 +27,8 @@ BadgeCardProps) {
       onClick={onClick}
       className={`relative p-6 rounded-2xl shadow-lg transition-all cursor-pointer ${
         earned
-          ? `bg-gradient-to-br ${gradient}`
-          : "bg-gray-200 dark:bg-base-300"
+          ? `bg-gradient-to-br from-yellow-400 to-orange-500 ${gradient}`
+          : "bg-base-300"
       }`}
     >
       {earned && (
@@ -43,9 +43,7 @@ BadgeCardProps) {
       <div className="flex flex-col items-center text-center gap-3">
         <div
           className={`p-4 rounded-2xl ${
-            earned
-              ? "bg-white/20 backdrop-blur-sm"
-              : "bg-gray-300 dark:bg-base-200"
+            earned ? "bg-white/20 backdrop-blur-sm" : "bg-base-200"
           }`}
         >
           <span

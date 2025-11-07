@@ -1,9 +1,11 @@
-import { Outlet, useNavigate } from "react-router-dom";
+import { Link, Outlet, useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import ThemeSwithcer from "../components/ThemeSwitcher";
 import { useApp } from "../context/AppContext";
 import LessonPlayer from "../pages/LessonPlayer";
 import ConfrimModal from "../components/modal/ConfrimModal";
+import { Brain } from "lucide-react";
+import Footer from "../components/Footer";
 
 export default function AppLayout() {
   const { currentLesson, handleCompliteLesson, user, confrimModal, logout } =
@@ -47,9 +49,7 @@ export default function AppLayout() {
         <Outlet />
       </main>
 
-      {/* <footer className="footer items-center p-4 bg-base-300 text-base-content justify-center">
-        <h1>Footer</h1>
-      </footer> */}
+      <Footer />
       <ThemeSwithcer />
     </div>
   );

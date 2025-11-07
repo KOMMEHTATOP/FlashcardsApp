@@ -8,6 +8,7 @@ export class ApiService {
         groups: GroupType[];
         achievements: AchievementsType[];
     }> {
+
         const res = await apiFetch.get("/User/me/dashboard");
         return {
             user: res.data,

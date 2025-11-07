@@ -72,7 +72,7 @@ export function HomePage() {
             icon={Clock}
             label="Общее время учебы"
             value={`${formatTotalHour(
-              user?.Statistics.TotalStudyTime || "0"
+              user?.Statistics?.TotalStudyTime || "0"
             )} ч.`}
             gradient="from-blue-500 to-cyan-500"
             delay={0.1}

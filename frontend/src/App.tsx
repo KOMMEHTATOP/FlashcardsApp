@@ -14,6 +14,8 @@ import { GuestRoute } from "./layout/GuestRoute";
 import { lazy } from "react";
 const LandingPage = lazy(() => import("./pages/LandingPage"));
 
+export const DEV = true;
+
 const router = createBrowserRouter([
   {
     element: <AppLayout />,
