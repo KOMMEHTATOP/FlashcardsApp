@@ -117,6 +117,15 @@ namespace FlashcardsApp.Api.Controllers
 
             return Ok(new { message = "Выход выполнен успешно" });
         }
+        
+        //легкий эндпоинт для проверки токена (нужен фронту)
+        [HttpGet("validate")]
+        [Authorize]
+        public IActionResult Validate()
+        {
+            // Если дошли сюда - токен валиден (Authorize атрибут проверил)
+            return Ok(new { valid = true });
+        }
 
         private void SetRefreshTokenCookie(string refreshToken)
         {

@@ -1,9 +1,5 @@
 import "./App.css";
-import {
-  createBrowserRouter,
-  Navigate,
-  RouterProvider,
-} from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import AppLayout from "./layout/AppLayout";
 import { HomePage } from "./pages/Home";
 import StudyPage from "./pages/Study";
@@ -13,61 +9,53 @@ import { PrivateRoute } from "./layout/PrivateRoute";
 import { GuestRoute } from "./layout/GuestRoute";
 import { lazy } from "react";
 import ScrollToTop from "./utils/scrollToTop";
+
 const LandingPage = lazy(() => import("./pages/LandingPage"));
 
 export const DEV = false;
 
-const router = createBrowserRouter([
-  {
-    element: <AppLayout />,
-    children: [
-      {
-        path: "/",
-        element: (
-          <PrivateRoute>
-            <HomePage />
-          </PrivateRoute>
-        ),
-        errorElement: <Navigate to="/about" replace />,
-      },
-      {
-        path: "/study/:id",
-        element: (
-          <PrivateRoute>
-            <>
-              <ScrollToTop />
-              <StudyPage />
-            </>
-          </PrivateRoute>
-        ),
-      },
-      {
-        path: "*",
-        element: <NotFoundPage />,
-      },
-    ],
-  },
-  {
-    path: "/about",
-    element: (
-      <>
-        <ScrollToTop />
-        <LandingPage />
-      </>
-    ),
-  },
-  {
-    path: "/login",
-    element: (
-      <GuestRoute>
-        <LoginPage />
-      </GuestRoute>
-    ),
-  },
-]);
-
 function App() {
-  return <RouterProvider router={router} />;
+    return (
+        <Routes>
+            <Route path="/about" element={
+                <>
+                    <ScrollToTop />
+                    <LandingPage />
+                </>
+            } />
+
+            <Route path="/login" element={
+                <GuestRoute>
+                    <LoginPage />
+                </GuestRoute>
+            } />
+
+            <Route element={<AppLayout />}>
+                <Route
+                    path="/"
+                    element={
+                        <PrivateRoute>
+                            <HomePage />
+                        </PrivateRoute>
+                    }
+                />
+
+                <Route
+                    path="/study/:id"
+                    element={
+                        <PrivateRoute>
+                            <>
+                                <ScrollToTop />
+                                <StudyPage />
+                            </>
+                        </PrivateRoute>
+                    }
+                />
+
+                <Route path="*" element={<NotFoundPage />} />
+            </Route>
+        </Routes>
+    );
 }
 
 export default App;

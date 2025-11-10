@@ -17,10 +17,12 @@ import Card from "../components/ui/card";
 
 import useTitle from "../utils/useTitle";
 import {floatingIcons, TITLE_APP} from "../test/data";
-import apiFetch from "../utils/apiFetch";
+import { useAuth } from "../context/AuthContext";
 
 export default function LoginPage() {
     useTitle("Вход");
+    const { login: authLogin, register: authRegister } = useAuth();
+
     const [selectedBlock, setSelectedBlock] = useState<"login" | "register">(
         "login"
     );
@@ -49,36 +51,23 @@ export default function LoginPage() {
         }
         setLoading(true);
 
-        const data = {
-            email,
-            password,
-        };
-        await apiFetch
-            .post("/Auth/login", data)
-            .then((res) => {
-                console.log(res);
-                const token = res.data.accessToken;
-                localStorage.setItem("accessToken", token);
-                apiFetch.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-                window.location.href = "/";
-            })
-            .catch((err) => {
-                console.log(err);
-                const errors = err.response?.data?.errors;
+        try {
+            await authLogin(email, password);
+        } catch (err: any) {
+            console.log(err);
+            const errors = err.response?.data?.errors;
 
-                if (errors && typeof errors === "object") {
-                    const messages = Object.values(errors).flat().join("\n");
-                    setError(messages);
-                } else {
-                    setError("Произошла ошибка при входе");
-                }
+            if (errors && typeof errors === "object") {
+                const messages = Object.values(errors).flat().join("\n");
+                setError(messages);
+            } else {
+                setError("Произошла ошибка при входе");
+            }
+        } finally {
+            setTimeout(() => {
                 setLoading(false);
-            })
-            .finally(() => {
-                setTimeout(() => {
-                    setLoading(false);
-                }, 2000);
-            });
+            }, 2000);
+        }
     };
 
     const handleRegister = async (e?: React.FormEvent) => {
@@ -95,36 +84,24 @@ export default function LoginPage() {
         }
         setLoading(true);
 
-        const data = {
-            Login: login,
-            Email: email,
-            Password: password,
-        };
+        try {
+            await authRegister(login, email, password);
+        } catch (err: any) {
+            const errors = err.response?.data?.errors;
 
-        await apiFetch
-            .post("/Auth/register", data)
-            .then((res) => {
-                const accessToken = res.data.accessToken;
-                localStorage.setItem("accessToken", accessToken);
-                handleSelect("login");
-            })
-            .catch((err) => {
-                const errors = err.response?.data?.errors;
-
-                if (errors && typeof errors === "object") {
-                    const messages = Object.values(errors).flat().join("\n");
-                    setError(messages);
-                } else {
-                    setError("Произошла ошибка при регистрации");
-                }
+            if (errors && typeof errors === "object") {
+                const messages = Object.values(errors).flat().join("\n");
+                setError(messages);
+            } else {
+                setError("Произошла ошибка при регистрации");
+            }
+        } finally {
+            setTimeout(() => {
                 setLoading(false);
-            })
-            .finally(() => {
-                setTimeout(() => {
-                    setLoading(false);
-                }, 2000);
-            });
+            }, 2000);
+        }
     };
+
     const hasError = Array.isArray(error)
         ? error.length > 0
         : typeof error === "string"
