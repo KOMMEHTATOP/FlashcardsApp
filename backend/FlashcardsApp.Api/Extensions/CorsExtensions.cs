@@ -11,36 +11,30 @@ public static class CorsExtensions
             .GetSection("Cors:AllowedOrigins")
             .Get<string[]>() ?? [];
 
+        // Если ничего не задано в конфиге — используем дефолтные адреса для разработки
         if (allowedOrigins.Length == 0 && environment.IsDevelopment())
         {
-            allowedOrigins =
-            [
+            allowedOrigins = new[]
+            {
                 "http://localhost:3000",
                 "http://localhost:5173",
+                "http://localhost:5174",
                 "http://localhost:7255",
                 "https://localhost:7255"
-            ];
+            };
         }
-        
-        
 
-        if (allowedOrigins.Length > 0)
+        services.AddCors(options =>
         {
-            services.AddCors(options =>
+            options.AddDefaultPolicy(policyBuilder =>
             {
-                options.AddDefaultPolicy(policyBuilder =>
-                {
-                    policyBuilder.WithOrigins(allowedOrigins)
-                        .AllowAnyHeader()
-                        .AllowAnyMethod()
-                        .AllowCredentials();
-                });
+                policyBuilder
+                    .WithOrigins(allowedOrigins)
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials(); 
             });
-        }
-        else if (environment.IsProduction())
-        {
-            throw new Exception("CORS origins must be configured for Production.");
-        }
+        });
 
         return services;
     }

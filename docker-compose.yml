@@ -5,40 +5,40 @@ services:
     image: postgres:16-alpine
     container_name: flashcards-db-dev
     restart: unless-stopped
-
+    
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dev_password_123}
       POSTGRES_DB: ${POSTGRES_DB:-FlashcardsDb}
       POSTGRES_HOST_AUTH_METHOD: scram-sha-256
       POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
-
+    
     ports:
       - "5433:5432"
-
+    
     volumes:
       - pgdata-dev:/var/lib/postgresql/data
-
+    
     networks:
       - flashcards-net
-
+    
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}" ]
       interval: 10s
       timeout: 5s
       retries: 10
       start_period: 30s
+
   api:
     build:
       context: .
       dockerfile: Dockerfile
       args:
         BUILD_CONFIGURATION: Debug
-
+    
     container_name: flashcards-api-dev
     restart: unless-stopped
-
-    # ВАЖНО: Внутри Docker контейнеры общаются по имени сервиса 'db'
+    
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=FlashcardsDb;Username=postgres;Password=dev_password_123
@@ -46,42 +46,41 @@ services:
       - Jwt__Issuer=FlashcardsApp
       - Jwt__Audience=FlashcardsAppUsers
       - AutoMigrate=true
-
+    
     ports:
-      - "5001:8080" # Локально доступен на :5001
-
+      - "5001:8080"
+    
     depends_on:
       db:
         condition: service_healthy
-
+    
     networks:
       - flashcards-net
 
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile.dev  # ← Изменено с Dockerfile.prod
+      dockerfile: Dockerfile.dev
     
     container_name: flashcards-frontend-dev
     restart: unless-stopped
     
-    # ВАЖНО: Для dev режима нужны volumes для hot reload
     volumes:
-      - ./frontend/src:/app/src  # Hot reload для исходников
+      - ./frontend/src:/app/src
       - ./frontend/public:/app/public
     
+    environment:
+      - VITE_API_URL=http://localhost:5001/api
+      - VITE_APP_TITLE=FlashcardsLoop (Docker Dev)
     ports:
-      - "3000:3000"
+      - "5174:3000"
     
     depends_on:
       - api
     
     networks:
       - flashcards-net
-  
-  # Переменная окружения для dev
-  environment:
-    - VITE_API_URL=http://localhost:5001/api
+
 volumes:
   pgdata-dev:
     driver: local
