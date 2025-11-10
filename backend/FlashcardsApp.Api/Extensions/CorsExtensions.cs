@@ -26,8 +26,6 @@ public static class CorsExtensions
 
         if (allowedOrigins.Length > 0)
         {
-            string.Join(", ", allowedOrigins);
-
             services.AddCors(options =>
             {
                 options.AddDefaultPolicy(policyBuilder =>

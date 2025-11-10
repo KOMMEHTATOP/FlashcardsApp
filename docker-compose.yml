@@ -60,10 +60,15 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile.prod
+      dockerfile: Dockerfile.dev  # ← Изменено с Dockerfile.prod
     
     container_name: flashcards-frontend-dev
     restart: unless-stopped
+    
+    # ВАЖНО: Для dev режима нужны volumes для hot reload
+    volumes:
+      - ./frontend/src:/app/src  # Hot reload для исходников
+      - ./frontend/public:/app/public
     
     ports:
       - "3000:3000"
@@ -73,7 +78,10 @@ services:
     
     networks:
       - flashcards-net
-
+  
+  # Переменная окружения для dev
+  environment:
+    - VITE_API_URL=http://localhost:5001/api
 volumes:
   pgdata-dev:
     driver: local
