@@ -38,6 +38,7 @@ public class AuthBL : IAuthBL
         var user = new User
         {
             Login = model.Login, 
+            Role = model.Role,
             UserName = model.Email, 
             Email = model.Email
         };

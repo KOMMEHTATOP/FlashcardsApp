@@ -2,8 +2,7 @@ namespace FlashcardsApp.DAL.Models;
 
 public class UserStatistics
 {
-    public Guid UserId { get; set; }  // PK и FK
-    
+    public Guid UserId { get; set; }  
     public int TotalXP { get; set; }
     public int Level { get; set; }
     public int CurrentStreak { get; set; }
@@ -13,6 +12,5 @@ public class UserStatistics
     public int TotalCardsStudied { get; set; }  
     public int TotalCardsCreated { get; set; }  
     public int PerfectRatingsStreak { get; set; }  
-
     public User User { get; set; } 
 }

@@ -20,6 +20,7 @@ public static class SeedManager
             testUser = new User
             {
                 Id = userId,
+                Role = "Admin",
                 Login = "testuser",
                 UserName = "test@test.com",
                 Email = "test@test.com",
@@ -206,6 +207,7 @@ private static async Task SeedAchievementsFromJsonAsync(ApplicationDbContext con
                 GroupName = groupsData[i].Name,
                 GroupIcon = "",
                 GroupColor = groupsData[i].Color,
+                IsPublished = true,
                 CreatedAt = DateTime.UtcNow.AddDays(-(i + 1)),
                 Order = i + 1
             };
@@ -250,6 +252,7 @@ private static async Task SeedAchievementsFromJsonAsync(ApplicationDbContext con
                     GroupId = group.Id,
                     Question = card.Question,
                     Answer = card.Answer,
+                    IsPublished = true,
                     CreatedAt = DateTime.UtcNow.AddDays(-(index + 1)),
                     UpdatedAt = DateTime.UtcNow.AddDays(-(index + 1))
                 }).ToList();

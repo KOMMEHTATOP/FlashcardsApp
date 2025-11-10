@@ -3,6 +3,7 @@ using System;
 using FlashcardsApp.DAL;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FlashcardsApp.DAL.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251110193003_AddPublicFieldToGroupAndCards")]
+    partial class AddPublicFieldToGroupAndCards
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -60,7 +63,7 @@ namespace FlashcardsApp.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Achievements", (string)null);
+                    b.ToTable("Achievements");
                 });
 
             modelBuilder.Entity("FlashcardsApp.DAL.Models.Card", b =>
@@ -102,7 +105,7 @@ namespace FlashcardsApp.DAL.Migrations
                         .IsUnique()
                         .HasDatabaseName("IX_Cards_User_Question");
 
-                    b.ToTable("Cards", (string)null);
+                    b.ToTable("Cards");
                 });
 
             modelBuilder.Entity("FlashcardsApp.DAL.Models.Group", b =>
@@ -146,7 +149,7 @@ namespace FlashcardsApp.DAL.Migrations
                         .IsUnique()
                         .HasDatabaseName("IX_Groups_User_Name");
 
-                    b.ToTable("Groups", (string)null);
+                    b.ToTable("Groups");
                 });
 
             modelBuilder.Entity("FlashcardsApp.DAL.Models.RefreshToken", b =>
@@ -198,7 +201,7 @@ namespace FlashcardsApp.DAL.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("RefreshTokens", (string)null);
+                    b.ToTable("RefreshTokens");
                 });
 
             modelBuilder.Entity("FlashcardsApp.DAL.Models.StudyHistory", b =>
@@ -229,7 +232,7 @@ namespace FlashcardsApp.DAL.Migrations
                     b.HasIndex("UserId", "CardId", "StudiedAt")
                         .HasDatabaseName("IX_StudyHistory_User_Card_Date");
 
-                    b.ToTable("StudyHistory", null, t =>
+                    b.ToTable("StudyHistory", t =>
                         {
                             t.HasCheckConstraint("CK_StudyHistory_Rating", "\"Rating\" >= 1 AND \"Rating\" <= 5");
                         });
@@ -265,7 +268,7 @@ namespace FlashcardsApp.DAL.Migrations
                         .IsUnique()
                         .HasDatabaseName("IX_StudySettings_UserId");
 
-                    b.ToTable("StudySettings", (string)null);
+                    b.ToTable("StudySettings");
                 });
 
             modelBuilder.Entity("FlashcardsApp.DAL.Models.User", b =>
@@ -355,7 +358,7 @@ namespace FlashcardsApp.DAL.Migrations
 
                     b.HasIndex("AchievementId");
 
-                    b.ToTable("UserAchievements", (string)null);
+                    b.ToTable("UserAchievements");
                 });
 
             modelBuilder.Entity("FlashcardsApp.DAL.Models.UserStatistics", b =>
@@ -392,7 +395,7 @@ namespace FlashcardsApp.DAL.Migrations
 
                     b.HasKey("UserId");
 
-                    b.ToTable("UserStatistics", (string)null);
+                    b.ToTable("UserStatistics");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", b =>

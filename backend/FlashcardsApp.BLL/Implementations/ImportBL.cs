@@ -39,9 +39,7 @@ public class ImportBL : IImportBL
         if (groupExists)
         {
             _logger.LogWarning(
-                "User {UserId} attempted to import group with duplicate name: {GroupName}",
-                userId,
-                dto.GroupName);
+                "User {UserId} attempted to import group with duplicate name: {GroupName}", userId, dto.GroupName);
             
             return ServiceResult<ImportResultDto>.Failure(
                 $"You already have a group named '{dto.GroupName}'");
@@ -58,6 +56,7 @@ public class ImportBL : IImportBL
                 Name = dto.GroupName,
                 Color = dto.GroupColor,
                 GroupIcon = dto.GroupIcon,
+                IsPublished = false,
                 Order = dto.Order
             };
 
@@ -79,9 +78,7 @@ public class ImportBL : IImportBL
             var createdGroup = groupResult.Data;
             
             _logger.LogInformation(
-                "Group {GroupId} created for import by user {UserId}",
-                createdGroup.Id,
-                userId);
+                "Group {GroupId} created for import by user {UserId}", createdGroup.Id, userId);
 
             // ШАГ 4: Создать карточки с обработкой ошибок
             var cardResults = new List<ImportedCardResultDto>();
@@ -96,13 +93,11 @@ public class ImportBL : IImportBL
                     var createCardDto = new CreateCardDto
                     {
                         Question = cardDto.Question,
-                        Answer = cardDto.Answer
+                        Answer = cardDto.Answer,
+                        IsPublished = false
                     };
 
-                    var cardResult = await _cardBL.CreateCardAsync(
-                        userId, 
-                        createdGroup.Id, 
-                        createCardDto);
+                    var cardResult = await _cardBL.CreateCardAsync(userId, createdGroup.Id, createCardDto);
 
                     if (cardResult.IsSuccess)
                     {
@@ -141,10 +136,7 @@ public class ImportBL : IImportBL
                         });
 
                         _logger.LogWarning(
-                            "Failed to import card '{Question}' for user {UserId}: {Errors}",
-                            cardDto.Question,
-                            userId,
-                            errorMessage);
+                            "Failed to import card '{Question}' for user {UserId}: {Errors}", cardDto.Question, userId, errorMessage);
                     }
                 }
                 catch (Exception ex)
@@ -160,9 +152,7 @@ public class ImportBL : IImportBL
                     });
 
                     _logger.LogError(ex,
-                        "Unexpected error importing card '{Question}' for user {UserId}",
-                        cardDto.Question,
-                        userId);
+                        "Unexpected error importing card '{Question}' for user {UserId}", cardDto.Question, userId);
                 }
             }
 
@@ -171,11 +161,7 @@ public class ImportBL : IImportBL
 
             _logger.LogInformation(
                 "Import completed for user {UserId}: group '{GroupName}', {Successful}/{Total} cards created, {Failed} failed",
-                userId,
-                dto.GroupName,
-                successfulCount,
-                dto.Cards.Count,
-                failedCount);
+                userId, dto.GroupName, successfulCount, dto.Cards.Count, failedCount);
 
             // ШАГ 6: Формирование результата
             var result = new ImportResultDto

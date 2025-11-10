@@ -21,6 +21,7 @@ public class ImportGroupWithCardsDto
     [MaxLength(100, ErrorMessage = "Cannot import more than 100 cards at once")]
     [MinLength(1, ErrorMessage = "At least one card is required")]
     public required List<ImportCardDto> Cards { get; set; } = new();
+    public bool IsPublished { get; set; }
 }
 
 public class ImportCardDto
@@ -32,4 +33,5 @@ public class ImportCardDto
     [Required(ErrorMessage = "Answer is required")]
     [MaxLength(1000, ErrorMessage = "Answer cannot exceed 1000 characters")]
     public required string Answer { get; set; }
+    public bool IsPublished { get; set; }
 }

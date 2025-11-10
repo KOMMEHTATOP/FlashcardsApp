@@ -14,4 +14,6 @@ public class RegisterModel
     [Required(ErrorMessage = "Пароль обязателен")]
     [MinLength(6, ErrorMessage = "Пароль должен быть не менее 6 символов")]
     public required string Password { get; set; }
+    
+    public required string Role { get; set; }
 }

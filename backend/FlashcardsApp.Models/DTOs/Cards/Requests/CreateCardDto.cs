@@ -11,4 +11,6 @@ public class CreateCardDto
     [Required(ErrorMessage = "Ответ обязателен")]
     [StringLength(2000, ErrorMessage = "Ответ не может быть длиннее 2000 символов")]
     public required string Answer { get; set; }
+    
+    public bool IsPublished { get; set; }
 }

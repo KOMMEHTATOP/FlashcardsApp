@@ -7,7 +7,7 @@ public class Card
     public required string Answer { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
-    
+    public bool IsPublished { get; set; } = false;
     public Guid UserId { get; set; }  
     public User? User { get; set; } 
     public required Guid GroupId { get; set; } 

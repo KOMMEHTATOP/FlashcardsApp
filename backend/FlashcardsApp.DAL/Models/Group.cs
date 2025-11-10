@@ -10,6 +10,10 @@ public class Group
     public DateTime CreatedAt { get; set; }
     public int Order { get; set; } = 0;
     
+    
+    public bool IsPublished { get; set; } = false;
+    public int StarRating { get; set; } = 0;
+    
     public User? User { get; set; }
     public List<Card>? Cards { get; set; } = [];
 }
