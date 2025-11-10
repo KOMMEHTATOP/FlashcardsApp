@@ -5,18 +5,19 @@
 # ===========================================
 # SECRETS & ENVIRONMENT FILES (КРИТИЧНО!)
 # ===========================================
-# ВСЕГДА игнорируем файлы с секретами!
-.env
-.env.*
-!.env.example
-env.production
-*.env.production
-*.env.local
-
-# Персональные appsettings (НЕ стандартные Development/Production!)
+# Backend секреты (ASP.NET)
+env.production                    # Docker compose production env с секретами
 appsettings.Local.json
 appsettings.*.Local.json
 secrets.json
+
+# Frontend env файлы
+.env.local                        # Личные настройки разработчика
+.env.*.local                      # Локальные переопределения
+!.env                             # Разрешаем базовый .env
+!.env.production                  # Разрешаем .env.production (публичные URLs)
+!.env.development                 # Разрешаем .env.development
+!.env.example                     # Разрешаем примеры
 
 # ===========================================
 # ASP.NET CORE BUILD ARTIFACTS
