@@ -82,12 +82,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             setIsAuthenticated(true);
 
-            // Используем setTimeout чтобы дать React обновить state перед навигацией
-            setTimeout(() => {
-                navigate("/", { replace: true });
-            }, 0);
+            // УБРАЛИ setTimeout - навигация будет обработана через GuestRoute
+            // GuestRoute автоматически редиректит когда isAuthenticated становится true
         },
-        [navigate]
+        []
     );
 
     const register = useCallback(
@@ -103,14 +101,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             setIsAuthenticated(true);
 
-            setTimeout(() => {
-                navigate("/", { replace: true });
-            }, 0);
+            // УБРАЛИ setTimeout - навигация будет обработана через GuestRoute
         },
-        [navigate]
+        []
     );
-    
-    
+
+
     const logout = useCallback(async () => {
         try {
             await apiFetch.post("/Auth/logout");

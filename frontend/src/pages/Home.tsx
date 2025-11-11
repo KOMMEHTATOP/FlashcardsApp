@@ -10,11 +10,11 @@ import {
 } from "lucide-react";
 import LevelCard from "../components/cards/Level_card";
 import StateCard from "../components/cards/State_card";
-import { useData } from "../context/DataContext";
-import { motion, AnimatePresence } from "framer-motion";
+import {useData} from "../context/DataContext";
+import {motion, AnimatePresence} from "framer-motion";
 import MotivationCard from "../components/cards/Motivation_card";
-import { useMemo, useState } from "react";
-import { BadgeCard } from "../components/cards/Badge_card";
+import {useMemo, useState} from "react";
+import {BadgeCard} from "../components/cards/Badge_card";
 import SortableList from "../components/SortebleList";
 import useTitle from "../utils/useTitle";
 import formatTotalHour from "../utils/formatTotalHour";
@@ -30,7 +30,7 @@ const modulePage = [
 ];
 
 export function HomePage() {
-    const { user, achivment, groups, motivationText } = useData();
+    const {user, achivment, groups, motivationText} = useData();
     useTitle("Главная");
 
     const [modul] = useState<typeof modulePage>(modulePage);
@@ -111,7 +111,7 @@ export function HomePage() {
                         }`}
                         onClick={() => selectModul("Уроки")}
                     >
-                        <BookOpen className="h-5 w-5 text-base-content" />
+                        <BookOpen className="h-5 w-5 text-base-content"/>
                         Уроки
                     </button>
                     <button
@@ -121,14 +121,15 @@ export function HomePage() {
                         }`}
                         onClick={() => selectModul("Достижения")}
                     >
-                        <Medal className="h-5 w-5 text-base-content" />
+                        <Medal className="h-5 w-5 text-base-content"/>
                         Достижения
                     </button>
                 </div>
                 {isOpenSetting && (
                     <SettingModal
                         handleCancel={handleCloseSetting}
-                        handleSave={() => {}}
+                        handleSave={() => {
+                        }}
                     />
                 )}
                 <div className="space-y-6 mb-12 ">
@@ -136,10 +137,10 @@ export function HomePage() {
                         {currentModul === 0 ? (
                             <motion.div
                                 key="lessons"
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -20 }}
-                                transition={{ duration: 0.4 }}
+                                initial={{opacity: 0, y: 20}}
+                                animate={{opacity: 1, y: 0}}
+                                exit={{opacity: 0, y: -20}}
+                                transition={{duration: 0.4}}
                                 className="space-y-6"
                             >
                                 <div className="flex items-center justify-between">
@@ -151,28 +152,28 @@ export function HomePage() {
                     <span className="group-hover:opacity-90 opacity-0 duration-500 transition-opacity ">
                       Настройки
                     </span>
-                                        <Settings2Icon className="w-8 h-8 z-10" />
+                                        <Settings2Icon className="w-8 h-8 z-10"/>
                                     </div>
                                 </div>
 
-                                <SortableList initalItems={groups || []} />
+                                <SortableList initalItems={groups || []}/>
                             </motion.div>
                         ) : (
                             <motion.div
                                 key="badges"
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -20 }}
-                                transition={{ duration: 0.4 }}
+                                initial={{opacity: 0, y: 20}}
+                                animate={{opacity: 1, y: 0}}
+                                exit={{opacity: 0, y: -20}}
+                                transition={{duration: 0.4}}
                                 className="space-y-6"
                             >
                                 <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                     {achivment?.map((item, index) => (
                                         <motion.div
                                             key={item.Id}
-                                            initial={{ opacity: 0, y: 20 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ delay: index * 0.1 }}
+                                            initial={{opacity: 0, y: 20}}
+                                            animate={{opacity: 1, y: 0}}
+                                            transition={{delay: index * 0.1}}
                                         >
                                             <BadgeCard
                                                 title={item.Name}
