@@ -19,12 +19,8 @@ export class ApiService {
         achievements: AchievementsType[];
     }> {
         const token = this.getToken();
-        console.log('[getDashboard] token:', token);
-        console.trace('[getDashboard] вызван'); 
 
         if (!token) {
-            console.warn("[getDashboard] Нет токена, редирект на /login");
-
             window.location.href = "/login";
             throw new Error("Не авторизован");
         }

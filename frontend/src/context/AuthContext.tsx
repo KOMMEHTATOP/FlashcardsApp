@@ -6,7 +6,7 @@ import React, {
     useState,
 } from "react";
 import { useNavigate } from "react-router-dom";
-import apiFetch, { setUnauthorizedCallback } from "../utils/apiFetch";
+import apiFetch, { setUnauthorizedCallback, setAuthToken, removeAuthToken } from "../utils/apiFetch";
 
 interface AuthContextType {
     isAuthenticated: boolean;
@@ -23,7 +23,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const navigate = useNavigate();
 
-    // Проверка токена при монтировании
     useEffect(() => {
         const controller = new AbortController();
 
@@ -37,13 +36,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
 
             try {
-                // Делаем легкий запрос для проверки валидности токена
                 await apiFetch.get("/Auth/validate", { signal: controller.signal });
                 setIsAuthenticated(true);
             } catch (err: any) {
-                // Если ошибка не из-за отмены запроса
                 if (err.name !== 'AbortError' && err.name !== 'CanceledError') {
-                    localStorage.removeItem("accessToken");
+                    removeAuthToken();
                     setIsAuthenticated(false);
                 }
             } finally {
@@ -60,7 +57,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         };
     }, []);
 
-    // Устанавливаем callback для interceptor
     useEffect(() => {
         const handleUnauthorized = () => {
             setIsAuthenticated(false);
@@ -77,13 +73,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 password,
             });
 
-            const token = response.data.accessToken;
-            localStorage.setItem("accessToken", token);
-
+            const token = response.data.AccessToken;
+            setAuthToken(token);
             setIsAuthenticated(true);
-
-            // УБРАЛИ setTimeout - навигация будет обработана через GuestRoute
-            // GuestRoute автоматически редиректит когда isAuthenticated становится true
         },
         []
     );
@@ -96,16 +88,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 Password: password,
             });
 
-            const token = response.data.accessToken;
-            localStorage.setItem("accessToken", token);
-
+            const token = response.data.AccessToken;
+            setAuthToken(token);
             setIsAuthenticated(true);
-
-            // УБРАЛИ setTimeout - навигация будет обработана через GuestRoute
         },
         []
     );
-
 
     const logout = useCallback(async () => {
         try {
@@ -113,7 +101,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } catch (err) {
             console.error("Logout error:", err);
         } finally {
-            localStorage.removeItem("accessToken");
+            removeAuthToken();
             setIsAuthenticated(false);
             navigate("/about", { replace: true });
         }

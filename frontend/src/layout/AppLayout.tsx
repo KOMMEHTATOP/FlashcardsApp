@@ -57,8 +57,6 @@ function AppLayoutContent() {
 export default function AppLayout() {
     const { isAuthenticated, isLoading } = useAuth();
 
-    // КРИТИЧНО: Показываем loader пока проверяется авторизация
-    // Это предотвращает монтирование DataProvider до проверки токена
     if (isLoading) {
         return (
             <div className="w-full h-full min-h-screen flex justify-center items-center bg-base-300">
@@ -67,8 +65,6 @@ export default function AppLayout() {
         );
     }
 
-    // АРХИТЕКТУРНОЕ РЕШЕНИЕ: DataProvider монтируется ТОЛЬКО для авторизованных
-    // Это гарантирует, что запросы к API будут выполняться только с валидным токеном
     if (isAuthenticated) {
         return (
             <DataProvider>
@@ -77,8 +73,6 @@ export default function AppLayout() {
         );
     }
 
-    // Для неавторизованных (например, 404 страница) рендерим базовый layout без данных
-    // В вашем случае NotFoundPage не нуждается в DataProvider
     return (
         <div className="flex flex-col justify-center items-center min-h-screen bg-base-300">
             <main className="flex-1 w-full max-w-6xl pt-30 px-2 md:px-0">

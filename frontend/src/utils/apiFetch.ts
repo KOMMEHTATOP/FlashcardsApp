@@ -11,7 +11,6 @@ const apiFetch = axios.create({
 let isRefreshing = false;
 let failedQueue: any = [];
 
-// Callback для logout - будет установлен из AuthProvider
 let onUnauthorized: (() => void) | null = null;
 
 export const setUnauthorizedCallback = (callback: () => void) => {
@@ -24,6 +23,16 @@ const processQueue = (error: any, token = null) => {
         else prom.resolve(token);
     });
     failedQueue = [];
+};
+
+export const setAuthToken = (token: string) => {
+    localStorage.setItem("accessToken", token);
+    apiFetch.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+};
+
+export const removeAuthToken = () => {
+    localStorage.removeItem("accessToken");
+    delete apiFetch.defaults.headers.common["Authorization"];
 };
 
 apiFetch.interceptors.request.use((config) => {
@@ -60,17 +69,14 @@ apiFetch.interceptors.response.use(
                     { withCredentials: true }
                 );
 
-                const newToken = response?.data.accessToken;
-                localStorage.setItem("accessToken", newToken);
-
-                apiFetch.defaults.headers.common["Authorization"] = `Bearer ${newToken}`;
+                const newToken = response?.data.AccessToken;
+                setAuthToken(newToken);
 
                 processQueue(null, newToken);
                 return apiFetch(originalRequest);
             } catch (err) {
-                // Refresh token истек или невалиден - вызываем logout
                 processQueue(err);
-                localStorage.removeItem("accessToken");
+                removeAuthToken();
 
                 if (onUnauthorized) {
                     onUnauthorized();

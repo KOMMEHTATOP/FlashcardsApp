@@ -18,16 +18,11 @@ import type {
 import { service } from "../utils/apiService";
 
 interface DataContextType {
-    // User data
     user: UserData | undefined;
     setUser: React.Dispatch<React.SetStateAction<UserData | undefined>>;
-
-    // Settings & motivation
     setting: SettingType;
     setSetting: React.Dispatch<React.SetStateAction<SettingType>>;
     motivationText: MotivationType | undefined;
-
-    // Groups & lessons
     groups: GroupType[];
     setGroups: React.Dispatch<React.SetStateAction<GroupType[]>>;
     setNewGroups: (newGroup: GroupType) => void;
@@ -37,12 +32,8 @@ interface DataContextType {
     handleCompliteLesson: () => void;
     deleteGroup: (id: string) => Promise<void>;
     deleteCard: (id: string) => Promise<void>;
-
-    // Achievements
     achivment: AchievementsType[];
     questionAnswered: (CardId: string, Rating: number) => Promise<number>;
-
-    // UI state
     confrimModal: ConfrimModalState | undefined;
     handleOpenConfrimModal: (modal: ConfrimModalState) => void;
     handleCloseConfrimModal: () => void;
@@ -68,9 +59,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     const [loading, setLoading] = useState<boolean>(true);
     const [motivationText, setMotivationText] = useState<MotivationType>();
 
-    // Загрузка данных с правильным cleanup
     useEffect(() => {
         const controller = new AbortController();
+        let timeoutId: number;
 
         const loadData = async () => {
             try {
@@ -80,7 +71,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
                 const settings = await service.getSettings(controller.signal);
                 const motivation = await service.getMotivation(controller.signal);
 
-                // Устанавливаем данные только если запрос не отменен
                 if (!controller.signal.aborted) {
                     setUser(user);
                     setGroups(groups);
@@ -89,7 +79,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
                     setMotivationText(motivation);
                 }
             } catch (err: any) {
-                // Игнорируем ошибки отмены запроса
                 if (err.name === 'AbortError' || err.name === 'CanceledError') {
                     return;
                 }
@@ -101,10 +90,13 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             }
         };
 
-        loadData();
+        timeoutId = setTimeout(() => {
+            loadData();
+        }, 50);
 
         return () => {
-            controller.abort(); // Cleanup - отменяем все запросы
+            clearTimeout(timeoutId);
+            controller.abort();
         };
     }, []);
 
@@ -182,16 +174,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     };
 
     const value: DataContextType = {
-        // User data
         user,
         setUser,
-
-        // Settings & motivation
         setting,
         setSetting,
         motivationText,
-
-        // Groups & lessons
         groups,
         setGroups,
         setNewGroups,
@@ -201,12 +188,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         handleCompliteLesson,
         deleteGroup,
         deleteCard,
-
-        // Achievements
         achivment,
         questionAnswered,
-
-        // UI state
         confrimModal,
         handleOpenConfrimModal,
         handleCloseConfrimModal,
