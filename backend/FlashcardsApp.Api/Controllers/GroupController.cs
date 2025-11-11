@@ -71,8 +71,6 @@ namespace FlashcardsApp.Api.Controllers
             return OkOrNotFound(updateResult);
         }
         
-        
-
         /// <summary>
         /// Удалить группу
         /// </summary>

@@ -39,21 +39,14 @@ public static class DatabaseExtensions
             try
             {
                 var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                var connectionString = context.Database.GetConnectionString();
                 
-                Logger.Info("Проверка подключения к базе данных...");
-                Logger.Info($"Connection string: {connectionString}");
-                
-                // Проверка что БД доступна
+                // Проверка, что БД доступна
                 if (context.Database.CanConnect())
                 {
-                    Logger.Info("Применение миграций базы данных...");
                     context.Database.Migrate();
-                    Logger.Info("✓ Миграции успешно применены");
                 }
                 else
                 {
-                    Logger.Error("✗ Не удалось подключиться к базе данных");
                     throw new InvalidOperationException("Database connection failed");
                 }
             }

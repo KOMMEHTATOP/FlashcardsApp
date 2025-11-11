@@ -7,9 +7,6 @@ using NLog.Web;
 var logger = LogManager.Setup()
     .LoadConfigurationFromFile(Path.Combine(AppContext.BaseDirectory, "nlog.config.xml"))
     .GetCurrentClassLogger();
-
-logger.Debug("Инициализация приложения");
-
 try
 {
     var builder = WebApplication.CreateBuilder(args);
