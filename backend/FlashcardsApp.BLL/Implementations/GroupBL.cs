@@ -70,6 +70,7 @@ public class GroupBL : IGroupBL
             UserId = userId,
             GroupName = model.Name,
             GroupIcon = model.GroupIcon,
+            IsPublished = model.IsPublished,
             GroupColor = model.Color,
             CreatedAt = DateTime.UtcNow,
             Order = 0
@@ -100,6 +101,7 @@ public class GroupBL : IGroupBL
         _logger.LogInformation("Updating group {GroupId} for user {UserId}", groupId, userId);
 
         var group = await GetUserGroupAsync(groupId, userId);
+
         if (group == null)
         {
             return ServiceResult<ResultGroupDto>.Failure("Group not found or access denied");
@@ -124,10 +126,26 @@ public class GroupBL : IGroupBL
         group.GroupColor = model.Color;
         group.GroupIcon = model.GroupIcon;
 
+        bool publishedChanged = group.IsPublished != model.IsPublished;
+
+        if (publishedChanged)
+        {
+            group.IsPublished = model.IsPublished;
+
+            var cards = await _context.Cards
+                .Where(c => c.GroupId == groupId)
+                .ToListAsync();
+
+            foreach (var card in cards)
+            {
+                card.IsPublished = group.IsPublished;
+            }
+        }
+
         try
         {
             await _context.SaveChangesAsync();
-            _logger.LogInformation("Group {GroupId} successfully updated", groupId);
+
             return ServiceResult<ResultGroupDto>.Success(group.ToDto());
         }
         catch (Exception ex)
@@ -137,11 +155,43 @@ public class GroupBL : IGroupBL
         }
     }
 
+
+    public async Task<ServiceResult<ResultGroupDto>> UpdateAccessGroup(Guid groupId, Guid userId, bool isPublished)
+    {
+        var group = await GetUserGroupAsync(groupId, userId);
+        var groupIsPublished = group!.IsPublished;
+
+        if (groupIsPublished != isPublished)
+        {
+            group.IsPublished = isPublished;
+            var cards = await _context.Cards
+                .Where(c => c.GroupId == groupId)
+                .ToListAsync();
+
+            foreach (var card in cards)
+            {
+                card.IsPublished = isPublished;
+            }
+        }
+
+        try
+        {
+            await _context.SaveChangesAsync();
+            return ServiceResult<ResultGroupDto>.Success(group.ToDto());
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating group publishing {GroupId}", groupId);
+            return ServiceResult<ResultGroupDto>.Failure("Failed to update group publishing");
+        }
+    }
+
     public async Task<ServiceResult<bool>> DeleteGroupAsync(Guid groupId, Guid userId)
     {
         _logger.LogInformation("Deleting group {GroupId} for user {UserId}", groupId, userId);
 
         var group = await GetUserGroupAsync(groupId, userId);
+
         if (group == null)
         {
             return ServiceResult<bool>.Failure("Group not found or access denied");
@@ -172,7 +222,7 @@ public class GroupBL : IGroupBL
             var groups = await _context.Groups
                 .Where(g => groupIds.Contains(g.Id) && g.UserId == userId)
                 .ToDictionaryAsync(g => g.Id);
-            
+
             // Обновляем порядок
             foreach (var item in groupOrders)
             {

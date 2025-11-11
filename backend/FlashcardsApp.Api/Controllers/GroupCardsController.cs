@@ -46,4 +46,5 @@ namespace FlashcardsApp.Api.Controllers
             return CreatedOrNotFound(newCard, $"/api/cards/{newCard.Data?.CardId}");
         }
     }
+
 }

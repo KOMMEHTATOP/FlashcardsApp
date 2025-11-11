@@ -13,6 +13,7 @@ public static class CardMapper
             GroupId = model.GroupId,
             Question = model.Question,
             Answer = model.Answer,
+            IsPublished = model.IsPublished,
             CreatedAt = model.CreatedAt,
             UpdatedAt = model.UpdatedAt,
             LastRating = 0

@@ -50,7 +50,7 @@ public interface ICardBL
     /// <param name="dto">Новые данные карточки</param>
     /// <returns>Обновленная карточка или ошибка</returns>
     Task<ServiceResult<ResultCardDto>> UpdateCardAsync(Guid cardId, Guid userId, CreateCardDto dto);
-
+    
     /// <summary>
     /// Удаляет карточку
     /// </summary>

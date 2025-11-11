@@ -6,6 +6,7 @@ public class ResultGroupDto
     public required string GroupName  {get; set;}
     public required string GroupColor { get; set; }
     public required string GroupIcon {get; set;}
+    public bool IsPublished {get; set;}
     public DateTime CreatedAt { get; set; }
     public int Order { get; set; }
     public int CardCount { get; set; }

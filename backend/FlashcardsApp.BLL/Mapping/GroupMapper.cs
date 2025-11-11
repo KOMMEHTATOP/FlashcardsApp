@@ -13,6 +13,7 @@ public static class GroupMapper
             GroupName = model.GroupName,
             GroupColor = model.GroupColor,
             GroupIcon = model.GroupIcon,
+            IsPublished = model.IsPublished,
             CreatedAt = model.CreatedAt,
             Order = model.Order,
             CardCount = model.Cards?.Count ?? 0
