@@ -12,7 +12,7 @@ import FeatureCard from "../components/landing/FeatureCard";
 import StatCard from "../components/landing/StatCard";
 import BenefitItem from "../components/landing/BenefitItem";
 import Header from "../components/Header";
-import { Button } from "../components/ui/button";
+import { Button } from "../shared/ui/Button";
 import CardSwap from "../components/CardSwap";
 import { forwardRef, useEffect, useMemo, useState } from "react";
 import { questions } from "../test/testData";
@@ -88,10 +88,8 @@ export default function LandingPage() {
 
     return (
         <div className="min-h-screen bg-base-300">
-            {/* мета теги */}
             <LandingHelmet />
 
-            {/* Навигация */}
             <Header user={undefined} onLogout={logout} />
             <AnimatePresence>
                 {showScrollButton && (
@@ -118,7 +116,6 @@ export default function LandingPage() {
                 )}
             </AnimatePresence>
 
-            {/* Главный секция */}
             <section className="relative overflow-hidden pt-30 md:py-28 px-4 pb-4">
                 <div className="absolute inset-0 z-0">
                     <GridMotion
@@ -204,7 +201,6 @@ export default function LandingPage() {
                 </div>
             </section>
 
-            {/* Раздел функций */}
             <section id="features" className="py-24 px-4 bg-base-200">
                 <div className="max-w-6xl mx-auto">
                     <motion.div
@@ -224,7 +220,6 @@ export default function LandingPage() {
                 </div>
             </section>
 
-            {/* Раздел геймификации */}
             <section className="py-32 px-4 bg-base-300 overflow-hidden">
                 <div className="max-w-6xl mx-auto flex-row md:flex relative pb-16 md:pb-0">
                     <motion.div
@@ -279,7 +274,6 @@ export default function LandingPage() {
                 </div>
             </section>
 
-            {/* Раздел шагов */}
             <section className="py-24 px-4 bg-base-200">
                 <div className="max-w-6xl mx-auto">
                     <motion.div
@@ -325,7 +319,6 @@ export default function LandingPage() {
                 </div>
             </section>
 
-            {/* Раздел советов */}
             <section className="py-20 px-4 bg-base-300">
                 <div className="max-w-4xl mx-auto">
                     <motion.div
@@ -347,7 +340,6 @@ export default function LandingPage() {
                 </div>
             </section>
 
-            {/* Раздел присоединиться */}
             <section className="py-20 px-4 bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500">
                 <motion.div
                     initial={{ opacity: 0, y: 30 }}
