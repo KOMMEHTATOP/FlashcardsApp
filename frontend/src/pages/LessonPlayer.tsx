@@ -3,8 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Brain } from "lucide-react";
 
 import type { RatingValue } from "../types/types";
+import { RecallRating } from "../shared/ui/RecallRating";
 
-import StarRating from "../components/ui/ratting";
 import Celebration from "../components/lessons/Celebration";
 import StateLessens from "../components/lessons/StateLessens";
 import HeaderLessons from "../components/lessons/HeaderLessons";
@@ -212,7 +212,7 @@ export default function LessonPlayer({
                                 <p className="text-base-content/50 text-lg">
                                     Насколько верно вы ответили?
                                 </p>
-                                <StarRating
+                                <RecallRating
                                     disabled={answeredCards.has(currentCard.CardId)}
                                     value={rating[currentCard.CardId] || 0}
                                     onChange={(val: number) => handleAnswer(val as RatingValue)}
