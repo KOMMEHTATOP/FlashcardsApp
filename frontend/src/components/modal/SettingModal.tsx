@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { SettingsIcon, Star, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { ButtonCircle, Button } from "../ui/button";
+import { ButtonCircle, Button } from "../../shared/ui/Button";
 import Slider from "../ui/slider";
 import Switch from "../ui/switch";
 import { useData } from "../../context/DataContext";

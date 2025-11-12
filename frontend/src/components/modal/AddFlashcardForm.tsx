@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Button, ButtonCircle } from "../ui/button";
+import { Button, ButtonCircle } from "../../shared/ui/Button";
 import { CheckCircle, Plus, Sparkle, Sparkles, X } from "lucide-react";
 import Card from "../ui/card";
 

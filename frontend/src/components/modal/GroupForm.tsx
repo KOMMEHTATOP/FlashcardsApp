@@ -4,7 +4,7 @@ import { Check, PlusCircle, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import Input from "../ui/input";
 import { availableColors, availableIcons } from "../../test/data";
-import { Button, ButtonCircle } from "../ui/button";
+import { Button, ButtonCircle } from "../../shared/ui/Button";
 import apiFetch from "../../utils/apiFetch";
 import { useData } from "../../context/DataContext";
 import type { GroupType } from "../../types/types";

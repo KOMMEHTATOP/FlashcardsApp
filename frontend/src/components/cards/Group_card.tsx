@@ -7,7 +7,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import React from "react";
-import { Button, ButtonCard } from "../ui/button";
+import { Button, ButtonCard } from "../../shared/ui/Button";
 
 interface StudyCardProps {
   id: string;

@@ -1,6 +1,6 @@
 import { Edit, Star, Trash } from "lucide-react";
 import type { GroupCardType } from "../../types/types";
-import { ButtonCircle } from "../ui/button";
+import { ButtonCircle } from "../../shared/ui/Button";
 
 type CardProps = {
   item: GroupCardType;

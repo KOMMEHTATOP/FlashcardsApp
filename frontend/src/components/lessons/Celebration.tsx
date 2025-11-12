@@ -2,7 +2,7 @@ import { floatingIcons, recallRatingInfo } from "../../test/data";
 import { motion } from "framer-motion";
 import Card from "../ui/card";
 import { PartyPopperIcon, Trophy, Zap } from "lucide-react";
-import { Button } from "../ui/button";
+import { Button } from "../../shared/ui/Button";
 import getMotivationText from "../../utils/getMotivationText";
 
 interface CelebrationProps {

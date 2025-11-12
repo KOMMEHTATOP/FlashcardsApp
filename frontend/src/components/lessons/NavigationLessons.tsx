@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "../ui/button";
+import { Button } from "../../shared/ui/Button";
 import { motion } from "framer-motion";
 import type { GroupCardType, RatingValue } from "../../types/types";
 import { colorRatingCard } from "../../test/data";

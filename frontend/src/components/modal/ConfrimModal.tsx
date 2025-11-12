@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import Card from "../ui/card";
-import { Button } from "../ui/button";
+import { Button } from "../../shared/ui/Button";
 
 interface ConfrimModalProps {
   text: string;
