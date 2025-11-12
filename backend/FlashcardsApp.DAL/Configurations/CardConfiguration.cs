@@ -8,7 +8,6 @@ public class CardConfiguration : IEntityTypeConfiguration<Card>
 {
     public void Configure(EntityTypeBuilder<Card> builder)
     {
-        // Настройка свойств
         builder.Property(c => c.Question)
             .HasMaxLength(300)
             .IsRequired();
@@ -17,18 +16,11 @@ public class CardConfiguration : IEntityTypeConfiguration<Card>
             .HasMaxLength(2000)
             .IsRequired();
 
-        // Уникальный индекс
-        builder.HasIndex(c => new { c.UserId, c.Question })
+        builder.HasIndex(c => new { c.GroupId, c.Question })
             .IsUnique()
-            .HasDatabaseName("IX_Cards_User_Question");
+            .HasDatabaseName("IX_Cards_Group_Question");
 
-        // Связь с User
-        builder.HasOne(c => c.User)
-            .WithMany(u => u.Cards)
-            .HasForeignKey(c => c.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        // Связь с Group
+        // Оставляем только связь с Group
         builder.HasOne(c => c.Group)
             .WithMany(g => g.Cards)
             .HasForeignKey(c => c.GroupId)

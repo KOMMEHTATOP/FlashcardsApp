@@ -35,7 +35,7 @@ public class StudyBL : IStudyBL
     public async Task<ServiceResult<StudyRewardDto>> RecordStudySessionAsync(Guid userId, RecordStudyDto dto)
     {
         // Проверяем что карточка принадлежит пользователю
-        var cardExists = await _context.Cards.AnyAsync(c => c.CardId == dto.CardId && c.UserId == userId);
+        var cardExists = await _context.Cards.AnyAsync(c => c.CardId == dto.CardId);
         
         if (!cardExists)
         {

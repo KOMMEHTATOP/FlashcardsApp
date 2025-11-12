@@ -35,31 +35,63 @@ public class AuthBL : IAuthBL
 
     public async Task<ServiceResult<RegisterUserDto>> Register(RegisterModel model)
     {
-        var user = new User
+        try
         {
-            Login = model.Login, 
-            Role = model.Role,
-            UserName = model.Email, 
-            Email = model.Email
-        };
+            var existingLogin = await _context.Users
+                .FirstOrDefaultAsync(u => u.Login == model.Login);
 
-        var result = await _userManager.CreateAsync(user, model.Password);
+            if (existingLogin != null)
+            {
+                return ServiceResult<RegisterUserDto>.Failure("Логин уже занят");
+            }
 
-        if (!result.Succeeded)
-        {
-            var errors = result.Errors.Select(e => e.Description).ToArray();
-            _logger.LogWarning($"Returning errors: {string.Join(", ", errors)}");
+            var existingEmail = await _userManager.FindByEmailAsync(model.Email);
 
-            return ServiceResult<RegisterUserDto>.Failure(errors);
+            if (existingEmail != null)
+            {
+                return ServiceResult<RegisterUserDto>.Failure("Email уже зарегистрирован");
+            }
+
+            var user = new User
+            {
+                Login = model.Login, Role = model.Role ?? "User", UserName = model.Email, Email = model.Email
+            };
+
+            var result = await _userManager.CreateAsync(user, model.Password);
+
+            if (!result.Succeeded)
+            {
+                var errors = result.Errors.Select(e =>
+                {
+                    return e.Description switch
+                    {
+                        { } desc when desc.Contains("Password") =>
+                            "Пароль слишком простой. Используйте заглавные буквы, цифры и спецсимволы",
+                        { } desc when desc.Contains("Email") =>
+                            "Некорректный формат email",
+                        { } desc when desc.Contains("UserName") =>
+                            "Некорректное имя пользователя",
+                        _ => e.Description
+                    };
+                }).ToArray();
+
+                _logger.LogWarning("Ошибки регистрации: {Errors}", string.Join(", ", errors));
+                return ServiceResult<RegisterUserDto>.Failure(errors);
+            }
+
+            _logger.LogInformation("Пользователь {Email} с логином {Login} успешно зарегистрирован",
+                model.Email, model.Login);
+
+            return ServiceResult<RegisterUserDto>.Success(new RegisterUserDto
+            {
+                IsSuccess = true, Message = "Пользователь успешно зарегистрирован."
+            });
         }
-
-        _logger.LogInformation("User {Email} successfully registered", model.Email);
-
-        return ServiceResult<RegisterUserDto>.Success(new RegisterUserDto
+        catch (Exception ex)
         {
-            IsSuccess = true, 
-            Message = "Пользователь успешно зарегистрирован."
-        });
+            _logger.LogError(ex, "Ошибка при регистрации пользователя {Email}", model.Email);
+            return ServiceResult<RegisterUserDto>.Failure("Произошла ошибка при регистрации");
+        }
     }
 
     public async Task<ServiceResult<User>> Login(LoginModel model)
@@ -96,9 +128,9 @@ public class AuthBL : IAuthBL
             // Валидируем refresh token в БД
             var refreshToken = await _context.RefreshTokens
                 .Include(rt => rt.User)
-                .FirstOrDefaultAsync(rt => 
-                    rt.Token == refreshTokenValue && 
-                    rt.ExpiresAt > DateTime.UtcNow && 
+                .FirstOrDefaultAsync(rt =>
+                    rt.Token == refreshTokenValue &&
+                    rt.ExpiresAt > DateTime.UtcNow &&
                     !rt.IsRevoked);
 
             if (refreshToken == null)
@@ -139,8 +171,7 @@ public class AuthBL : IAuthBL
 
             return ServiceResult<RefreshTokenResult>.Success(new RefreshTokenResult
             {
-                AccessToken = accessToken, 
-                RefreshToken = newRefreshTokenString
+                AccessToken = accessToken, RefreshToken = newRefreshTokenString
             });
         }
         catch (Exception ex)
@@ -167,7 +198,7 @@ public class AuthBL : IAuthBL
                     refreshToken.IsRevoked = true;
                     refreshToken.RevokedAt = DateTime.UtcNow;
                     await _context.SaveChangesAsync();
-                    
+
                     _logger.LogInformation("Refresh token revoked for user {UserId}", refreshToken.UserId);
                 }
                 else
@@ -192,9 +223,9 @@ public class AuthBL : IAuthBL
     {
         return await _context.RefreshTokens
             .Include(rt => rt.User)
-            .FirstOrDefaultAsync(rt => 
-                rt.Token == token && 
-                rt.ExpiresAt > DateTime.UtcNow && 
+            .FirstOrDefaultAsync(rt =>
+                rt.Token == token &&
+                rt.ExpiresAt > DateTime.UtcNow &&
                 !rt.IsRevoked);
     }
 
@@ -211,7 +242,7 @@ public class AuthBL : IAuthBL
         {
             _context.RefreshTokens.RemoveRange(expiredTokens);
             await _context.SaveChangesAsync();
-            
+
             _logger.LogInformation("Cleaned up {Count} expired refresh tokens", expiredTokens.Count);
         }
     }

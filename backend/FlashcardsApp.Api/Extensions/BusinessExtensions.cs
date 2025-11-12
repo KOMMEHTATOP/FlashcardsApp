@@ -38,6 +38,10 @@ public static class BusinessExtensions
         
         //Создание групп и карточек
         services.AddScoped<IImportBL, ImportBL>();
+        
+        //Подписки на общие группы
+        services.AddScoped<ISubscriptionBL, SubscriptionBL>();
+
         return services;
     }
 }

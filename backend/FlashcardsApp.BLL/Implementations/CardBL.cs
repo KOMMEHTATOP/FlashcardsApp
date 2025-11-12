@@ -28,9 +28,11 @@ public class CardBL : ICardBL
 
     public async Task<ServiceResult<IEnumerable<ResultCardDto>>> GetAllCardsAsync(Guid userId, int? targetRating)
     {
-        var query = _context.Cards
-            .AsNoTracking()
-            .Where(card => card.UserId == userId);
+        // Получаем карточки через группы пользователя
+        var query = _context.Groups
+            .Where(g => g.UserId == userId)
+            .SelectMany(g => g.Cards)
+            .AsNoTracking();
 
         if (targetRating.HasValue)
         {
@@ -63,22 +65,20 @@ public class CardBL : ICardBL
 
     public async Task<ServiceResult<IEnumerable<ResultCardDto>>> GetCardsByGroupAsync(Guid groupId, Guid userId)
     {
+        // Проверяем что группа принадлежит пользователю
+        var groupExists = await _context.Groups
+            .AnyAsync(g => g.Id == groupId && g.UserId == userId);
+
+        if (!groupExists)
+        {
+            return ServiceResult<IEnumerable<ResultCardDto>>.Failure("Group not found or access denied");
+        }
+
         var cards = await _context.Cards
             .AsNoTracking()
-            .Where(c => c.GroupId == groupId && c.UserId == userId)
+            .Where(c => c.GroupId == groupId)
             .OrderBy(c => c.CreatedAt)
             .ToListAsync();
-
-        if (!cards.Any())
-        {
-            var groupExists = await _context.Groups
-                .AnyAsync(g => g.Id == groupId && g.UserId == userId);
-
-            if (!groupExists)
-            {
-                return ServiceResult<IEnumerable<ResultCardDto>>.Failure("Group not found or access denied");
-            }
-        }
 
         // Получаем последние оценки для карточек из StudyHistory
         var cardIds = cards.Select(c => c.CardId).ToList();
@@ -87,7 +87,8 @@ public class CardBL : ICardBL
             .GroupBy(sh => sh.CardId)
             .Select(g => new
             {
-                CardId = g.Key, LastRating = g.OrderByDescending(sh => sh.StudiedAt).First().Rating
+                CardId = g.Key, 
+                LastRating = g.OrderByDescending(sh => sh.StudiedAt).First().Rating
             })
             .ToDictionaryAsync(x => x.CardId, x => x.LastRating);
 
@@ -97,7 +98,6 @@ public class CardBL : ICardBL
             GroupId = c.GroupId,
             Question = c.Question,
             Answer = c.Answer,
-            IsPublished = c.IsPublished,
             CreatedAt = c.CreatedAt,
             UpdatedAt = c.UpdatedAt,
             LastRating = lastRatings.GetValueOrDefault(c.CardId, 0)
@@ -108,9 +108,11 @@ public class CardBL : ICardBL
 
     public async Task<ServiceResult<ResultCardDto>> GetCardAsync(Guid cardId, Guid userId)
     {
+        // Проверяем доступ через группу
         var card = await _context.Cards
+            .Include(c => c.Group)
             .AsNoTracking()
-            .FirstOrDefaultAsync(c => c.CardId == cardId && c.UserId == userId);
+            .FirstOrDefaultAsync(c => c.CardId == cardId && c.Group.UserId == userId);
 
         if (card == null)
         {
@@ -122,35 +124,35 @@ public class CardBL : ICardBL
 
     public async Task<ServiceResult<ResultCardDto>> CreateCardAsync(Guid userId, Guid groupId, CreateCardDto dto)
     {
-        // Проверяем существование карточки с таким вопросом у пользователя
+        // Проверяем что группа принадлежит пользователю
+        var group = await _context.Groups
+            .FirstOrDefaultAsync(g => g.Id == groupId && g.UserId == userId);
+
+        if (group == null)
+        {
+            return ServiceResult<ResultCardDto>.Failure("Group not found or access denied");
+        }
+
+        // Проверяем существование карточки с таким вопросом в группе
         var cardExists = await _context.Cards
             .AsNoTracking()
-            .AnyAsync(c => c.UserId == userId && c.Question == dto.Question);
+            .AnyAsync(c => c.GroupId == groupId && c.Question == dto.Question);
 
         if (cardExists)
         {
             _logger.LogWarning(
-                "User {UserId} attempted to create duplicate card with question: {Question}", userId, dto.Question);
+                "User {UserId} attempted to create duplicate card with question: {Question} in group {GroupId}", 
+                userId, dto.Question, groupId);
 
-            return ServiceResult<ResultCardDto>.Failure("You already have a card with this question");
+            return ServiceResult<ResultCardDto>.Failure("This group already has a card with this question");
         }
 
-        //Беру значение открытости из группы
-        var groupIsPublic = await _context.Groups
-            .AsNoTracking()
-            .Where(g => g.Id == groupId)
-            .Select(g => g.IsPublished)
-            .FirstAsync();
-
-        // Создаем карточку
         var card = new Card
         {
             CardId = Guid.NewGuid(),
-            UserId = userId,
             GroupId = groupId,
             Question = dto.Question,
             Answer = dto.Answer,
-            IsPublished = groupIsPublic,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -162,16 +164,18 @@ public class CardBL : ICardBL
             await _context.SaveChangesAsync();
 
             _logger.LogInformation(
-                "Card {CardId} created successfully for user {UserId}", card.CardId, userId);
+                "Card {CardId} created successfully for user {UserId} in group {GroupId}", 
+                card.CardId, userId, groupId);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex,
-                "Error saving card for user {UserId}", userId);
+                "Error saving card for user {UserId} in group {GroupId}", userId, groupId);
 
             return ServiceResult<ResultCardDto>.Failure("Failed to create card");
         }
 
+        // Обновляем статистику пользователя
         var userStats = await _context.UserStatistics
             .FirstOrDefaultAsync(s => s.UserId == userId);
 
@@ -196,8 +200,10 @@ public class CardBL : ICardBL
 
     public async Task<ServiceResult<ResultCardDto>> UpdateCardAsync(Guid cardId, Guid userId, CreateCardDto dto)
     {
+        // Проверяем доступ через группу
         var card = await _context.Cards
-            .FirstOrDefaultAsync(c => c.CardId == cardId && c.UserId == userId);
+            .Include(c => c.Group)
+            .FirstOrDefaultAsync(c => c.CardId == cardId && c.Group.UserId == userId);
 
         if (card == null)
         {
@@ -210,25 +216,22 @@ public class CardBL : ICardBL
             var questionExists = await _context.Cards
                 .AsNoTracking()
                 .AnyAsync(c =>
-                    c.UserId == userId &&
+                    c.GroupId == card.GroupId &&
                     c.Question == dto.Question &&
                     c.CardId != cardId);
 
             if (questionExists)
             {
                 _logger.LogWarning(
-                    "User {UserId} attempted to update card {CardId} with duplicate question: {Question}",
-                    userId,
-                    cardId,
-                    dto.Question);
-                return ServiceResult<ResultCardDto>.Failure("You already have a card with this question");
+                    "User {UserId} attempted to update card {CardId} with duplicate question: {Question} in group {GroupId}",
+                    userId, cardId, dto.Question, card.GroupId);
+                return ServiceResult<ResultCardDto>.Failure("This group already has a card with this question");
             }
         }
 
         card.Question = dto.Question;
         card.Answer = dto.Answer;
         card.UpdatedAt = DateTime.UtcNow;
-        card.IsPublished = dto.IsPublished;
 
         try
         {
@@ -236,26 +239,25 @@ public class CardBL : ICardBL
 
             _logger.LogInformation(
                 "Card {CardId} updated successfully for user {UserId}",
-                cardId,
-                userId);
+                cardId, userId);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex,
                 "Error updating card {CardId} for user {UserId}",
-                cardId,
-                userId);
+                cardId, userId);
             return ServiceResult<ResultCardDto>.Failure("Failed to update card");
         }
 
         return ServiceResult<ResultCardDto>.Success(card.ToDto());
     }
 
-    
     public async Task<ServiceResult<bool>> DeleteCardAsync(Guid cardId, Guid userId)
     {
+        // Проверяем доступ через группу
         var card = await _context.Cards
-            .FirstOrDefaultAsync(c => c.CardId == cardId && c.UserId == userId);
+            .Include(c => c.Group)
+            .FirstOrDefaultAsync(c => c.CardId == cardId && c.Group.UserId == userId);
 
         if (card == null)
         {
@@ -270,15 +272,13 @@ public class CardBL : ICardBL
 
             _logger.LogInformation(
                 "Card {CardId} deleted successfully for user {UserId}",
-                cardId,
-                userId);
+                cardId, userId);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex,
                 "Error deleting card {CardId} for user {UserId}",
-                cardId,
-                userId);
+                cardId, userId);
             return ServiceResult<bool>.Failure("Failed to delete card");
         }
 

@@ -131,15 +131,6 @@ public class GroupBL : IGroupBL
         if (publishedChanged)
         {
             group.IsPublished = model.IsPublished;
-
-            var cards = await _context.Cards
-                .Where(c => c.GroupId == groupId)
-                .ToListAsync();
-
-            foreach (var card in cards)
-            {
-                card.IsPublished = group.IsPublished;
-            }
         }
 
         try
@@ -164,14 +155,6 @@ public class GroupBL : IGroupBL
         if (groupIsPublished != isPublished)
         {
             group.IsPublished = isPublished;
-            var cards = await _context.Cards
-                .Where(c => c.GroupId == groupId)
-                .ToListAsync();
-
-            foreach (var card in cards)
-            {
-                card.IsPublished = isPublished;
-            }
         }
 
         try

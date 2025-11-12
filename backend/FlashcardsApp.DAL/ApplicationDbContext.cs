@@ -19,7 +19,10 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
     public DbSet<UserAchievement> UserAchievements { get; set; }
     public DbSet<UserStatistics> UserStatistics { get; set; }
     public DbSet<StudyHistory> StudyHistory { get; set; }
+    
+    public DbSet<UserGroupSubscription> UserGroupSubscriptions { get; set; }
 
+    
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

@@ -36,7 +36,7 @@ public class StudySessionBL : IStudySessionBL
 
         // Получаем карточки группы
         var cards = await _context.Cards
-            .Where(c => c.UserId == userId && c.GroupId == groupId)
+            .Where(c => c.GroupId == groupId)
             .ToListAsync();
 
         // Получаем последние оценки для всех карточек из StudyHistory

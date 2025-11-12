@@ -248,11 +248,9 @@ private static async Task SeedAchievementsFromJsonAsync(ApplicationDbContext con
                 var cardEntities = cards.Select((card, index) => new Card
                 {
                     CardId = Guid.NewGuid(),
-                    UserId = userId,
                     GroupId = group.Id,
                     Question = card.Question,
                     Answer = card.Answer,
-                    IsPublished = true,
                     CreatedAt = DateTime.UtcNow.AddDays(-(index + 1)),
                     UpdatedAt = DateTime.UtcNow.AddDays(-(index + 1))
                 }).ToList();

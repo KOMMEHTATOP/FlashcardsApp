@@ -6,6 +6,7 @@ namespace FlashcardsApp.DAL.Configurations;
 
 public class GroupConfiguration : IEntityTypeConfiguration<Group>
 {
+
     public void Configure(EntityTypeBuilder<Group> builder)
     {
         builder.Property(g => g.GroupName)
@@ -15,11 +16,20 @@ public class GroupConfiguration : IEntityTypeConfiguration<Group>
         builder.Property(g => g.GroupColor)
             .HasMaxLength(100);
 
-        builder.HasIndex(g => new { g.UserId, g.GroupName })
+        // ДЕНОРМАЛИЗАЦИЯ - счетчик подписчиков
+        builder.Property(g => g.SubscriberCount)
+            .IsRequired()
+            .HasDefaultValue(0)
+            .HasAnnotation("CheckConstraint", "SubscriberCount >= 0");
+
+        builder.HasIndex(g => new
+            {
+                g.UserId, g.GroupName
+            })
             .IsUnique()
             .HasDatabaseName("IX_Groups_User_Name");
 
-        // Связь с User
+        // Связь с User (Identity)
         builder.HasOne(g => g.User)
             .WithMany(u => u.Groups)
             .HasForeignKey(g => g.UserId)
@@ -27,7 +37,13 @@ public class GroupConfiguration : IEntityTypeConfiguration<Group>
 
         builder.HasMany(g => g.Cards)
             .WithOne(c => c.Group)
-            .HasForeignKey(c => c.GroupId)   
+            .HasForeignKey(c => c.GroupId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Связь с подписками
+        builder.HasMany(g => g.Subscriptions)
+            .WithOne(ugs => ugs.Group)
+            .HasForeignKey(ugs => ugs.GroupId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }
