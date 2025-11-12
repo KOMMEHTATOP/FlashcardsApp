@@ -12,8 +12,8 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import Input from "../components/ui/input";
-import { Button } from "../shared/ui/Button"; 
-import Card from "../components/ui/card";
+import { Button } from "../shared/ui/Button";
+import { Card } from "../shared/ui/Card";
 
 import useTitle from "../utils/useTitle";
 import { floatingIcons, TITLE_APP } from "../test/data";

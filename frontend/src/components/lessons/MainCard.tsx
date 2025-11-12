@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import Card from "../ui/card";
+import { Card } from "../../shared/ui/Card";
 import { RotateCcwIcon, Sparkles } from "lucide-react";
 import type { GroupCardType } from "../../types/types";
 

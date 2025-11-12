@@ -1,6 +1,6 @@
 import { floatingIcons, recallRatingInfo } from "../../test/data";
 import { motion } from "framer-motion";
-import Card from "../ui/card";
+import { Card } from "../../shared/ui/Card";
 import { PartyPopperIcon, Trophy, Zap } from "lucide-react";
 import { Button } from "../../shared/ui/Button";
 import getMotivationText from "../../utils/getMotivationText";

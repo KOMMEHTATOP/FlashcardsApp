@@ -23,7 +23,7 @@ import type {
 import { BookHeartIcon, Plus } from "lucide-react";
 import GroupForm from "./modal/GroupForm";
 import apiFetch from "../utils/apiFetch";
-import Card from "./ui/card";
+import { Card } from "../shared/ui/Card";
 import shuffleArray from "../utils/shuffleArray";
 import { availableIcons } from "../test/data";
 import GroupCard from "./cards/Group_card";
