@@ -80,9 +80,6 @@ namespace FlashcardsApp.DAL.Migrations
                     b.Property<Guid>("GroupId")
                         .HasColumnType("uuid");
 
-                    b.Property<bool>("IsPublished")
-                        .HasColumnType("boolean");
-
                     b.Property<string>("Question")
                         .IsRequired()
                         .HasMaxLength(300)
@@ -91,16 +88,11 @@ namespace FlashcardsApp.DAL.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
                     b.HasKey("CardId");
 
-                    b.HasIndex("GroupId");
-
-                    b.HasIndex("UserId", "Question")
+                    b.HasIndex("GroupId", "Question")
                         .IsUnique()
-                        .HasDatabaseName("IX_Cards_User_Question");
+                        .HasDatabaseName("IX_Cards_Group_Question");
 
                     b.ToTable("Cards");
                 });
@@ -575,15 +567,7 @@ namespace FlashcardsApp.DAL.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("FlashcardsApp.DAL.Models.User", "User")
-                        .WithMany("Cards")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Group");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("FlashcardsApp.DAL.Models.Group", b =>
@@ -752,8 +736,6 @@ namespace FlashcardsApp.DAL.Migrations
 
             modelBuilder.Entity("FlashcardsApp.DAL.Models.User", b =>
                 {
-                    b.Navigation("Cards");
-
                     b.Navigation("Groups");
 
                     b.Navigation("Statistics");
