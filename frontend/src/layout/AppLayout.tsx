@@ -1,5 +1,5 @@
 import { Outlet, useNavigate } from "react-router-dom";
-import Header from "../components/Header";
+import {Header} from "../shared/ui/widgets/Header";
 import ThemeSwithcer from "../components/ThemeSwitcher";
 import { DataProvider, useData } from "../context/DataContext";
 import { useAuth } from "../context/AuthContext";

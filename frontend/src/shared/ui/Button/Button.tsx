@@ -43,7 +43,7 @@ export function Button({
         outline: "btn-outline border-base-100/30 hover:bg-base-100/10",
         link: "btn-link text-primary hover:underline",
         error: "btn-error text-white",
-        confirm: "rounded-xl py-6 border-0 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg text-lg",
+        confirm: "w-full rounded-xl py-6 border-0 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg text-lg",
     };
 
     const sizes: Record<string, string> = {

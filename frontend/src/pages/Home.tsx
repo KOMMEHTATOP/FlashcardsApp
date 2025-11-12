@@ -14,7 +14,7 @@ import {useData} from "../context/DataContext";
 import {motion, AnimatePresence} from "framer-motion";
 import MotivationCard from "../components/cards/Motivation_card";
 import {useMemo, useState} from "react";
-import {BadgeCard} from "../components/cards/Badge_card";
+import {BadgeCard} from "../shared/ui/BadgeCard";
 import SortableList from "../components/SortebleList";
 import useTitle from "../utils/useTitle";
 import formatTotalHour from "../utils/formatTotalHour";

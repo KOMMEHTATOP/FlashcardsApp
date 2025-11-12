@@ -11,7 +11,7 @@ import { LandingContentService } from "./landing/landingContent";
 import FeatureCard from "../components/landing/FeatureCard";
 import StatCard from "../components/landing/StatCard";
 import BenefitItem from "../components/landing/BenefitItem";
-import Header from "../components/Header";
+import {Header} from "../shared/ui/widgets/Header";
 import { Button } from "../shared/ui/Button";
 import CardSwap from "../components/CardSwap";
 import { forwardRef, useEffect, useMemo, useState } from "react";

@@ -7,7 +7,7 @@ import { RecallRating } from "../shared/ui/RecallRating";
 
 import Celebration from "../components/lessons/Celebration";
 import StateLessens from "../components/lessons/StateLessens";
-import HeaderLessons from "../components/lessons/HeaderLessons";
+import {HeaderLessons} from "../shared/ui/widgets/HeaderLessons";
 import NavigationLessons from "../components/lessons/NavigationLessons";
 import MainCardLessens from "../components/lessons/MainCard";
 import { useData } from "../context/DataContext";

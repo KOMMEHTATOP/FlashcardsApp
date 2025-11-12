@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import MotivationCard from "../components/cards/Motivation_card";
-import CardQuestion from "../components/cards/Card_question";
+import { CardQuestion } from "../shared/ui/CardQuestion";
 import { useData } from "../context/DataContext";
 import useTitle from "../utils/useTitle";
 import apiFetch from "../utils/apiFetch";
@@ -90,7 +90,6 @@ export default function StudyPage({}) {
             const data = { question, answer };
 
             if (targetCard) {
-                // Обновление существующей карточки
                 await apiFetch.put(`/Cards/${targetCard.CardId}`, data);
 
                 setDataDetail((prev) =>
@@ -104,7 +103,6 @@ export default function StudyPage({}) {
                 setIsOpenAddModal(false);
                 return true;
             } else {
-                // добавление новой карточки
                 const res = await apiFetch.post(`/groups/${id}/cards`, data);
 
                 setDataDetail((prev) => [res.data, ...prev]);
@@ -173,7 +171,7 @@ export default function StudyPage({}) {
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
-                className={`relative bg-gradient-to-br ${group?.GroupColor} px-4 sm:px-6 lg:px-8 py-12 overflow-hidden rounded-2xl shadow-xl flex `}
+                className={`relative bg-gradient-to-br ${group?.GroupColor || 'from-blue-500 to-blue-700'} px-4 sm:px-6 lg:px-8 py-12 overflow-hidden rounded-2xl shadow-xl flex flex-col items-center`}
             >
                 <div
                     className="absolute inset-0 bg-white/10"
@@ -184,18 +182,18 @@ export default function StudyPage({}) {
                     }}
                 />
                 <div className="max-w-7xl mx-auto relative z-10 w-full">
-                    <div className="flex flex-col sm:flex-row items-center md:items-start sm:items-center gap-6 mb-8">
+                    <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-6 mb-8 w-full">
                         <motion.div
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
                             transition={{ type: "spring", stiffness: 200 }}
-                            className="bg-white/20 backdrop-blur-sm p-6 rounded-3xl"
+                            className="bg-white/20 backdrop-blur-sm p-6 rounded-3xl flex-shrink-0"
                         >
-                            <Icon className="w-25 h-25 md:w-18 md:h-18 text-white" />
+                            <Icon className="w-20 h-20 md:w-16 md:h-16 text-white" />
                         </motion.div>
 
-                        <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
+                        <div className="flex-1 text-center sm:text-left">
+                            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 mb-2 w-full">
                                 <h1 className="text-4xl text-white">{group?.GroupName}</h1>
                                 {Number(group?.CardCount) > 0 && (
                                     <motion.div
@@ -205,12 +203,12 @@ export default function StudyPage({}) {
                                             repeat: Infinity,
                                             repeatDelay: 2,
                                         }}
-                                        className="bg-orange-500 text-white px-3 py-2 rounded-full flex items-center gap-1 text-subtitle line-clamp-1 truncate"
+                                        className="bg-orange-500 text-white px-3 py-2 rounded-full flex items-center gap-1 text-sm md:text-base line-clamp-1 truncate"
                                     >
-                                        <GalleryVerticalEndIcon className="w-4 md:w-5 text-yellow" />
-                                        <span className="text-xs md:text-md">
-                      {group?.CardCount} карточек
-                    </span>
+                                        <GalleryVerticalEndIcon className="w-4 md:w-5 text-yellow-300" />
+                                        <span className="font-mono">
+                                            {group?.CardCount} карточек
+                                        </span>
                                     </motion.div>
                                 )}
                             </div>
@@ -218,12 +216,12 @@ export default function StudyPage({}) {
                                 Овладейте основами и раскройте свой потенциал
                             </p>
 
-                            <div className="space-y-2">
+                            <div className="space-y-2 w-full">
                                 <div className="flex justify-between text-white/80 text-sm">
-                                    <span className="text-subtitle">Общий прогресс</span>
-                                    <span className="text-number">
-                    {proggresGroup ? Number(proggresGroup).toFixed(0) : 0}%
-                  </span>
+                                    <span className="text-base-content/80">Общий прогресс</span>
+                                    <span className="font-mono">
+                                        {proggresGroup ? Number(proggresGroup).toFixed(0) : 0}%
+                                    </span>
                                 </div>
                                 <div className="relative z-10 w-full h-4 bg-white/10 rounded-full">
                                     <motion.div
@@ -236,24 +234,6 @@ export default function StudyPage({}) {
                             </div>
                         </div>
                     </div>
-                    {/* <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {dataDetail.map((stat, index) => (
-              <motion.div
-                key={stat.Question}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 text-center"
-              >
-                <div className="text-2xl text-white mb-1 text-number">
-                  {stat.UpdatedAt}
-                </div>
-                <div className="text-white/80 text-sm text-subtitle">
-                  {stat.Question}
-                </div>
-              </motion.div>
-            ))}
-          </div> */}
                 </div>
             </motion.div>
 
@@ -276,18 +256,6 @@ export default function StudyPage({}) {
                 w-full md:w-auto
               "
                     >
-                        {/* Фильтр по звездам карт */}
-                        {/* <div className="col-span-2 sm:col-span-3 md:col-auto flex justify-center md:justify-start">
-              <StarInput
-                name="Фильтр"
-                max={5}
-                size={24}
-                value={targetStar}
-                onChange={setTargetStar}
-              />
-            </div> */}
-
-                        {/* Кнопка добавления */}
                         <div className="flex justify-center md:justify-start">
                             <AddFlashcardForm
                                 handleAddCard={handleAddCard}
@@ -305,7 +273,6 @@ export default function StudyPage({}) {
                             />
                         </div>
 
-                        {/* Прогресс и трофей */}
                         <div className="flex items-center justify-center md:justify-start gap-2">
                             <Trophy className="w-5 h-5" />
                             <span>
