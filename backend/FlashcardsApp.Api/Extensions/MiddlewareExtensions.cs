@@ -22,8 +22,8 @@ public static class MiddlewareExtensions
             .GetRequiredService<IOptions<RequestLocalizationOptions>>();
         app.UseRequestLocalization(localizationOptions.Value);
 
-        // HTTPS только не в Production
-        if (!environment.IsProduction())
+        // HTTPS только в Production
+        if (environment.IsProduction())
         {
             app.UseHttpsRedirection();
         }

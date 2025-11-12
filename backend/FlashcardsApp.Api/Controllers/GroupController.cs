@@ -104,5 +104,18 @@ namespace FlashcardsApp.Api.Controllers
 
             return OkOrBadRequest(result);
         }
+
+        /// <summary>
+        /// Изменить видимость группы
+        /// </summary>
+        /// <param name="dto">Модель с параметрами</param>
+
+        [HttpPost("change-access-group")]
+        public async Task<IActionResult> ChangeAccessGroup([FromBody]ChangeAccessGroupDto dto)
+        {
+            var result = await _groupBl.ChangeAccessGroupAsync(dto.GroupId, dto.UserId, dto.IsPublished);
+            return  OkOrBadRequest(result);
+        }
+        
     }
 }

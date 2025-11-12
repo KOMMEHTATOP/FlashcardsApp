@@ -8,11 +8,11 @@ public class Group
     public required string GroupColor { get; set; } = "";
     public required string GroupIcon {get; set;} = "";
     public DateTime CreatedAt { get; set; }
-    public int Order { get; set; } = 0;
+    public int Order { get; set; }
     
     
-    public bool IsPublished { get; set; } = false;
-    public int StarRating { get; set; } = 0;
+    public bool IsPublished { get; set; }
+    public int StarRating { get; set; }
     
     public User? User { get; set; }
     public List<Card>? Cards { get; set; } = [];

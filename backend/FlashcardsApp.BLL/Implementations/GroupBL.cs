@@ -246,6 +246,35 @@ public class GroupBL : IGroupBL
             return ServiceResult<bool>.Failure("Failed to update groups order");
         }
     }
+    
+    public async Task<ServiceResult<bool>> ChangeAccessGroupAsync(Guid groupId, Guid userId, bool isPublish)
+    {
+        var group = await GetUserGroupAsync(groupId, userId);
+
+        if (group == null)
+        {
+            return ServiceResult<bool>.Failure("Group not found");
+        }
+
+        var checkCountCardsInGroup = _context.Cards
+            .Count(c => c.GroupId == groupId);
+
+        if (checkCountCardsInGroup < 2)
+        {
+            return ServiceResult<bool>.Failure("There must be at least 10 cards in the group.");
+        }
+
+        try
+        {
+            group.IsPublished = isPublish;
+            await _context.SaveChangesAsync();
+            return ServiceResult<bool>.Success(true);
+        }
+        catch (Exception ex)
+        {
+            return ServiceResult<bool>.Failure($"Ошибка при изменении доступа: {ex.Message}");
+        }
+    }
 
     private async Task<Group?> GetUserGroupAsync(Guid groupId, Guid userId)
     {

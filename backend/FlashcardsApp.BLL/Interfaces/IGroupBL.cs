@@ -56,4 +56,12 @@ public interface IGroupBL
     /// <param name="userId">ID пользователя</param>
     /// <returns>Результат операции</returns>
     Task<ServiceResult<bool>> UpdateGroupsOrderAsync(List<ReorderGroupDto> groupOrders, Guid userId);
+    
+    /// <summary>
+    /// Открыть, закрыть общий доступ к группе
+    /// </summary>
+    /// <param name="groupId">ID группы</param>
+    /// <param name="isPublish">доступ к группе</param>
+    /// <returns>Результат операции</returns>
+    Task<ServiceResult<bool>> ChangeAccessGroupAsync(Guid groupId, Guid userId, bool isPublish);
 }
