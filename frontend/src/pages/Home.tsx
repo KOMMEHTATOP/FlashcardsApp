@@ -7,7 +7,9 @@ import {
     Medal,
     BookCopyIcon,
     Settings2Icon,
+    Store
 } from "lucide-react";
+
 import LevelCard from "../components/cards/Level_card";
 import StateCard from "../components/cards/State_card";
 import {useData} from "../context/DataContext";
@@ -25,8 +27,11 @@ const modulePage = [
         name: "Уроки",
     },
     {
-        name: "Достижения",
+        name: "Магазин",
     },
+    {
+        name: "Достижения",
+    }
 ];
 
 export function HomePage() {
@@ -119,6 +124,16 @@ export function HomePage() {
                         className={`tab gap-2 transition-all duration-300 ${
                             currentModul === 1 ? "tab-active bg-base-100" : "opacity-50"
                         }`}
+                        onClick={() => selectModul("Магазин")}
+                    >
+                        <Store className="h-5 w-5 text-base-content"/>
+                        Магазин
+                    </button>
+                    <button
+                        role="tab"
+                        className={`tab gap-2 transition-all duration-300 ${
+                            currentModul === 2 ? "tab-active bg-base-100" : "opacity-50"
+                        }`}
                         onClick={() => selectModul("Достижения")}
                     >
                         <Medal className="h-5 w-5 text-base-content"/>
@@ -149,14 +164,30 @@ export function HomePage() {
                                         onClick={handleOpenSetting}
                                         className="flex items-center gap-2 hover:scale-105 duration-300 transition-all cursor-pointer group opacity-70 hover:opacity-100"
                                     >
-                    <span className="group-hover:opacity-90 opacity-0 duration-500 transition-opacity ">
-                      Настройки
-                    </span>
+                                        <span className="group-hover:opacity-90 opacity-0 duration-500 transition-opacity">
+                                            Настройки
+                                        </span>
                                         <Settings2Icon className="w-8 h-8 z-10"/>
                                     </div>
                                 </div>
-
                                 <SortableList initalItems={groups || []}/>
+                            </motion.div>
+                        ) : currentModul === 1 ? (
+                            <motion.div
+                                key="store"
+                                initial={{opacity: 0, y: 20}}
+                                animate={{opacity: 1, y: 0}}
+                                exit={{opacity: 0, y: -20}}
+                                transition={{duration: 0.4}}
+                                className="space-y-6"
+                            >
+                                <h2 className="text-2xl text-base-content">Магазин публичных колод</h2>
+                                <div className="text-center py-12">
+                                    <Store className="w-16 h-16 mx-auto mb-4 opacity-30" />
+                                    <p className="text-base-content opacity-70">
+                                        Здесь будут отображаться публичные колоды других пользователей
+                                    </p>
+                                </div>
                             </motion.div>
                         ) : (
                             <motion.div
@@ -193,11 +224,8 @@ export function HomePage() {
                     animated="rotate"
                     animatedDelay={20}
                     icon={Star}
-                    // textIcon={}
                     label="Продолжай идти!"
-                    description={` ${motivationText?.Message || ""} ${
-                        motivationText?.Icon || ""
-                    }`}
+                    description={`${motivationText?.Message || ""} ${motivationText?.Icon || ""}`}
                     gradient="from-indigo-500 via-purple-500 to-pink-500"
                 />
             </div>
