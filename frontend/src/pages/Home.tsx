@@ -34,7 +34,13 @@ export function HomePage() {
     useTitle("Главная");
 
     const [modul] = useState<typeof modulePage>(modulePage);
-    const [currentModul, setCurrentModul] = useState<number>(0);
+
+    // Восстанавливаем активную вкладку из localStorage при загрузке
+    const [currentModul, setCurrentModul] = useState<number>(() => {
+        const saved = localStorage.getItem('activeTab');
+        return saved ? parseInt(saved, 10) : 0;
+    });
+
     const [isOpenSetting, setIsOpenSetting] = useState<boolean>(false);
 
     const currentXP = user?.Statistics?.XPProgressInCurrentLevel ?? 0;
@@ -51,6 +57,8 @@ export function HomePage() {
     const selectModul = (name: string) => {
         const index = modul.findIndex((item) => item.name === name);
         setCurrentModul(index);
+        // Сохраняем активную вкладку в localStorage
+        localStorage.setItem('activeTab', index.toString());
     };
 
     const handleOpenSetting = () => setIsOpenSetting(true);

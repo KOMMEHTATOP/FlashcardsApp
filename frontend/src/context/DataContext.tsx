@@ -16,6 +16,7 @@ import type {
     CurrentLessonState,
 } from "../types/types";
 import { service } from "../utils/apiService";
+import { useAuth } from "./AuthContext";  
 
 interface DataContextType {
     user: UserData | undefined;
@@ -43,6 +44,8 @@ interface DataContextType {
 const DataContext = createContext<DataContextType | null>(null);
 
 export function DataProvider({ children }: { children: React.ReactNode }) {
+    const { isAuthenticated, isLoading: authLoading } = useAuth();  
+
     const [user, setUser] = useState<UserData>();
     const [setting, setSetting] = useState<SettingType>({
         StudyOrder: "Random",
@@ -60,8 +63,16 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     const [motivationText, setMotivationText] = useState<MotivationType>();
 
     useEffect(() => {
+        if (authLoading) {
+            return;
+        }
+
+        if (!isAuthenticated) {
+            setLoading(false);
+            return;
+        }
+
         const controller = new AbortController();
-        let timeoutId: number;
 
         const loadData = async () => {
             try {
@@ -90,15 +101,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             }
         };
 
-        timeoutId = setTimeout(() => {
-            loadData();
-        }, 50);
+        loadData();
 
         return () => {
-            clearTimeout(timeoutId);
             controller.abort();
         };
-    }, []);
+    }, [isAuthenticated, authLoading]); 
 
     const handleOpenConfrimModal = useCallback((modal: ConfrimModalState) => {
         setModalConfrimDetail(modal);

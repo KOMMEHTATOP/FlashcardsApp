@@ -155,8 +155,13 @@ interface SubscribedGroupDto {
   CardCount: number;
   SubscribedAt: string;
 }
-
-
+// Тип для карточек публичной группы (предпросмотр)
+interface PublicGroupCardDto {
+  Id: string;
+  Question: string;
+  Answer: string;
+  CreatedAt: string;
+}
 
 export type {
   UserState,
@@ -172,7 +177,7 @@ export type {
   AppContextType,
   CurrentLessonState,
   QuestionType,
-  PublicGroupDto,        
-  SubscribedGroupDto,    
-
+  PublicGroupDto,
+  SubscribedGroupDto,
+  PublicGroupCardDto,
 };

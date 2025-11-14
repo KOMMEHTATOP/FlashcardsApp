@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import apiFetch from "../../utils/apiFetch";
 import type { PublicGroupDto } from "../../types/types";
 import PublicGroupCard from "../cards/PublicGroupCard";
+import GroupPreviewModal from "../../../src/components/modal/GroupPreviewModal";
 import { availableIcons } from "../../test/data";
 import { BookHeartIcon } from "lucide-react";
 
@@ -17,6 +18,15 @@ export function StoreTab() {
     const [sortBy, setSortBy] = useState<"date" | "popular" | "name">("date");
     const [page, setPage] = useState(1);
     const [pageSize] = useState(20);
+
+    // Модалка предпросмотра
+    const [previewModal, setPreviewModal] = useState<{
+        isOpen: boolean;
+        group: PublicGroupDto | null;
+    }>({
+        isOpen: false,
+        group: null,
+    });
 
     // Загрузка данных при изменении фильтров
     useEffect(() => {
@@ -60,16 +70,25 @@ export function StoreTab() {
     const handleSubscribe = async (groupId: string) => {
         try {
             await apiFetch.post(`/Subscriptions/${groupId}/subscribe`);
+            // Обновляем список после подписки
             loadPublicGroups();
         } catch (err: any) {
             alert(err.response?.data?.errors?.[0] || "Ошибка подписки");
         }
     };
 
-    const handleView = (groupId: string) => {
-        // TODO: Открыть модалку или страницу с карточками группы
-        console.log("Просмотр группы:", groupId);
-        // Можно добавить navigate(`/group/${groupId}/preview`)
+    const handleView = (group: PublicGroupDto) => {
+        setPreviewModal({
+            isOpen: true,
+            group,
+        });
+    };
+
+    const handleClosePreview = () => {
+        setPreviewModal({
+            isOpen: false,
+            group: null,
+        });
     };
 
     return (
@@ -168,7 +187,7 @@ export function StoreTab() {
                             authorName={group.AuthorName}
                             gradient={group.GroupColor}
                             createdAt={group.CreatedAt}
-                            onView={() => handleView(group.Id)}
+                            onView={() => handleView(group)}
                             onSubscribe={() => handleSubscribe(group.Id)}
                         />
                     ))}
@@ -196,6 +215,18 @@ export function StoreTab() {
                         <ChevronRight className="w-4 h-4" />
                     </button>
                 </div>
+            )}
+
+            {/* Модалка предпросмотра */}
+            {previewModal.group && (
+                <GroupPreviewModal
+                    isOpen={previewModal.isOpen}
+                    onClose={handleClosePreview}
+                    groupId={previewModal.group.Id}
+                    groupName={previewModal.group.GroupName}
+                    gradient={previewModal.group.GroupColor}
+                    onSubscribe={() => handleSubscribe(previewModal.group!.Id)}
+                />
             )}
         </motion.div>
     );
