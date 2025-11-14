@@ -114,5 +114,15 @@ namespace FlashcardsApp.Api.Controllers
             var result = await _subscriptionBL.GetAuthorRatingAsync(authorId);
             return OkOrNotFound(result);
         }
+        
+        /// <summary>
+        /// Получить карточки публичной группы для предпросмотра
+        /// </summary>
+        [HttpGet("public/{groupId:guid}/cards")]
+        public async Task<IActionResult> GetPublicGroupCards(Guid groupId)
+        {
+            var result = await _subscriptionBL.GetPublicGroupCardsAsync(groupId);
+            return OkOrBadRequest(result);
+        }
     }
 }

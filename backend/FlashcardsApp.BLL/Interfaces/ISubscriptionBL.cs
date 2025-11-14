@@ -20,4 +20,9 @@ public interface ISubscriptionBL
     Task<ServiceResult<int>> GetAuthorRatingAsync(Guid authorUserId);
     
     Task<ServiceResult<bool>> IsSubscribedAsync(Guid groupId, Guid userId);
+    
+    /// <summary>
+    /// Получить карточки публичной группы для предпросмотра перед подпиской
+    /// </summary>
+    Task<ServiceResult<IEnumerable<object>>> GetPublicGroupCardsAsync(Guid groupId);
 }

@@ -38,14 +38,13 @@ public class SubscriptionBL : ISubscriptionBL
                 query = query.Where(g => g.GroupName.Contains(search));
             }
 
-            // Применяем сортировку в зависимости от параметра
             query = sortBy.ToLower() switch
             {
                 "popular" => query.OrderByDescending(g => g.SubscriberCount)
                                   .ThenByDescending(g => g.CreatedAt),
                 "name" => query.OrderBy(g => g.GroupName)
                                .ThenByDescending(g => g.CreatedAt),
-                _ => query.OrderByDescending(g => g.CreatedAt) // "date" по умолчанию
+                _ => query.OrderByDescending(g => g.CreatedAt)
             };
 
             var groups = await query
@@ -106,7 +105,6 @@ public class SubscriptionBL : ISubscriptionBL
     {
         try
         {
-            // Проверяем существование группы и получаем ID автора
             var authorId = await _context.Groups
                 .Where(g => g.Id == groupId && g.IsPublished)
                 .Select(g => (Guid?)g.UserId)
@@ -117,7 +115,6 @@ public class SubscriptionBL : ISubscriptionBL
                 return ServiceResult<bool>.Failure("Группа не найдена или не опубликована");
             }
 
-            // Проверяем нет ли уже подписки
             var alreadySubscribed = await _context.UserGroupSubscriptions
                 .AnyAsync(s => s.GroupId == groupId && s.SubscriberUserId == subscriberUserId);
 
@@ -126,7 +123,6 @@ public class SubscriptionBL : ISubscriptionBL
                 return ServiceResult<bool>.Failure("Вы уже подписаны на эту группу");
             }
 
-            // Создаем подписку
             var subscription = new UserGroupSubscription
             {
                 SubscriberUserId = subscriberUserId,
@@ -136,12 +132,10 @@ public class SubscriptionBL : ISubscriptionBL
 
             _context.UserGroupSubscriptions.Add(subscription);
 
-            // Обновляем счетчик группы
             await _context.Groups
                 .Where(g => g.Id == groupId)
                 .ExecuteUpdateAsync(s => s.SetProperty(g => g.SubscriberCount, g => g.SubscriberCount + 1));
 
-            // Обновляем рейтинг автора
             await _context.Users
                 .Where(u => u.Id == authorId.Value)
                 .ExecuteUpdateAsync(s => s.SetProperty(u => u.TotalRating, u => u.TotalRating + 1));
@@ -162,7 +156,6 @@ public class SubscriptionBL : ISubscriptionBL
     {
         try
         {
-            // Проверяем существование подписки и получаем ID автора
             var authorId = await _context.UserGroupSubscriptions
                 .Where(s => s.GroupId == groupId && s.SubscriberUserId == subscriberUserId)
                 .Select(s => (Guid?)s.Group.UserId)
@@ -173,17 +166,14 @@ public class SubscriptionBL : ISubscriptionBL
                 return ServiceResult<bool>.Failure("Подписка не найдена");
             }
 
-            // Удаляем подписку
             await _context.UserGroupSubscriptions
                 .Where(s => s.GroupId == groupId && s.SubscriberUserId == subscriberUserId)
                 .ExecuteDeleteAsync();
 
-            // Обновляем счетчик группы (не даем уйти в минус)
             await _context.Groups
                 .Where(g => g.Id == groupId && g.SubscriberCount > 0)
                 .ExecuteUpdateAsync(s => s.SetProperty(g => g.SubscriberCount, g => g.SubscriberCount - 1));
 
-            // Обновляем рейтинг автора (не даем уйти в минус)
             await _context.Users
                 .Where(u => u.Id == authorId.Value && u.TotalRating > 0)
                 .ExecuteUpdateAsync(s => s.SetProperty(u => u.TotalRating, u => u.TotalRating - 1));
@@ -234,6 +224,50 @@ public class SubscriptionBL : ISubscriptionBL
         {
             _logger.LogError(ex, "Ошибка при проверке подписки пользователя {UserId} на группу {GroupId}", userId, groupId);
             return ServiceResult<bool>.Failure("Ошибка при проверке подписки");
+        }
+    }
+
+    /// <summary>
+    /// Получить карточки публичной группы для предпросмотра
+    /// Это позволяет пользователю увидеть содержимое группы перед подпиской
+    /// </summary>
+    public async Task<ServiceResult<IEnumerable<object>>> GetPublicGroupCardsAsync(Guid groupId)
+    {
+        try
+        {
+            // Проверяем, что группа существует и опубликована
+            var isPublished = await _context.Groups
+                .Where(g => g.Id == groupId)
+                .Select(g => g.IsPublished)
+                .FirstOrDefaultAsync();
+
+            if (!isPublished)
+            {
+                return ServiceResult<IEnumerable<object>>.Failure("Группа не найдена или не опубликована");
+            }
+
+            // Получаем карточки группы
+            var cards = await _context.Cards
+                .Where(c => c.GroupId == groupId)
+                .OrderBy(c => c.CreatedAt)
+                .Select(c => new
+                {
+                    c.CardId,
+                    c.Question,
+                    c.Answer,
+                    c.CreatedAt
+                })
+                .AsNoTracking()
+                .ToListAsync();
+
+            _logger.LogInformation("Получено {Count} карточек для публичной группы {GroupId}", cards.Count, groupId);
+            
+            return ServiceResult<IEnumerable<object>>.Success(cards);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ошибка при получении карточек публичной группы {GroupId}", groupId);
+            return ServiceResult<IEnumerable<object>>.Failure("Ошибка при загрузке карточек");
         }
     }
 }

@@ -1,8 +1,11 @@
 import { motion } from "framer-motion";
 import { Store, Search, TrendingUp, Calendar, SortAsc, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useEffect } from "react";
-import apiFetch from "../../../src/utils/apiFetch.ts";
+import apiFetch from "../../utils/apiFetch";
 import type { PublicGroupDto } from "../../types/types";
+import PublicGroupCard from "../cards/PublicGroupCard";
+import { availableIcons } from "../../test/data";
+import { BookHeartIcon } from "lucide-react";
 
 export function StoreTab() {
     const [groups, setGroups] = useState<PublicGroupDto[]>([]);
@@ -34,9 +37,6 @@ export function StoreTab() {
                 }
             });
 
-            console.log("Response data:", response.data);
-            console.log("Is array?", Array.isArray(response.data));
-
             setGroups(response.data);
         } catch (err: any) {
             console.error("Ошибка загрузки публичных групп:", err);
@@ -48,23 +48,28 @@ export function StoreTab() {
 
     const handleSearchSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        setPage(1); // Сброс на первую страницу при новом поиске
+        setPage(1);
         loadPublicGroups();
     };
 
     const handleSortChange = (newSort: "date" | "popular" | "name") => {
         setSortBy(newSort);
-        setPage(1); // Сброс на первую страницу
+        setPage(1);
     };
 
     const handleSubscribe = async (groupId: string) => {
         try {
-            await apiFetch.post(`Subscriptions/${groupId}/subscribe`);
-            // Обновляем список после подписки
+            await apiFetch.post(`/Subscriptions/${groupId}/subscribe`);
             loadPublicGroups();
         } catch (err: any) {
             alert(err.response?.data?.errors?.[0] || "Ошибка подписки");
         }
+    };
+
+    const handleView = (groupId: string) => {
+        // TODO: Открыть модалку или страницу с карточками группы
+        console.log("Просмотр группы:", groupId);
+        // Можно добавить navigate(`/group/${groupId}/preview`)
     };
 
     return (
@@ -147,56 +152,25 @@ export function StoreTab() {
             )}
 
             {!loading && !error && groups.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {groups.map((group, index) => (
-                        <motion.div
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {groups.map((group) => (
+                        <PublicGroupCard
                             key={group.Id}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: index * 0.05 }}
-                            className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow relative overflow-hidden"
-                        >
-                            {/* Цветная полоска слева */}
-                            <div className={`absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b ${group.GroupColor}`}></div>
-
-                            <div className="card-body">
-                                {/* Заголовок группы */}
-                                <div className="flex items-start justify-between gap-2">
-                                    <div className="flex items-center gap-2 flex-1">
-                                        {group.GroupIcon && (
-                                            <span className="text-2xl">{group.GroupIcon}</span>
-                                        )}
-                                        <h3 className="card-title text-base">{group.GroupName}</h3>
-                                    </div>
-                                </div>
-
-                                {/* Информация об авторе */}
-                                <p className="text-sm opacity-70">
-                                    👤 {group.AuthorName}
-                                </p>
-
-                                {/* Статистика */}
-                                <div className="flex gap-4 text-sm opacity-70">
-                                    <span>📚 {group.CardCount} карточек</span>
-                                    <span>👥 {group.SubscriberCount} подписчиков</span>
-                                </div>
-
-                                {/* Дата создания */}
-                                <p className="text-xs opacity-50">
-                                    Создано: {new Date(group.CreatedAt).toLocaleDateString("ru-RU")}
-                                </p>
-
-                                {/* Кнопка подписки */}
-                                <div className="card-actions justify-end mt-4">
-                                    <button
-                                        onClick={() => handleSubscribe(group.Id)}
-                                        className="btn btn-primary btn-sm"
-                                    >
-                                        Подписаться
-                                    </button>
-                                </div>
-                            </div>
-                        </motion.div>
+                            id={group.Id}
+                            icon={
+                                group.GroupIcon
+                                    ? (availableIcons.find((i) => i.name === group.GroupIcon)?.icon || group.GroupIcon)
+                                    : BookHeartIcon
+                            }
+                            title={group.GroupName}
+                            cardCount={group.CardCount}
+                            subscriberCount={group.SubscriberCount}
+                            authorName={group.AuthorName}
+                            gradient={group.GroupColor}
+                            createdAt={group.CreatedAt}
+                            onView={() => handleView(group.Id)}
+                            onSubscribe={() => handleSubscribe(group.Id)}
+                        />
                     ))}
                 </div>
             )}
