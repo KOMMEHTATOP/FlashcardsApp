@@ -9,5 +9,6 @@ public class ResultGroupDto
     public bool IsPublished {get; set;}
     public DateTime CreatedAt { get; set; }
     public int Order { get; set; }
+    public int SubscriberCount { get; set; } 
     public int CardCount { get; set; }
 }

@@ -1,5 +1,3 @@
-// FlashcardsApp.BLL.Implementations/SubscriptionBL.cs
-
 using FlashcardsApp.BLL.Interfaces;
 using FlashcardsApp.DAL;
 using FlashcardsApp.DAL.Models;
@@ -20,40 +18,53 @@ public class SubscriptionBL : ISubscriptionBL
         _logger = logger;
     }
 
-// SubscriptionBL.cs
-    public async Task<ServiceResult<IEnumerable<PublicGroupDto>>> GetPublicGroupsAsync(string? search = null)
+    public async Task<ServiceResult<IEnumerable<PublicGroupDto>>> GetPublicGroupsAsync(
+        string? search = null,
+        string sortBy = "date",
+        int page = 1,
+        int pageSize = 20)
     {
         try
         {
+            if (page < 1) page = 1;
+            if (pageSize < 1 || pageSize > 100) pageSize = 20;
+
             var query = _context.Groups
                 .Where(g => g.IsPublished)
-                .Include(g => g.User) // User всегда есть
-                .Include(g => g.Cards)
-                .AsQueryable();
+                .AsNoTracking();
 
-            if (!string.IsNullOrEmpty(search))
+            if (!string.IsNullOrWhiteSpace(search))
             {
                 query = query.Where(g => g.GroupName.Contains(search));
             }
 
+            // Применяем сортировку в зависимости от параметра
+            query = sortBy.ToLower() switch
+            {
+                "popular" => query.OrderByDescending(g => g.SubscriberCount)
+                                  .ThenByDescending(g => g.CreatedAt),
+                "name" => query.OrderBy(g => g.GroupName)
+                               .ThenByDescending(g => g.CreatedAt),
+                _ => query.OrderByDescending(g => g.CreatedAt) // "date" по умолчанию
+            };
+
             var groups = await query
-                .OrderByDescending(g => g.SubscriberCount)
-                .ThenBy(g => g.GroupName)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(g => new PublicGroupDto
+                {
+                    Id = g.Id,
+                    GroupName = g.GroupName,
+                    GroupColor = g.GroupColor,
+                    GroupIcon = g.GroupIcon,
+                    AuthorName = g.User.Login,
+                    CardCount = g.Cards.Count,
+                    SubscriberCount = g.SubscriberCount,
+                    CreatedAt = g.CreatedAt
+                })
                 .ToListAsync();
 
-            var result = groups.Select(g => new PublicGroupDto
-            {
-                Id = g.Id,
-                GroupName = g.GroupName,
-                GroupColor = g.GroupColor,
-                GroupIcon = g.GroupIcon,
-                AuthorName = g.User.Login, 
-                CardCount = g.Cards?.Count ?? 0,
-                SubscriberCount = g.SubscriberCount,
-                CreatedAt = g.CreatedAt
-            });
-
-            return ServiceResult<IEnumerable<PublicGroupDto>>.Success(result);
+            return ServiceResult<IEnumerable<PublicGroupDto>>.Success(groups);
         }
         catch (Exception ex)
         {
@@ -68,25 +79,21 @@ public class SubscriptionBL : ISubscriptionBL
         {
             var subscriptions = await _context.UserGroupSubscriptions
                 .Where(s => s.SubscriberUserId == userId)
-                .Include(s => s.Group)
-                .ThenInclude(g => g.User)
-                .Include(s => s.Group)
-                .ThenInclude(g => g.Cards)
                 .OrderByDescending(s => s.SubscribedAt)
+                .Select(s => new SubscribedGroupDto
+                {
+                    Id = s.Group.Id,
+                    GroupName = s.Group.GroupName,
+                    GroupColor = s.Group.GroupColor,
+                    GroupIcon = s.Group.GroupIcon,
+                    AuthorName = s.Group.User.Login,
+                    CardCount = s.Group.Cards.Count,
+                    SubscribedAt = s.SubscribedAt
+                })
+                .AsNoTracking()
                 .ToListAsync();
 
-            var result = subscriptions.Select(s => new SubscribedGroupDto
-            {
-                Id = s.Group.Id,
-                GroupName = s.Group.GroupName,
-                GroupColor = s.Group.GroupColor,
-                GroupIcon = s.Group.GroupIcon,
-                AuthorName = s.Group.User.Login, 
-                CardCount = s.Group.Cards?.Count ?? 0,
-                SubscribedAt = s.SubscribedAt
-            });
-
-            return ServiceResult<IEnumerable<SubscribedGroupDto>>.Success(result);
+            return ServiceResult<IEnumerable<SubscribedGroupDto>>.Success(subscriptions);
         }
         catch (Exception ex)
         {
@@ -97,25 +104,24 @@ public class SubscriptionBL : ISubscriptionBL
 
     public async Task<ServiceResult<bool>> SubscribeToGroupAsync(Guid groupId, Guid subscriberUserId)
     {
-        using var transaction = await _context.Database.BeginTransactionAsync();
-
         try
         {
-            // Проверяем существование группы
-            var group = await _context.Groups
-                .Include(g => g.User)
-                .FirstOrDefaultAsync(g => g.Id == groupId && g.IsPublished);
+            // Проверяем существование группы и получаем ID автора
+            var authorId = await _context.Groups
+                .Where(g => g.Id == groupId && g.IsPublished)
+                .Select(g => (Guid?)g.UserId)
+                .FirstOrDefaultAsync();
 
-            if (group == null)
+            if (authorId == null)
             {
                 return ServiceResult<bool>.Failure("Группа не найдена или не опубликована");
             }
 
             // Проверяем нет ли уже подписки
-            var existingSubscription = await _context.UserGroupSubscriptions
-                .FirstOrDefaultAsync(s => s.GroupId == groupId && s.SubscriberUserId == subscriberUserId);
+            var alreadySubscribed = await _context.UserGroupSubscriptions
+                .AnyAsync(s => s.GroupId == groupId && s.SubscriberUserId == subscriberUserId);
 
-            if (existingSubscription != null)
+            if (alreadySubscribed)
             {
                 return ServiceResult<bool>.Failure("Вы уже подписаны на эту группу");
             }
@@ -123,24 +129,30 @@ public class SubscriptionBL : ISubscriptionBL
             // Создаем подписку
             var subscription = new UserGroupSubscription
             {
-                SubscriberUserId = subscriberUserId, GroupId = groupId, SubscribedAt = DateTime.UtcNow
+                SubscriberUserId = subscriberUserId,
+                GroupId = groupId,
+                SubscribedAt = DateTime.UtcNow
             };
 
             _context.UserGroupSubscriptions.Add(subscription);
 
-            // Обновляем счетчики
-            group.SubscriberCount++;
-            group.User.TotalRating++;
+            // Обновляем счетчик группы
+            await _context.Groups
+                .Where(g => g.Id == groupId)
+                .ExecuteUpdateAsync(s => s.SetProperty(g => g.SubscriberCount, g => g.SubscriberCount + 1));
+
+            // Обновляем рейтинг автора
+            await _context.Users
+                .Where(u => u.Id == authorId.Value)
+                .ExecuteUpdateAsync(s => s.SetProperty(u => u.TotalRating, u => u.TotalRating + 1));
 
             await _context.SaveChangesAsync();
-            await transaction.CommitAsync();
 
             _logger.LogInformation("Пользователь {UserId} подписался на группу {GroupId}", subscriberUserId, groupId);
             return ServiceResult<bool>.Success(true);
         }
         catch (Exception ex)
         {
-            await transaction.RollbackAsync();
             _logger.LogError(ex, "Ошибка при подписке пользователя {UserId} на группу {GroupId}", subscriberUserId, groupId);
             return ServiceResult<bool>.Failure("Ошибка при подписке на группу");
         }
@@ -148,35 +160,39 @@ public class SubscriptionBL : ISubscriptionBL
 
     public async Task<ServiceResult<bool>> UnsubscribeFromGroupAsync(Guid groupId, Guid subscriberUserId)
     {
-        using var transaction = await _context.Database.BeginTransactionAsync();
-
         try
         {
-            var subscription = await _context.UserGroupSubscriptions
-                .Include(s => s.Group)
-                .ThenInclude(g => g.User)
-                .FirstOrDefaultAsync(s => s.GroupId == groupId && s.SubscriberUserId == subscriberUserId);
+            // Проверяем существование подписки и получаем ID автора
+            var authorId = await _context.UserGroupSubscriptions
+                .Where(s => s.GroupId == groupId && s.SubscriberUserId == subscriberUserId)
+                .Select(s => (Guid?)s.Group.UserId)
+                .FirstOrDefaultAsync();
 
-            if (subscription == null)
+            if (authorId == null)
             {
                 return ServiceResult<bool>.Failure("Подписка не найдена");
             }
 
-            _context.UserGroupSubscriptions.Remove(subscription);
+            // Удаляем подписку
+            await _context.UserGroupSubscriptions
+                .Where(s => s.GroupId == groupId && s.SubscriberUserId == subscriberUserId)
+                .ExecuteDeleteAsync();
 
-            // Обновляем счетчики
-            subscription.Group.SubscriberCount = Math.Max(0, subscription.Group.SubscriberCount - 1);
-            subscription.Group.User.TotalRating = Math.Max(0, subscription.Group.User.TotalRating - 1);
+            // Обновляем счетчик группы (не даем уйти в минус)
+            await _context.Groups
+                .Where(g => g.Id == groupId && g.SubscriberCount > 0)
+                .ExecuteUpdateAsync(s => s.SetProperty(g => g.SubscriberCount, g => g.SubscriberCount - 1));
 
-            await _context.SaveChangesAsync();
-            await transaction.CommitAsync();
+            // Обновляем рейтинг автора (не даем уйти в минус)
+            await _context.Users
+                .Where(u => u.Id == authorId.Value && u.TotalRating > 0)
+                .ExecuteUpdateAsync(s => s.SetProperty(u => u.TotalRating, u => u.TotalRating - 1));
 
             _logger.LogInformation("Пользователь {UserId} отписался от группы {GroupId}", subscriberUserId, groupId);
             return ServiceResult<bool>.Success(true);
         }
         catch (Exception ex)
         {
-            await transaction.RollbackAsync();
             _logger.LogError(ex, "Ошибка при отписке пользователя {UserId} от группы {GroupId}", subscriberUserId, groupId);
             return ServiceResult<bool>.Failure("Ошибка при отписке от группы");
         }
@@ -186,8 +202,17 @@ public class SubscriptionBL : ISubscriptionBL
     {
         try
         {
-            var author = await _context.Users.FindAsync(authorUserId);
-            return ServiceResult<int>.Success(author?.TotalRating ?? 0);
+            var rating = await _context.Users
+                .Where(u => u.Id == authorUserId)
+                .Select(u => u.TotalRating)
+                .FirstOrDefaultAsync();
+
+            if (rating == 0 && !await _context.Users.AnyAsync(u => u.Id == authorUserId))
+            {
+                return ServiceResult<int>.Failure("Автор не найден");
+            }
+
+            return ServiceResult<int>.Success(rating);
         }
         catch (Exception ex)
         {

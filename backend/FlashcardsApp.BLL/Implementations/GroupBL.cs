@@ -28,18 +28,18 @@ public class GroupBL : IGroupBL
         _logger.LogInformation("Fetching group {GroupId} for user {UserId}", groupId, userId);
 
         var group = await _context.Groups
-            .Include(g => g.Cards)
             .AsNoTracking()
-            .FirstOrDefaultAsync(g => g.Id == groupId && g.UserId == userId);
+            .Select(GroupMapper.ToDtoExpression())  
+            .FirstOrDefaultAsync(g => g.Id == groupId && g.Id == userId);
 
         if (group == null)
         {
             _logger.LogWarning("Group {GroupId} not found for user {UserId}", groupId, userId);
-            return ServiceResult<ResultGroupDto>.Failure("Group not found or access denied");
+            return ServiceResult<ResultGroupDto>.Failure("Группа не найдена или доступ запрещен");
         }
 
         _logger.LogDebug("Group {GroupId} successfully retrieved", groupId);
-        return ServiceResult<ResultGroupDto>.Success(group.ToDto());
+        return ServiceResult<ResultGroupDto>.Success(group);
     }
 
     public async Task<ServiceResult<IEnumerable<ResultGroupDto>>> GetGroupsAsync(Guid userId)
@@ -47,17 +47,16 @@ public class GroupBL : IGroupBL
         _logger.LogInformation("Fetching all groups for user {UserId}", userId);
 
         var groups = await _context.Groups
-            .Include(c => c.Cards)
-            .AsNoTracking()
             .Where(g => g.UserId == userId)
             .OrderBy(g => g.Order)
             .ThenBy(g => g.CreatedAt)
+            .Select(GroupMapper.ToDtoExpression())  // Используем Expression mapper для оптимизации
+            .AsNoTracking()
             .ToListAsync();
 
         _logger.LogDebug("Retrieved {Count} groups for user {UserId}", groups.Count, userId);
 
-        var groupDtos = groups.Select(g => g.ToDto());
-        return ServiceResult<IEnumerable<ResultGroupDto>>.Success(groupDtos);
+        return ServiceResult<IEnumerable<ResultGroupDto>>.Success(groups);
     }
 
     public async Task<ServiceResult<ResultGroupDto>> CreateGroupAsync(CreateGroupDto model, Guid userId)
@@ -87,12 +86,12 @@ public class GroupBL : IGroupBL
         catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex))
         {
             _logger.LogWarning("Duplicate group name '{GroupName}' for user {UserId}", model.Name, userId);
-            return ServiceResult<ResultGroupDto>.Failure("You already have a group with this name");
+            return ServiceResult<ResultGroupDto>.Failure("У вас уже есть группа с таким названием");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating group '{GroupName}' for user {UserId}", model.Name, userId);
-            return ServiceResult<ResultGroupDto>.Failure("Failed to create group");
+            return ServiceResult<ResultGroupDto>.Failure("Ошибка при создании группы");
         }
     }
 
@@ -104,58 +103,42 @@ public class GroupBL : IGroupBL
 
         if (group == null)
         {
-            return ServiceResult<ResultGroupDto>.Failure("Group not found or access denied");
-        }
-
-        // Проверка уникальности имени только если имя изменилось
-        if (group.GroupName != model.Name)
-        {
-            var nameExists = await _context.Groups.AnyAsync(g =>
-                g.GroupName == model.Name &&
-                g.UserId == userId &&
-                g.Id != groupId);
-
-            if (nameExists)
-            {
-                _logger.LogWarning("Group name '{GroupName}' already exists for user {UserId}", model.Name, userId);
-                return ServiceResult<ResultGroupDto>.Failure("Group with the same name already exists");
-            }
+            return ServiceResult<ResultGroupDto>.Failure("Группа не найдена или доступ запрещен");
         }
 
         group.GroupName = model.Name;
         group.GroupColor = model.Color;
         group.GroupIcon = model.GroupIcon;
-
-        bool publishedChanged = group.IsPublished != model.IsPublished;
-
-        if (publishedChanged)
-        {
-            group.IsPublished = model.IsPublished;
-        }
+        group.IsPublished = model.IsPublished;
 
         try
         {
             await _context.SaveChangesAsync();
-
+            _logger.LogInformation("Group {GroupId} successfully updated", groupId);
             return ServiceResult<ResultGroupDto>.Success(group.ToDto());
+        }
+        catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex))
+        {
+            _logger.LogWarning("Duplicate group name '{GroupName}' for user {UserId}", model.Name, userId);
+            return ServiceResult<ResultGroupDto>.Failure("У вас уже есть группа с таким названием");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating group {GroupId}", groupId);
-            return ServiceResult<ResultGroupDto>.Failure("Failed to update group");
+            return ServiceResult<ResultGroupDto>.Failure("Ошибка при обновлении группы");
         }
     }
-
 
     public async Task<ServiceResult<ResultGroupDto>> UpdateAccessGroup(Guid groupId, Guid userId, bool isPublished)
     {
         var group = await GetUserGroupAsync(groupId, userId);
-        var groupIsPublished = group!.IsPublished;
 
-        if (groupIsPublished != isPublished)
+        if (group == null)
         {
-            group.IsPublished = isPublished;
+            return ServiceResult<ResultGroupDto>.Failure("Группа не найдена или доступ запрещен");
         }
+
+        group.IsPublished = isPublished;
 
         try
         {
@@ -165,7 +148,7 @@ public class GroupBL : IGroupBL
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating group publishing {GroupId}", groupId);
-            return ServiceResult<ResultGroupDto>.Failure("Failed to update group publishing");
+            return ServiceResult<ResultGroupDto>.Failure("Ошибка при изменении статуса публикации");
         }
     }
 
@@ -177,7 +160,7 @@ public class GroupBL : IGroupBL
 
         if (group == null)
         {
-            return ServiceResult<bool>.Failure("Group not found or access denied");
+            return ServiceResult<bool>.Failure("Группа не найдена или доступ запрещен");
         }
 
         _context.Groups.Remove(group);
@@ -191,7 +174,7 @@ public class GroupBL : IGroupBL
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting group {GroupId}", groupId);
-            return ServiceResult<bool>.Failure("Failed to delete group");
+            return ServiceResult<bool>.Failure("Ошибка при удалении группы");
         }
     }
 
@@ -206,7 +189,6 @@ public class GroupBL : IGroupBL
                 .Where(g => groupIds.Contains(g.Id) && g.UserId == userId)
                 .ToDictionaryAsync(g => g.Id);
 
-            // Обновляем порядок
             foreach (var item in groupOrders)
             {
                 if (groups.TryGetValue(item.Id, out var group))
@@ -226,7 +208,7 @@ public class GroupBL : IGroupBL
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating groups order for user {UserId}", userId);
-            return ServiceResult<bool>.Failure("Failed to update groups order");
+            return ServiceResult<bool>.Failure("Ошибка при обновлении порядка групп");
         }
     }
     
@@ -236,26 +218,28 @@ public class GroupBL : IGroupBL
 
         if (group == null)
         {
-            return ServiceResult<bool>.Failure("Group not found");
+            return ServiceResult<bool>.Failure("Группа не найдена");
         }
 
-        var checkCountCardsInGroup = _context.Cards
-            .Count(c => c.GroupId == groupId);
+        var cardCount = await _context.Cards
+            .CountAsync(c => c.GroupId == groupId);
 
-        if (checkCountCardsInGroup < 2)
+        if (cardCount < 10)
         {
-            return ServiceResult<bool>.Failure("There must be at least 10 cards in the group.");
+            return ServiceResult<bool>.Failure("В группе должно быть минимум 10 карточек для публикации");
         }
 
         try
         {
             group.IsPublished = isPublish;
             await _context.SaveChangesAsync();
+            _logger.LogInformation("Group {GroupId} access changed to {IsPublish}", groupId, isPublish);
             return ServiceResult<bool>.Success(true);
         }
         catch (Exception ex)
         {
-            return ServiceResult<bool>.Failure($"Ошибка при изменении доступа: {ex.Message}");
+            _logger.LogError(ex, "Error changing access for group {GroupId}", groupId);
+            return ServiceResult<bool>.Failure("Ошибка при изменении доступа к группе");
         }
     }
 

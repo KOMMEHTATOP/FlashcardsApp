@@ -15,7 +15,6 @@ public class Group
     public bool IsPublished { get; set; }
     [Range(0, int.MaxValue, ErrorMessage = "Количество подписчиков не может быть отрицательным")]
     public int SubscriberCount { get; set; } 
-    
     public User? User { get; set; }
     public List<Card>? Cards { get; set; } = [];
     public List<UserGroupSubscription>? Subscriptions { get; set; } = []; 
