@@ -6,36 +6,31 @@ import {
     BookOpen,
     Medal,
     BookCopyIcon,
-    Settings2Icon,
     Store
 } from "lucide-react";
 
 import LevelCard from "../components/cards/Level_card";
 import StateCard from "../components/cards/State_card";
-import {useData} from "../context/DataContext";
-import {motion, AnimatePresence} from "framer-motion";
+import { useData } from "../context/DataContext";
+import { AnimatePresence } from "framer-motion";
 import MotivationCard from "../components/cards/Motivation_card";
-import {useMemo, useState} from "react";
-import {BadgeCard} from "../shared/ui/BadgeCard";
-import SortableList from "../components/SortebleList";
+import { useMemo, useState } from "react";
 import useTitle from "../utils/useTitle";
 import formatTotalHour from "../utils/formatTotalHour";
 import SettingModal from "../components/modal/SettingModal";
 
+import { LessonsTab } from "../components/tabs/LessonsTab";
+import { StoreTab } from "../components/tabs/StoreTab";
+import { AchievementsTab } from "../components/tabs/AchievementsTab";
+
 const modulePage = [
-    {
-        name: "Уроки",
-    },
-    {
-        name: "Магазин",
-    },
-    {
-        name: "Достижения",
-    }
+    { name: "Уроки" },
+    { name: "Магазин" },
+    { name: "Достижения" }
 ];
 
 export function HomePage() {
-    const {user, achivment, groups, motivationText} = useData();
+    const { user, achivment, groups, motivationText } = useData();
     useTitle("Главная");
 
     const [modul] = useState<typeof modulePage>(modulePage);
@@ -61,9 +56,29 @@ export function HomePage() {
     const handleOpenSetting = () => setIsOpenSetting(true);
     const handleCloseSetting = () => setIsOpenSetting(false);
 
+    // Функция для рендера текущей вкладки
+    const renderCurrentTab = () => {
+        switch (currentModul) {
+            case 0:
+                return (
+                    <LessonsTab
+                        groups={groups}
+                        onOpenSettings={handleOpenSetting}
+                    />
+                );
+            case 1:
+                return <StoreTab />;
+            case 2:
+                return <AchievementsTab achievements={achivment} />;
+            default:
+                return null;
+        }
+    };
+
     return (
         <div className="w-full pb-10">
             <div className="space-y-8">
+                {/* Карточка уровня */}
                 <div>
                     <LevelCard
                         level={level}
@@ -72,6 +87,8 @@ export function HomePage() {
                         xpForNextLevel={xpForNextLevel}
                     />
                 </div>
+
+                {/* Статистика */}
                 <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <StateCard
                         icon={Clock}
@@ -108,6 +125,8 @@ export function HomePage() {
                         delay={0.4}
                     />
                 </div>
+
+                {/* Табы */}
                 <div role="tablist" className="tabs tabs-border">
                     <button
                         role="tab"
@@ -116,7 +135,7 @@ export function HomePage() {
                         }`}
                         onClick={() => selectModul("Уроки")}
                     >
-                        <BookOpen className="h-5 w-5 text-base-content"/>
+                        <BookOpen className="h-5 w-5 text-base-content" />
                         Уроки
                     </button>
                     <button
@@ -126,7 +145,7 @@ export function HomePage() {
                         }`}
                         onClick={() => selectModul("Магазин")}
                     >
-                        <Store className="h-5 w-5 text-base-content"/>
+                        <Store className="h-5 w-5 text-base-content" />
                         Магазин
                     </button>
                     <button
@@ -136,90 +155,27 @@ export function HomePage() {
                         }`}
                         onClick={() => selectModul("Достижения")}
                     >
-                        <Medal className="h-5 w-5 text-base-content"/>
+                        <Medal className="h-5 w-5 text-base-content" />
                         Достижения
                     </button>
                 </div>
+
+                {/* Модальное окно настроек */}
                 {isOpenSetting && (
                     <SettingModal
                         handleCancel={handleCloseSetting}
-                        handleSave={() => {
-                        }}
+                        handleSave={() => {}}
                     />
                 )}
-                <div className="space-y-6 mb-12 ">
+
+                {/* Контент вкладок */}
+                <div className="space-y-6 mb-12">
                     <AnimatePresence mode="wait">
-                        {currentModul === 0 ? (
-                            <motion.div
-                                key="lessons"
-                                initial={{opacity: 0, y: 20}}
-                                animate={{opacity: 1, y: 0}}
-                                exit={{opacity: 0, y: -20}}
-                                transition={{duration: 0.4}}
-                                className="space-y-6"
-                            >
-                                <div className="flex items-center justify-between">
-                                    <h2 className="text-2xl text-base-content">Ваши карточки</h2>
-                                    <div
-                                        onClick={handleOpenSetting}
-                                        className="flex items-center gap-2 hover:scale-105 duration-300 transition-all cursor-pointer group opacity-70 hover:opacity-100"
-                                    >
-                                        <span className="group-hover:opacity-90 opacity-0 duration-500 transition-opacity">
-                                            Настройки
-                                        </span>
-                                        <Settings2Icon className="w-8 h-8 z-10"/>
-                                    </div>
-                                </div>
-                                <SortableList initalItems={groups || []}/>
-                            </motion.div>
-                        ) : currentModul === 1 ? (
-                            <motion.div
-                                key="store"
-                                initial={{opacity: 0, y: 20}}
-                                animate={{opacity: 1, y: 0}}
-                                exit={{opacity: 0, y: -20}}
-                                transition={{duration: 0.4}}
-                                className="space-y-6"
-                            >
-                                <h2 className="text-2xl text-base-content">Магазин публичных колод</h2>
-                                <div className="text-center py-12">
-                                    <Store className="w-16 h-16 mx-auto mb-4 opacity-30" />
-                                    <p className="text-base-content opacity-70">
-                                        Здесь будут отображаться публичные колоды других пользователей
-                                    </p>
-                                </div>
-                            </motion.div>
-                        ) : (
-                            <motion.div
-                                key="badges"
-                                initial={{opacity: 0, y: 20}}
-                                animate={{opacity: 1, y: 0}}
-                                exit={{opacity: 0, y: -20}}
-                                transition={{duration: 0.4}}
-                                className="space-y-6"
-                            >
-                                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {achivment?.map((item, index) => (
-                                        <motion.div
-                                            key={item.Id}
-                                            initial={{opacity: 0, y: 20}}
-                                            animate={{opacity: 1, y: 0}}
-                                            transition={{delay: index * 0.1}}
-                                        >
-                                            <BadgeCard
-                                                title={item.Name}
-                                                description={item.Description}
-                                                earned={item.IsUnlocked}
-                                                gradient={item.Gradient}
-                                                icon={item.IconUrl}
-                                            />
-                                        </motion.div>
-                                    ))}
-                                </div>
-                            </motion.div>
-                        )}
+                        {renderCurrentTab()}
                     </AnimatePresence>
                 </div>
+
+                {/* Мотивационная карточка */}
                 <MotivationCard
                     animated="rotate"
                     animatedDelay={20}

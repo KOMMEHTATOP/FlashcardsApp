@@ -133,6 +133,30 @@ interface QuestionType {
   gradient: string;
 }
 
+// Типы для публичного магазина групп
+interface PublicGroupDto {
+  Id: string;
+  GroupName: string;
+  GroupColor: string;
+  GroupIcon: string | null;
+  AuthorName: string;
+  CardCount: number;
+  SubscriberCount: number;
+  CreatedAt: string;
+}
+
+// Типы для подписок
+interface SubscribedGroupDto {
+  Id: string;
+  GroupName: string;
+  GroupColor: string;
+  GroupIcon: string | null;
+  AuthorName: string;
+  CardCount: number;
+  SubscribedAt: string;
+}
+
+
 
 export type {
   UserState,
@@ -147,5 +171,8 @@ export type {
   MotivationType,
   AppContextType,
   CurrentLessonState,
-  QuestionType
+  QuestionType,
+  PublicGroupDto,        
+  SubscribedGroupDto,    
+
 };

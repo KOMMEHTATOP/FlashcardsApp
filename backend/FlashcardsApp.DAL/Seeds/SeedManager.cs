@@ -69,10 +69,10 @@ public static class SeedManager
             await UnlockAchievementsForTestUser(context, userId);
         }
 
-        // 3. Создать группы
+        // 3. Создать группы и карточки из JSON
         if (!await context.Groups.AnyAsync(g => g.UserId == userId))
         {
-            await SeedGroupsAndCards(context, userId);
+            await SeedGroupsAndCardsFromJsonAsync(context, userId);
         }
 
         Console.WriteLine("=== SEED COMPLETED SUCCESSFULLY ===");
@@ -81,66 +81,60 @@ public static class SeedManager
     /// <summary>
     /// Загрузить достижения из JSON файла
     /// </summary>
-private static async Task SeedAchievementsFromJsonAsync(ApplicationDbContext context)
-{
-    try
+    private static async Task SeedAchievementsFromJsonAsync(ApplicationDbContext context)
     {
-        // Читаем из Embedded Resource
-        var assembly = typeof(SeedManager).Assembly;
-        var resourceName = "FlashcardsApp.DAL.Seeds.achievements.json";
-
-        await using var stream = assembly.GetManifestResourceStream(resourceName);
-        
-        if (stream == null)
+        try
         {
-            Console.WriteLine($"⚠️ Embedded resource not found: {resourceName}");
-            Console.WriteLine("Available resources:");
-            foreach (var name in assembly.GetManifestResourceNames())
+            var assembly = typeof(SeedManager).Assembly;
+            var resourceName = "FlashcardsApp.DAL.Seeds.achievements.json";
+
+            await using var stream = assembly.GetManifestResourceStream(resourceName);
+            
+            if (stream == null)
             {
-                Console.WriteLine($"  - {name}");
+                Console.WriteLine($"⚠️ Embedded resource not found: {resourceName}");
+                return;
             }
-            return;
+
+            using var reader = new StreamReader(stream);
+            var jsonContent = await reader.ReadToEndAsync();
+            
+            var achievementsData = JsonSerializer.Deserialize<AchievementsJsonData>(jsonContent, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+            if (achievementsData?.Achievements == null || !achievementsData.Achievements.Any())
+            {
+                Console.WriteLine("⚠️ No achievements found in JSON file");
+                return;
+            }
+
+            var achievements = achievementsData.Achievements.Select(a => new Achievement
+            {
+                Id = Guid.Parse(a.Id),
+                Name = a.Name,
+                Description = a.Description,
+                IconUrl = a.IconUrl,
+                Gradient = a.Gradient,
+                ConditionType = (AchievementConditionType)a.ConditionType,
+                ConditionValue = a.ConditionValue,
+                Rarity = (AchievementRarity)a.Rarity,
+                DisplayOrder = a.DisplayOrder,
+                IsActive = a.IsActive
+            }).ToList();
+
+            context.Achievements.AddRange(achievements);
+            await context.SaveChangesAsync();
+            
+            Console.WriteLine($"✅ {achievements.Count} achievements loaded!");
         }
-
-        using var reader = new StreamReader(stream);
-        var jsonContent = await reader.ReadToEndAsync();
-        
-        var achievementsData = JsonSerializer.Deserialize<AchievementsJsonData>(jsonContent, new JsonSerializerOptions
+        catch (Exception ex)
         {
-            PropertyNameCaseInsensitive = true
-        });
-
-        if (achievementsData?.Achievements == null || !achievementsData.Achievements.Any())
-        {
-            Console.WriteLine("⚠️ No achievements found in JSON file");
-            return;
+            Console.WriteLine($"❌ Error loading achievements: {ex.Message}");
+            throw;
         }
-
-        var achievements = achievementsData.Achievements.Select(a => new Achievement
-        {
-            Id = Guid.Parse(a.Id),
-            Name = a.Name,
-            Description = a.Description,
-            IconUrl = a.IconUrl,
-            Gradient = a.Gradient,
-            ConditionType = (AchievementConditionType)a.ConditionType,
-            ConditionValue = a.ConditionValue,
-            Rarity = (AchievementRarity)a.Rarity,
-            DisplayOrder = a.DisplayOrder,
-            IsActive = a.IsActive
-        }).ToList();
-
-        context.Achievements.AddRange(achievements);
-        await context.SaveChangesAsync();
-        
-        Console.WriteLine($"✅ {achievements.Count} achievements loaded from embedded resource!");
     }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"❌ Error loading achievements: {ex.Message}");
-        throw;
-    }
-}
     
     /// <summary>
     /// Разблокировать достижения для тестового пользователя
@@ -180,94 +174,117 @@ private static async Task SeedAchievementsFromJsonAsync(ApplicationDbContext con
         {
             context.UserAchievements.AddRange(unlockedAchievements);
             await context.SaveChangesAsync();
-            Console.WriteLine($"✅ {unlockedAchievements.Count} achievements unlocked for test user!");
+            Console.WriteLine($"✅ {unlockedAchievements.Count} achievements unlocked!");
         }
     }
 
     /// <summary>
-    /// Создать группы и карточки для тестирования
+    /// Загрузить группы и карточки из JSON файлов
     /// </summary>
-    private static async Task SeedGroupsAndCards(ApplicationDbContext context, Guid userId)
+    private static async Task SeedGroupsAndCardsFromJsonAsync(ApplicationDbContext context, Guid userId)
     {
-        var groupsData = new[]
+        try
         {
-            new { Name = "Английский язык", Color = "from-green-500 to-emerald-500" },
-            new { Name = "Программирование", Color = "from-orange-500 to-yellow-500" },
-            new { Name = "История", Color = "from-purple-500 to-pink-500" }
-        };
-
-        var groups = new List<Group>();
-
-        for (int i = 0; i < groupsData.Length; i++)
-        {
-            var group = new Group
+            var assembly = typeof(SeedManager).Assembly;
+            
+            // Загрузить группы
+            var groupsResourceName = "FlashcardsApp.DAL.Seeds.groups.json";
+            await using var groupsStream = assembly.GetManifestResourceStream(groupsResourceName);
+            
+            if (groupsStream == null)
             {
-                Id = Guid.NewGuid(),
+                Console.WriteLine($"⚠️ Groups resource not found: {groupsResourceName}");
+                return;
+            }
+
+            using var groupsReader = new StreamReader(groupsStream);
+            var groupsJson = await groupsReader.ReadToEndAsync();
+            
+            var groupsData = JsonSerializer.Deserialize<GroupsJsonData>(groupsJson, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+            if (groupsData?.Groups == null || !groupsData.Groups.Any())
+            {
+                Console.WriteLine("⚠️ No groups found in JSON file");
+                return;
+            }
+
+            // Создать группы
+            var groups = groupsData.Groups.Select((g, index) => new Group
+            {
+                Id = Guid.Parse(g.Id),
                 UserId = userId,
-                GroupName = groupsData[i].Name,
-                GroupIcon = "",
-                GroupColor = groupsData[i].Color,
-                IsPublished = true,
-                CreatedAt = DateTime.UtcNow.AddDays(-(i + 1)),
-                Order = i + 1
-            };
-            groups.Add(group);
-        }
+                GroupName = g.Name,
+                GroupColor = g.Color,
+                GroupIcon = g.Icon,
+                IsPublished = g.IsPublished,
+                CreatedAt = DateTime.UtcNow.AddDays(-(index + 1)),
+                Order = g.Order
+            }).ToList();
 
-        context.Groups.AddRange(groups);
-        await context.SaveChangesAsync();
-        Console.WriteLine("✅ Groups created!");
+            context.Groups.AddRange(groups);
+            await context.SaveChangesAsync();
+            Console.WriteLine($"✅ {groups.Count} groups created!");
 
-        // Создать карточки для каждой группы
-        var cardsData = new Dictionary<string, List<(string Question, string Answer)>>
-        {
-            ["Английский язык"] = new()
+            // Загрузить карточки
+            var cardsResourceName = "FlashcardsApp.DAL.Seeds.cards.json";
+            await using var cardsStream = assembly.GetManifestResourceStream(cardsResourceName);
+            
+            if (cardsStream == null)
             {
-                ("Как сказать 'привет' по-английски?", "Hello"),
-                ("Перевод слова 'book'", "Книга"),
-                ("Как сказать 'спасибо'?", "Thank you")
-            },
-            ["Программирование"] = new()
-            {
-                ("Что такое переменная?", "Контейнер для хранения данных"),
-                ("Что означает ООП?", "Объектно-ориентированное программирование"),
-                ("Что такое функция?", "Блок кода, который можно переиспользовать")
-            },
-            ["История"] = new()
-            {
-                ("В каком году открыли Америку?", "1492"),
-                ("Кто был первым президентом США?", "Джордж Вашингтон"),
-                ("Когда началась Вторая мировая война?", "1 сентября 1939")
+                Console.WriteLine($"⚠️ Cards resource not found: {cardsResourceName}");
+                return;
             }
-        };
 
-        foreach (var group in groups)
-        {
-            if (cardsData.TryGetValue(group.GroupName, out var cards))
+            using var cardsReader = new StreamReader(cardsStream);
+            var cardsJson = await cardsReader.ReadToEndAsync();
+            
+            var cardsData = JsonSerializer.Deserialize<CardsJsonData>(cardsJson, new JsonSerializerOptions
             {
-                var cardEntities = cards.Select((card, index) => new Card
+                PropertyNameCaseInsensitive = true
+            });
+
+            if (cardsData?.Cards == null)
+            {
+                Console.WriteLine("⚠️ No cards found in JSON file");
+                return;
+            }
+
+            // Создать карточки для каждой группы
+            int totalCards = 0;
+            foreach (var group in groups)
+            {
+                if (cardsData.Cards.TryGetValue(group.Id.ToString(), out var groupCards))
                 {
-                    CardId = Guid.NewGuid(),
-                    GroupId = group.Id,
-                    Question = card.Question,
-                    Answer = card.Answer,
-                    CreatedAt = DateTime.UtcNow.AddDays(-(index + 1)),
-                    UpdatedAt = DateTime.UtcNow.AddDays(-(index + 1))
-                }).ToList();
+                    var cardEntities = groupCards.Select((card, index) => new Card
+                    {
+                        CardId = Guid.NewGuid(),
+                        GroupId = group.Id,
+                        Question = card.Question,
+                        Answer = card.Answer,
+                        CreatedAt = DateTime.UtcNow.AddDays(-(index + 1)),
+                        UpdatedAt = DateTime.UtcNow.AddDays(-(index + 1))
+                    }).ToList();
 
-                context.Cards.AddRange(cardEntities);
+                    context.Cards.AddRange(cardEntities);
+                    totalCards += cardEntities.Count;
+                }
             }
-        }
 
-        await context.SaveChangesAsync();
-        Console.WriteLine("✅ Cards created!");
+            await context.SaveChangesAsync();
+            Console.WriteLine($"✅ {totalCards} cards created!");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Error loading groups and cards: {ex.Message}");
+            throw;
+        }
     }
 
     #region DTO для десериализации JSON
 
-    /// <summary>
-    /// DTO для десериализации JSON файла с достижениями
-    /// </summary>
     private class AchievementsJsonData
     {
         public List<AchievementJsonDto> Achievements { get; set; } = new();
@@ -285,6 +302,32 @@ private static async Task SeedAchievementsFromJsonAsync(ApplicationDbContext con
         public int Rarity { get; set; }
         public int DisplayOrder { get; set; }
         public bool IsActive { get; set; }
+    }
+
+    private class GroupsJsonData
+    {
+        public List<GroupJsonDto> Groups { get; set; } = new();
+    }
+
+    private class GroupJsonDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public string Color { get; set; } = string.Empty;
+        public string Icon { get; set; } = string.Empty;
+        public bool IsPublished { get; set; }
+        public int Order { get; set; }
+    }
+
+    private class CardsJsonData
+    {
+        public Dictionary<string, List<CardJsonDto>> Cards { get; set; } = new();
+    }
+
+    private class CardJsonDto
+    {
+        public string Question { get; set; } = string.Empty;
+        public string Answer { get; set; } = string.Empty;
     }
 
     #endregion

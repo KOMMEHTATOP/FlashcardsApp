@@ -1,0 +1,36 @@
+{
+  "groups": [
+    {
+      "id": "22222222-2222-2222-2222-000000000001",
+      "name": "Английский язык",
+      "color": "from-green-500 to-emerald-500",
+      "icon": "🇬🇧",
+      "isPublished": true,
+      "order": 1
+    },
+    {
+      "id": "22222222-2222-2222-2222-000000000002",
+      "name": "Программирование",
+      "color": "from-orange-500 to-yellow-500",
+      "icon": "💻",
+      "isPublished": true,
+      "order": 2
+    },
+    {
+      "id": "22222222-2222-2222-2222-000000000003",
+      "name": "История",
+      "color": "from-purple-500 to-pink-500",
+      "icon": "📜",
+      "isPublished": true,
+      "order": 3
+    },
+    {
+      "id": "22222222-2222-2222-2222-000000000004",
+      "name": "Математика",
+      "color": "from-blue-500 to-cyan-500",
+      "icon": "🔢",
+      "isPublished": false,
+      "order": 4
+    }
+  ]
+}

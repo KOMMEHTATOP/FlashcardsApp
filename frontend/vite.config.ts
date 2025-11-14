@@ -7,7 +7,14 @@ export default defineConfig({
         allowedHosts: [
             'flashcardsloop.org',
             'api.flashcardsloop.org',
-        ]
+        ],
+        proxy: {
+            '/api': {
+                target: 'http://localhost:5153', 
+                changeOrigin: true,
+                secure: false,
+            }
+        }
     },
     plugins: [react(), tailwindcss()],
 })
