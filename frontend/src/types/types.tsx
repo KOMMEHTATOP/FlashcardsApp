@@ -43,9 +43,11 @@ type CurrentLessonState = {
 };
 
 interface UserData {
-  Id: String;
-  Login?: String;
-  Email: String;
+  Id: string;  
+  Login?: string;
+  Email: string;
+  TotalSubscribers?: number;  
+  MySubscriptions?: SubscribedGroupDto[]; 
   Statistics: UserState;
   Groups: GroupType[];
 }
@@ -93,6 +95,9 @@ interface GroupType {
   Order: number;
   CardCount: number;
   Icon: string;
+  IsPublished?: boolean; 
+  SubscriberCount?: number;  
+
 }
 
 interface GroupCardType {
@@ -163,6 +168,18 @@ interface PublicGroupCardDto {
   CreatedAt: string;
 }
 
+interface StudyHistoryDto {
+  CardId: string;
+  CardQuestion: string;
+  Answer: string;
+  Rating: number;
+  StudiedAt: string;
+  XPEarned: number;
+  GroupName: string;
+  GroupColor: string;
+}
+
+
 export type {
   UserState,
   UserData,
@@ -180,4 +197,5 @@ export type {
   PublicGroupDto,
   SubscribedGroupDto,
   PublicGroupCardDto,
+  StudyHistoryDto,
 };

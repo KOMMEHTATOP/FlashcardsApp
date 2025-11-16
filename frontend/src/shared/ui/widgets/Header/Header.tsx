@@ -53,18 +53,20 @@ export function Header({ user, onLogout, className }: HeaderProps) {
                 >
                     {user ? (
                         <>
-                            {/* Аватар и имя */}
-                            <motion.div
-                                whileHover={{ scale: 1.05 }}
-                                className="flex items-center gap-2 bg-base-100/50 backdrop-blur-sm px-3 py-1.5 rounded-xl border border-base-300/30"
-                            >
-                                <div className="bg-gradient-to-br from-purple-400 to-pink-400 w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center">
-                                    <UserRound className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-                                </div>
-                                <span className="hidden sm:inline text-base-content font-medium text-sm sm:text-base">
-                  {user?.Login || user?.Email}
-                </span>
-                            </motion.div>
+                            {/* Аватар и имя - кликабельные */}
+                            <Link to="/profile">
+                                <motion.div
+                                    whileHover={{ scale: 1.05 }}
+                                    className="flex items-center gap-2 bg-base-100/50 backdrop-blur-sm px-3 py-1.5 rounded-xl border border-base-300/30 cursor-pointer hover:bg-base-100/70 transition-all duration-200"
+                                >
+                                    <div className="bg-gradient-to-br from-purple-400 to-pink-400 w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center">
+                                        <UserRound className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+                                    </div>
+                                    <span className="hidden sm:inline text-base-content font-medium text-sm sm:text-base">
+            {user?.Login || user?.Email}
+        </span>
+                                </motion.div>
+                            </Link>
 
                             {/* Кнопка выхода */}
                             <motion.button

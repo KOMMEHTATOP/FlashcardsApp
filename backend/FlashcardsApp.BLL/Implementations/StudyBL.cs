@@ -192,6 +192,7 @@ public class StudyBL : IStudyBL
             .OrderByDescending(sh => sh.StudiedAt)
             .Take(limit ?? 50)
             .Include(sh => sh.Card)
+            .ThenInclude(c => c.Group)  
             .Select(sh => new StudyHistoryDto
             {
                 Id = sh.Id,
@@ -199,10 +200,13 @@ public class StudyBL : IStudyBL
                 CardQuestion = sh.Card != null ? sh.Card.Question : "",
                 Rating = sh.Rating,
                 XPEarned = sh.XPEarned,
-                StudiedAt = sh.StudiedAt
+                StudiedAt = sh.StudiedAt,
+                GroupName = sh.Card != null && sh.Card.Group != null ? sh.Card.Group.GroupName : "",
+                GroupColor = sh.Card != null && sh.Card.Group != null ? sh.Card.Group.GroupColor : "from-gray-500 to-gray-600"
             })
             .ToListAsync();
 
         return ServiceResult<IEnumerable<StudyHistoryDto>>.Success(history);
     }
+    
 }

@@ -2,6 +2,7 @@ import "./App.css";
 import { Routes, Route } from "react-router-dom";
 import AppLayout from "./layout/AppLayout";
 import { HomePage } from "./pages/Home";
+import { ProfilePage } from "./pages/Profile";
 import StudyPage from "./pages/Study";
 import LoginPage from "./pages/Login";
 import { NotFoundPage } from "./pages/NotFound";
@@ -36,6 +37,14 @@ function App() {
                     element={
                         <PrivateRoute>
                             <HomePage />
+                        </PrivateRoute>
+                    }
+                />
+                <Route
+                    path="/profile"
+                    element={
+                        <PrivateRoute>
+                            <ProfilePage />
                         </PrivateRoute>
                     }
                 />
