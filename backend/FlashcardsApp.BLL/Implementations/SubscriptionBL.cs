@@ -156,6 +156,7 @@ public class SubscriptionBL : ISubscriptionBL
     {
         try
         {
+            // Получаем authorId сразу
             var authorId = await _context.UserGroupSubscriptions
                 .Where(s => s.GroupId == groupId && s.SubscriberUserId == subscriberUserId)
                 .Select(s => (Guid?)s.Group.UserId)
@@ -166,10 +167,17 @@ public class SubscriptionBL : ISubscriptionBL
                 return ServiceResult<bool>.Failure("Подписка не найдена");
             }
 
-            await _context.UserGroupSubscriptions
+            // Удаляем подписку
+            var deleted = await _context.UserGroupSubscriptions
                 .Where(s => s.GroupId == groupId && s.SubscriberUserId == subscriberUserId)
                 .ExecuteDeleteAsync();
 
+            if (deleted == 0)
+            {
+                return ServiceResult<bool>.Failure("Подписка не найдена");
+            }
+
+            // Обновляем счётчики (если упадёт — залогируется, но подписка уже удалена)
             await _context.Groups
                 .Where(g => g.Id == groupId && g.SubscriberCount > 0)
                 .ExecuteUpdateAsync(s => s.SetProperty(g => g.SubscriberCount, g => g.SubscriberCount - 1));
@@ -187,7 +195,7 @@ public class SubscriptionBL : ISubscriptionBL
             return ServiceResult<bool>.Failure("Ошибка при отписке от группы");
         }
     }
-
+    
     public async Task<ServiceResult<int>> GetAuthorRatingAsync(Guid authorUserId)
     {
         try
@@ -226,11 +234,7 @@ public class SubscriptionBL : ISubscriptionBL
             return ServiceResult<bool>.Failure("Ошибка при проверке подписки");
         }
     }
-
-    /// <summary>
-    /// Получить карточки публичной группы для предпросмотра
-    /// Это позволяет пользователю увидеть содержимое группы перед подпиской
-    /// </summary>
+    
     public async Task<ServiceResult<IEnumerable<object>>> GetPublicGroupCardsAsync(Guid groupId)
     {
         try

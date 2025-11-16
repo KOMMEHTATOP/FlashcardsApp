@@ -51,7 +51,7 @@ public class GroupBL : IGroupBL
             .Where(g => g.UserId == userId)
             .OrderBy(g => g.Order)
             .ThenBy(g => g.CreatedAt)
-            .Select(GroupMapper.ToDtoExpression())  // Используем Expression mapper для оптимизации
+            .Select(GroupMapper.ToDtoExpression())  // Expression mapper для оптимизации
             .AsNoTracking()
             .ToListAsync();
 
