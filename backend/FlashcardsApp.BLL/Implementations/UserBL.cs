@@ -40,50 +40,44 @@ public class UserBL : IUserBL
         try
         {
             _logger.LogInformation("Fetching dashboard for user {UserId}", userId);
-            
+
             var user = await _userManager.FindByIdAsync(userId.ToString());
+
             if (user == null)
             {
                 _logger.LogWarning("User {UserId} not found", userId);
                 return ServiceResult<UserDashboardDto>.Failure("Пользователь не найден");
             }
 
-            // Загружаем все данные параллельно для оптимизации
-            var statisticsTask = _statisticsBl.GetUserStatsAsync(userId);
-            var groupsTask = _groupBl.GetGroupsAsync(userId);
-            var achievementsTask = _achievementBL.GetAllAchievementsWithStatusAsync(userId);
-            var subscriptionsTask = _subscriptionBL.GetSubscribedGroupsAsync(userId);
+            // Выполняем запросы ПОСЛЕДОВАТЕЛЬНО, не параллельно
+            var statisticsResult = await _statisticsBl.GetUserStatsAsync(userId);
+            var groupsResult = await _groupBl.GetGroupsAsync(userId);
+            var achievementsResult = await _achievementBL.GetAllAchievementsWithStatusAsync(userId);
+            var subscriptionsResult = await _subscriptionBL.GetSubscribedGroupsAsync(userId);
 
-            await Task.WhenAll(statisticsTask, groupsTask, achievementsTask, subscriptionsTask);
-
-            var statisticsResult = await statisticsTask;
-            var groupsResult = await groupsTask;
-            var achievementsResult = await achievementsTask;
-            var subscriptionsResult = await subscriptionsTask;
-
-            // Считаем общее количество подписчиков на все группы пользователя
+            // Считаем общее количество подписчиков
             var totalSubscribers = 0;
+
             if (groupsResult.IsSuccess && groupsResult.Data != null)
             {
                 totalSubscribers = groupsResult.Data.Sum(g => g.SubscriberCount);
             }
 
-            // Агрегируем результаты
             var dashboard = new UserDashboardDto
             {
                 Id = user.Id,
                 Login = user.Login,
                 Email = user.Email,
                 Statistics = statisticsResult.IsSuccess ? statisticsResult.Data : null,
-                Groups = groupsResult.IsSuccess 
-                    ? groupsResult.Data!.ToList() 
+                Groups = groupsResult.IsSuccess
+                    ? groupsResult.Data!.ToList()
                     : new List<ResultGroupDto>(),
-                Achievements = achievementsResult.IsSuccess 
-                    ? achievementsResult.Data!.ToList() 
+                Achievements = achievementsResult.IsSuccess
+                    ? achievementsResult.Data!.ToList()
                     : new List<AchievementWithStatusDto>(),
                 TotalSubscribers = totalSubscribers,
-                MySubscriptions = subscriptionsResult.IsSuccess 
-                    ? subscriptionsResult.Data!.ToList() 
+                MySubscriptions = subscriptionsResult.IsSuccess
+                    ? subscriptionsResult.Data!.ToList()
                     : new List<SubscribedGroupDto>()
             };
 

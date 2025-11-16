@@ -30,7 +30,7 @@ const modulePage = [
 ];
 
 export function HomePage() {
-    const { user, achivment, groups, motivationText } = useData();
+    const { user,achivment, groups, motivationText } = useData();
     useTitle("Главная");
 
     const [modul] = useState<typeof modulePage>(modulePage);
@@ -77,7 +77,7 @@ export function HomePage() {
             case 1:
                 return <StoreTab />;
             case 2:
-                return <AchievementsTab achievements={achivment} />;
+                return <AchievementsTab />;
             default:
                 return null;
         }
@@ -117,11 +117,7 @@ export function HomePage() {
                     <StateCard
                         icon={Award}
                         label="Достижения"
-                        value={
-                            `${achivment?.filter((item) => item.IsUnlocked).length}/${
-                                achivment?.length
-                            }` || "0/0"
-                        }
+                        value={`${achivment?.filter((item) => item.IsUnlocked).length || 0}/${achivment?.length || 0}`}
                         gradient="from-green-500 to-emerald-500"
                         delay={0.3}
                     />
