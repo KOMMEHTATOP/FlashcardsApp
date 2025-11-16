@@ -157,7 +157,7 @@ interface SubscribedGroupDto {
 }
 // Тип для карточек публичной группы (предпросмотр)
 interface PublicGroupCardDto {
-  Id: string;
+  CardId: string;
   Question: string;
   Answer: string;
   CreatedAt: string;

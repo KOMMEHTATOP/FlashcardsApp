@@ -25,7 +25,7 @@ export default function GroupPreviewModal({
     const [cards, setCards] = useState<PublicGroupCardDto[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const loadingRef = useRef(false);  // Guard против двойной загрузки
+    const loadingRef = useRef(false);  
 
     useEffect(() => {
         if (!isOpen) {
@@ -148,48 +148,30 @@ export default function GroupPreviewModal({
                                 )}
 
                                 {!loading && !error && cards.length > 0 && (
-                                    <AnimatePresence mode="popLayout">
-                                        <motion.div
-                                            key={`grid-${groupId}-${cards.length}`}
-                                            initial={{ opacity: 0 }}
-                                            animate={{ opacity: 1 }}
-                                            exit={{ opacity: 0 }}
-                                            transition={{ duration: 0.3 }}
-                                            className="grid grid-cols-1 md:grid-cols-2 gap-4"
-                                        >
-                                            {cards.map((card) => (
-                                                <motion.div
-                                                    key={card.Id}
-                                                    layout
-                                                    initial={{ opacity: 0, y: 20 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    exit={{ opacity: 0, y: -20 }}
-                                                    transition={{ duration: 0.2 }}
-                                                    className="card bg-base-200 shadow-md overflow-hidden"
-                                                >
-                                                    <div className="card-body p-4">
-                                                        {/* Вопрос */}
-                                                        <div className="mb-3">
-                                                            <h4 className="text-xs font-semibold text-base-content/60 mb-1">
-                                                                ВОПРОС:
-                                                            </h4>
-                                                            <p className="text-base font-medium">{card.Question}</p>
-                                                        </div>
-
-                                                        <div className="divider my-1"></div>
-
-                                                        {/* Ответ */}
-                                                        <div>
-                                                            <h4 className="text-xs font-semibold text-base-content/60 mb-1">
-                                                                ОТВЕТ:
-                                                            </h4>
-                                                            <p className="text-base">{card.Answer}</p>
-                                                        </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {cards.map((card) => (
+                                            <div
+                                                key={card.CardId}
+                                                className="card bg-base-200 shadow-md overflow-hidden"
+                                            >
+                                                <div className="card-body p-4">
+                                                    <div className="mb-3">
+                                                        <h4 className="text-xs font-semibold text-base-content/60 mb-1">
+                                                            ВОПРОС:
+                                                        </h4>
+                                                        <p className="text-base font-medium">{card.Question}</p>
                                                     </div>
-                                                </motion.div>
-                                            ))}
-                                        </motion.div>
-                                    </AnimatePresence>
+                                                    <div className="divider my-1"></div>
+                                                    <div>
+                                                        <h4 className="text-xs font-semibold text-base-content/60 mb-1">
+                                                            ОТВЕТ:
+                                                        </h4>
+                                                        <p className="text-base">{card.Answer}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
                                 )}
                             </div>
 

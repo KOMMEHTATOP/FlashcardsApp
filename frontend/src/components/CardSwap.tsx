@@ -35,7 +35,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
     <div
       ref={ref}
       {...rest}
-      className={`card ${customClass ?? ""} ${rest.className ?? ""}`.trim()}
+      className={`card-swap-item ${customClass ?? ""} ${rest.className ?? ""}`.trim()}
     />
   )
 );

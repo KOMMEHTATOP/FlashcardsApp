@@ -222,10 +222,10 @@ export function StoreTab() {
                 <GroupPreviewModal
                     isOpen={previewModal.isOpen}
                     onClose={handleClosePreview}
-                    groupId={previewModal.group.Id}
-                    groupName={previewModal.group.GroupName}
-                    gradient={previewModal.group.GroupColor}
-                    onSubscribe={() => handleSubscribe(previewModal.group!.Id)}
+                    groupId={previewModal.group?.Id || ""}
+                    groupName={previewModal.group?.GroupName || ""}
+                    gradient={previewModal.group?.GroupColor || "from-gray-500 to-gray-600"}
+                    onSubscribe={() => previewModal.group && handleSubscribe(previewModal.group.Id)}
                 />
             )}
         </motion.div>
