@@ -39,6 +39,7 @@ namespace FlashcardsApp.Api.Controllers
         public async Task<IActionResult> GetGroup(Guid groupId)
         {
             var userId = GetCurrentUserId();
+            
             var result = await _groupBl.GetGroupByIdAsync(groupId, userId);
 
             return OkOrNotFound(result);

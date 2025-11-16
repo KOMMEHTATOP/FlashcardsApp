@@ -24,8 +24,8 @@ import { StoreTab } from "../components/tabs/StoreTab";
 import { AchievementsTab } from "../components/tabs/AchievementsTab";
 
 const modulePage = [
-    { name: "Уроки" },
-    { name: "Магазин" },
+    { name: "Мои группы" },
+    { name: "Общие группы" },
     { name: "Достижения" }
 ];
 
@@ -141,20 +141,20 @@ export function HomePage() {
                         className={`tab gap-2 transition-all duration-300 ${
                             currentModul === 0 ? "tab-active bg-base-100" : "opacity-50"
                         }`}
-                        onClick={() => selectModul("Уроки")}
+                        onClick={() => selectModul("Мои группы")}
                     >
                         <BookOpen className="h-5 w-5 text-base-content" />
-                        Уроки
+                        Мои группы
                     </button>
                     <button
                         role="tab"
                         className={`tab gap-2 transition-all duration-300 ${
                             currentModul === 1 ? "tab-active bg-base-100" : "opacity-50"
                         }`}
-                        onClick={() => selectModul("Магазин")}
+                        onClick={() => selectModul("Общие группы")}
                     >
                         <Store className="h-5 w-5 text-base-content" />
-                        Магазин
+                        Общие группы
                     </button>
                     <button
                         role="tab"

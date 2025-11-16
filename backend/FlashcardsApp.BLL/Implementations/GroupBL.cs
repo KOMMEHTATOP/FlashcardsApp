@@ -29,8 +29,9 @@ public class GroupBL : IGroupBL
 
         var group = await _context.Groups
             .AsNoTracking()
-            .Select(GroupMapper.ToDtoExpression())  
-            .FirstOrDefaultAsync(g => g.Id == groupId && g.Id == userId);
+            .Where(g => g.Id == groupId && g.UserId == userId)  
+            .Select(GroupMapper.ToDtoExpression())               
+            .FirstOrDefaultAsync();
 
         if (group == null)
         {
