@@ -6,6 +6,7 @@ namespace FlashcardsApp.BLL.Interfaces;
 public interface ISubscriptionBL
 {
     Task<ServiceResult<IEnumerable<PublicGroupDto>>> GetPublicGroupsAsync(
+        Guid currentUserId,
         string? search = null,
         string sortBy = "date",
         int page = 1,
@@ -25,4 +26,10 @@ public interface ISubscriptionBL
     /// Получить карточки публичной группы для предпросмотра перед подпиской
     /// </summary>
     Task<ServiceResult<IEnumerable<object>>> GetPublicGroupCardsAsync(Guid groupId);
+    
+    /// <summary>
+    /// Получить детали публичной группы по ID, включая статус подписки текущего пользователя.
+    /// </summary>
+    // Тип возвращаемого значения изменен на ваш PublicGroupDto:
+    Task<ServiceResult<PublicGroupDto>> GetPublicGroupDetailsAsync(Guid groupId, Guid currentUserId);
 }

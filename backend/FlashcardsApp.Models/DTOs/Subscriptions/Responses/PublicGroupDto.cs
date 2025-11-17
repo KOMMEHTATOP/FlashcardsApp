@@ -10,4 +10,5 @@ public class PublicGroupDto
     public int CardCount { get; set; }
     public int SubscriberCount { get; set; }
     public DateTime CreatedAt { get; set; }
+    public bool IsSubscribed { get; set; }
 }

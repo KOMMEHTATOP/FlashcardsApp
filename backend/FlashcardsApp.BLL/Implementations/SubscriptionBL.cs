@@ -18,7 +18,49 @@ public class SubscriptionBL : ISubscriptionBL
         _logger = logger;
     }
 
+    /// <summary>
+    /// Получить детали публичной группы по ID, включая статус подписки текущего пользователя.
+    /// </summary>
+    public async Task<ServiceResult<PublicGroupDto>> GetPublicGroupDetailsAsync(Guid groupId, Guid currentUserId)
+    {
+        try
+        {
+            var groupDetails = await _context.Groups
+                // Проверяем существование и статус публикации
+                .Where(g => g.Id == groupId && g.IsPublished) 
+                .Select(g => new PublicGroupDto
+                {
+                    Id = g.Id,
+                    GroupName = g.GroupName,
+                    GroupColor = g.GroupColor,
+                    GroupIcon = g.GroupIcon,
+                    AuthorName = g.User.Login,
+                    CardCount = g.Cards.Count,
+                    SubscriberCount = g.SubscriberCount,
+                    CreatedAt = g.CreatedAt,
+                    // Проверяем статус подписки в одном запросе
+                    IsSubscribed = g.Subscriptions.Any(s => s.SubscriberUserId == currentUserId)
+                })
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
+            if (groupDetails == null)
+            {
+                _logger.LogWarning("Публичная группа {GroupId} не найдена или не опубликована.", groupId);
+                return ServiceResult<PublicGroupDto>.Failure("Группа не найдена или не опубликована");
+            }
+
+            return ServiceResult<PublicGroupDto>.Success(groupDetails);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ошибка при получении деталей публичной группы {GroupId}", groupId);
+            return ServiceResult<PublicGroupDto>.Failure("Ошибка при загрузке деталей группы");
+        }
+    }
+
     public async Task<ServiceResult<IEnumerable<PublicGroupDto>>> GetPublicGroupsAsync(
+        Guid currentUserId,
         string? search = null,
         string sortBy = "date",
         int page = 1,
@@ -30,12 +72,13 @@ public class SubscriptionBL : ISubscriptionBL
             if (pageSize < 1 || pageSize > 100) pageSize = 20;
 
             var query = _context.Groups
-                .Where(g => g.IsPublished)
+                .Where(g => g.IsPublished && g.UserId != currentUserId)
                 .AsNoTracking();
 
             if (!string.IsNullOrWhiteSpace(search))
             {
-                query = query.Where(g => g.GroupName.Contains(search));
+                var searchLower = search.ToLower();
+                query = query.Where(g => g.GroupName.ToLower().Contains(searchLower));
             }
 
             query = sortBy.ToLower() switch
@@ -59,7 +102,8 @@ public class SubscriptionBL : ISubscriptionBL
                     AuthorName = g.User.Login,
                     CardCount = g.Cards.Count,
                     SubscriberCount = g.SubscriberCount,
-                    CreatedAt = g.CreatedAt
+                    CreatedAt = g.CreatedAt,
+                    IsSubscribed = g.Subscriptions.Any(s => s.SubscriberUserId == currentUserId)
                 })
                 .ToListAsync();
 

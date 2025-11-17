@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { GalleryVerticalEndIcon, Users, Eye, type LucideIcon } from "lucide-react";
+import { GalleryVerticalEndIcon, Users, Eye, UserMinus, UserPlus, type LucideIcon } from "lucide-react";
 import React from "react";
 import { Button } from "../../shared/ui/Button";
 
@@ -12,8 +12,10 @@ interface PublicGroupCardProps {
     authorName: string;
     gradient: string;
     createdAt: string;
+    isSubscribed?: boolean;
     onView?: () => void;
     onSubscribe?: () => void;
+    onUnsubscribe?: () => void;
 }
 
 export default function PublicGroupCard({
@@ -25,8 +27,10 @@ export default function PublicGroupCard({
                                             authorName,
                                             gradient,
                                             createdAt,
+                                            isSubscribed = false,
                                             onView,
                                             onSubscribe,
+                                            onUnsubscribe,
                                         }: PublicGroupCardProps) {
     const [pointerStart, setPointerStart] = React.useState<{
         x: number;
@@ -44,7 +48,11 @@ export default function PublicGroupCard({
         const action = target.closest("[data-action]")?.getAttribute("data-action");
 
         if (action === "subscribe") {
-            onSubscribe?.();
+            if (isSubscribed) {
+                onUnsubscribe?.();
+            } else {
+                onSubscribe?.();
+            }
             return;
         }
 
@@ -135,9 +143,23 @@ export default function PublicGroupCard({
                             data-action="subscribe"
                             variant="accent"
                             size="md"
-                            className="rounded-xl flex-1"
+                            className={`rounded-xl flex-1 flex items-center justify-center gap-2 ${
+                                isSubscribed
+                                    ? 'bg-red-500/80 hover:bg-red-600/80'
+                                    : ''
+                            }`}
                         >
-                            Подписаться
+                            {isSubscribed ? (
+                                <>
+                                    <UserMinus className="w-4 h-4" />
+                                    Отписаться
+                                </>
+                            ) : (
+                                <>
+                                    <UserPlus className="w-4 h-4" />
+                                    Подписаться
+                                </>
+                            )}
                         </Button>
                     </div>
                 </div>

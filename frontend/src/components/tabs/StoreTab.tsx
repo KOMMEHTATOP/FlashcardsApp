@@ -4,11 +4,14 @@ import { useState, useEffect } from "react";
 import apiFetch from "../../utils/apiFetch";
 import type { PublicGroupDto } from "../../types/types";
 import PublicGroupCard from "../cards/PublicGroupCard";
-import GroupPreviewModal from "../../../src/components/modal/GroupPreviewModal";
+import GroupPreviewModal from "../modal/GroupPreviewModal";
 import { availableIcons } from "../../test/data";
 import { BookHeartIcon } from "lucide-react";
+import { useData } from "../../context/DataContext";
 
 export function StoreTab() {
+    const { user, setUser } = useData();
+
     const [groups, setGroups] = useState<PublicGroupDto[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -27,6 +30,9 @@ export function StoreTab() {
         isOpen: false,
         group: null,
     });
+
+    // Получаем ID групп, на которые подписан пользователь
+    const subscribedGroupIds = user?.MySubscriptions?.map(sub => sub.Id) || [];
 
     // Загрузка данных при изменении фильтров
     useEffect(() => {
@@ -70,10 +76,58 @@ export function StoreTab() {
     const handleSubscribe = async (groupId: string) => {
         try {
             await apiFetch.post(`/Subscriptions/${groupId}/subscribe`);
-            // Обновляем список после подписки
-            loadPublicGroups();
+
+            // Находим группу для добавления в подписки
+            const subscribedGroup = groups.find(g => g.Id === groupId);
+            if (subscribedGroup && user) {
+                setUser(prev => prev ? {
+                    ...prev,
+                    MySubscriptions: [
+                        ...(prev.MySubscriptions || []),
+                        {
+                            Id: subscribedGroup.Id,
+                            GroupName: subscribedGroup.GroupName,
+                            GroupColor: subscribedGroup.GroupColor,
+                            GroupIcon: subscribedGroup.GroupIcon,
+                            AuthorName: subscribedGroup.AuthorName,
+                            CardCount: subscribedGroup.CardCount,
+                            SubscribedAt: new Date().toISOString()
+                        }
+                    ]
+                } : prev);
+            }
+
+            // Обновляем счётчик подписчиков в списке
+            setGroups(prev => prev.map(g =>
+                g.Id === groupId
+                    ? { ...g, SubscriberCount: g.SubscriberCount + 1 }
+                    : g
+            ));
         } catch (err: any) {
             alert(err.response?.data?.errors?.[0] || "Ошибка подписки");
+        }
+    };
+
+    const handleUnsubscribe = async (groupId: string) => {
+        try {
+            await apiFetch.delete(`/Subscriptions/${groupId}/subscribe`);
+
+            // Удаляем из подписок пользователя
+            if (user) {
+                setUser(prev => prev ? {
+                    ...prev,
+                    MySubscriptions: (prev.MySubscriptions || []).filter(sub => sub.Id !== groupId)
+                } : prev);
+            }
+
+            // Обновляем счётчик подписчиков в списке
+            setGroups(prev => prev.map(g =>
+                g.Id === groupId
+                    ? { ...g, SubscriberCount: Math.max(0, g.SubscriberCount - 1) }
+                    : g
+            ));
+        } catch (err: any) {
+            alert(err.response?.data?.errors?.[0] || "Ошибка отписки");
         }
     };
 
@@ -187,8 +241,10 @@ export function StoreTab() {
                             authorName={group.AuthorName}
                             gradient={group.GroupColor}
                             createdAt={group.CreatedAt}
+                            isSubscribed={subscribedGroupIds.includes(group.Id)}
                             onView={() => handleView(group)}
                             onSubscribe={() => handleSubscribe(group.Id)}
+                            onUnsubscribe={() => handleUnsubscribe(group.Id)}
                         />
                     ))}
                 </div>

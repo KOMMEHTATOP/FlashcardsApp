@@ -21,6 +21,22 @@ namespace FlashcardsApp.Api.Controllers
             _subscriptionBL = subscriptionBL;
         }
 
+        // НОВЫЙ МЕТОД: Получение деталей публичной группы по ID.
+        /// <summary>
+        /// Получить детали публичной группы по ID. Используется для просмотра содержимого.
+        /// </summary>
+        /// <param name="groupId">Идентификатор группы</param>
+        /// <response code="200">Возвращает детали группы</response>
+        /// <response code="404">Группа не найдена или не опубликована</response>
+        /// <response code="401">Пользователь не авторизован</response>
+        [HttpGet("{groupId:guid}")] // <--- ЭНДПОИНТ, ВЫЗЫВАЮЩИЙСЯ С ФРОНТЕНДА
+        public async Task<IActionResult> GetPublicGroupDetails(Guid groupId)
+        {
+            var userId = GetCurrentUserId(); // Получаем ID для проверки подписки
+            var result = await _subscriptionBL.GetPublicGroupDetailsAsync(groupId, userId);
+            return OkOrNotFound(result);
+        }
+
         /// <summary>
         /// Получить список публичных групп для подписки
         /// </summary>
@@ -37,7 +53,8 @@ namespace FlashcardsApp.Api.Controllers
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 20)
         {
-            var result = await _subscriptionBL.GetPublicGroupsAsync(search, sortBy, page, pageSize);
+            var userId = GetCurrentUserId();
+            var result = await _subscriptionBL.GetPublicGroupsAsync(userId, search, sortBy, page, pageSize);
             return OkOrBadRequest(result);
         }
 

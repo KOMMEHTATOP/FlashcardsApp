@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useLocation } from "react-router-dom"; 
 import type {
     ConfrimModalState,
     GroupCardType,
@@ -24,9 +24,15 @@ import AddFlashcardForm from "../components/modal/AddFlashcardForm";
 import SkeletonGroupDetail from "../components/StudySkeleton";
 import { availableIcons } from "../test/data";
 import { errorFormater } from "../utils/errorFormater";
+import { Button } from "../shared/ui/Button"; 
 
 export default function StudyPage({}) {
     const { id } = useParams();
+    const { pathname } = useLocation(); 
+
+    // Переключатель режима: true, если путь начинается с /subscription
+    const isSubscriptionView = pathname.startsWith("/subscription");
+
     const {
         handleSelectLesson,
         deleteCard,
@@ -47,9 +53,12 @@ export default function StudyPage({}) {
 
     const [targetStar] = useState<number>(0);
 
-    // Состояние для публикации
     const [isPublishing, setIsPublishing] = useState(false);
     const [publishError, setPublishError] = useState<string | null>(null);
+
+    const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
+    const [submittingSubscription, setSubmittingSubscription] = useState(false);
+
 
     const filterCards = useMemo(() => {
         return dataDetail.filter((card) =>
@@ -59,49 +68,113 @@ export default function StudyPage({}) {
 
     const proggresGroup = useMemo(() => {
         const totalCards = dataDetail.length;
+        // В режиме подписки прогресс рассчитывается по данным, которые есть
         const completedCards = dataDetail.filter(
             (card) => card.LastRating > 0
         ).length;
         return (completedCards / totalCards) * 100;
     }, [dataDetail]);
 
+    // Запуск урока (используется при просмотре подписки)
+    const handleStartLesson = () => {
+        // Запускаем урок со всеми загруженными карточками
+        handleSelectLesson(dataDetail, group!);
+    }
+
+    // useEffect для загрузки данных
     useEffect(() => {
         const fetchCards = async () => {
             try {
-                const [groupRes, cardsRes] = await Promise.all([
-                    apiFetch.get(`/Group/${id}`),
-                    apiFetch.get(`/groups/${id}/cards`),
-                ]);
-                setGroup(groupRes.data);
-                setDataDetail(cardsRes.data.reverse());
+                setLoading(true);
+                if (isSubscriptionView) {
+                    const groupRes = await apiFetch.get(`/Subscriptions/${id}`);
+                    const groupData = groupRes.data as GroupType & { IsSubscribed: boolean };
+                    setGroup(groupData);
+                    setIsSubscribed(groupData.IsSubscribed);
+
+                    const cardsRes = await apiFetch.get(`/Subscriptions/public/${id}/cards`);
+                    setDataDetail(cardsRes.data.reverse());
+
+                } else {
+                    const [groupRes, cardsRes] = await Promise.all([
+                        apiFetch.get(`/Group/${id}`),
+                        apiFetch.get(`/groups/${id}/cards`),
+                    ]);
+                    setGroup(groupRes.data);
+                    setDataDetail(cardsRes.data.reverse());
+                }
             } catch (err) {
                 console.log(err);
+            } finally {
+                setLoading(false);
             }
         };
 
         fetchCards();
-    }, [id]);
+    }, [id, isSubscriptionView]); 
 
     useTitle(group?.GroupName || "");
 
-    // Функция переключения публичности
+    // Подписка/Отписка
+    const handleToggleSubscription = async () => {
+        if (!group) return;
+
+        setSubmittingSubscription(true);
+        try {
+            if (isSubscribed) {
+                // Отписка (DELETE)
+                await apiFetch.delete(`/Subscriptions/${group.Id}/subscribe`);
+
+                // Обновление локального состояния после отписки
+                setGroup(prev => prev ? {
+                    ...prev,
+                    SubscriberCount: Math.max(0, (prev.SubscriberCount ?? 0) - 1) // Уменьшаем счетчик
+                } : null);
+
+            } else {
+                // Подписка (POST)
+                await apiFetch.post(`/Subscriptions/${group.Id}/subscribe`);
+
+                // Обновление локального состояния после подписки
+                setGroup(prev => prev ? {
+                    ...prev,
+                    SubscriberCount: (prev.SubscriberCount ?? 0) + 1 // Увеличиваем счетчик
+                } : null);
+            }
+
+            // Инвертируем статус подписки
+            setIsSubscribed(prev => !prev);
+
+        } catch (err) {
+            console.error("Ошибка при подписке/отписке:", err);
+            // Обработка ошибки
+        } finally {
+            setSubmittingSubscription(false);
+        }
+    };
+
+
+    // Функция переключения публичности (используется только в режиме /study)
     const handleTogglePublish = async () => {
         if (!group) return;
 
         setIsPublishing(true);
         setPublishError(null);
 
+        const newPublishedState = !group.IsPublished;
+
         try {
             await apiFetch.post(`/Group/change-access-group`, {
-                GroupId: id
+                GroupId: id,
+                IsPublished: newPublishedState
             });
 
-            setGroup(prev => prev ? { ...prev, IsPublished: !prev.IsPublished } : null);
+            setGroup(prev => prev ? { ...prev, IsPublished: newPublishedState } : null);
 
             // Синхронизируем с глобальным состоянием
             setGroups(prev =>
                 prev.map(g =>
-                    g.Id === id ? { ...g, IsPublished: !g.IsPublished } : g
+                    g.Id === id ? { ...g, IsPublished: newPublishedState } : g
                 )
             );
         } catch (err: any) {
@@ -189,7 +262,7 @@ export default function StudyPage({}) {
 
     const handleCloseModal = () => setIsOpenAddModal(false);
 
-    if (!group) return <SkeletonGroupDetail />;
+    if (!group || loading) return <SkeletonGroupDetail />;
     const Icon =
         availableIcons.find((icon) => icon.name === group.GroupIcon)?.icon ||
         BookHeartIcon;
@@ -258,42 +331,59 @@ export default function StudyPage({}) {
                                     </div>
                                 )}
 
-                                {/* Spacer для прижатия checkbox вправо */}
+                                {/* Spacer для прижатия кнопки вправо */}
                                 <div className="flex-1" />
 
-                                {/* Checkbox публикации */}
+                                {/* Checkbox публикации ИЛИ Кнопка Подписка/Отписка */}
                                 <div className="flex flex-col items-end">
-                                    <label className={`
-                                        flex items-center gap-2 cursor-pointer
-                                        ${!canPublish ? 'opacity-50 cursor-not-allowed' : ''}
-                                        ${isPublishing ? 'opacity-50 cursor-wait' : ''}
-                                    `}>
-                                        <span className="text-white text-sm">
-                                            Поделиться с другими
-                                        </span>
-                                        <input
-                                            type="checkbox"
-                                            checked={group?.IsPublished || false}
-                                            onChange={handleTogglePublish}
-                                            disabled={isPublishing || !canPublish}
-                                            className="checkbox checkbox-success bg-white border-2 border-gray-800"
-                                        />
-                                        {isPublishing && (
-                                            <span className="loading loading-spinner loading-xs text-white"></span>
-                                        )}
-                                    </label>
+                                    {isSubscriptionView ? (
+                                        // РЕЖИМ ПОДПИСКИ: Кнопка Подписаться/Отписаться
+                                        <Button
+                                            onClick={handleToggleSubscription}
+                                            variant={isSubscribed ? "secondary" : "accent"}
+                                            disabled={submittingSubscription}
+                                        >
+                                            {submittingSubscription
+                                                ? 'Обработка...'
+                                                : isSubscribed ? 'Отписаться' : 'Подписаться'
+                                            }
+                                        </Button>
+                                    ) : (
+                                        // РЕЖИМ СОБСТВЕННОЙ ГРУППЫ: Checkbox публикации
+                                        <>
+                                            <label className={`
+                                                flex items-center gap-2 cursor-pointer
+                                                ${!canPublish ? 'opacity-50 cursor-not-allowed' : ''}
+                                                ${isPublishing ? 'opacity-50 cursor-wait' : ''}
+                                            `}>
+                                                <span className="text-white text-sm">
+                                                    Поделиться с другими
+                                                </span>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={group?.IsPublished || false}
+                                                    onChange={handleTogglePublish}
+                                                    disabled={isPublishing || !canPublish}
+                                                    className="checkbox checkbox-success bg-white border-2 border-gray-800"
+                                                />
+                                                {isPublishing && (
+                                                    <span className="loading loading-spinner loading-xs text-white"></span>
+                                                )}
+                                            </label>
 
-                                    {/* Подсказка о минимуме карточек */}
-                                    {!canPublish && (
-                                        <div className="text-xs text-white/70 mt-1">
-                                            Нужно минимум 10 карточек
-                                        </div>
+                                            {/* Подсказка о минимуме карточек */}
+                                            {!canPublish && (
+                                                <div className="text-xs text-white/70 mt-1">
+                                                    Нужно минимум 10 карточек
+                                                </div>
+                                            )}
+                                        </>
                                     )}
                                 </div>
                             </div>
 
                             {/* Ошибка публикации */}
-                            {publishError && (
+                            {publishError && !isSubscriptionView && (
                                 <div className="bg-red-500/20 text-white px-3 py-2 rounded-lg text-sm mb-2">
                                     {publishError}
                                 </div>
@@ -337,36 +427,52 @@ export default function StudyPage({}) {
 
                     <div
                         className="
-                grid grid-cols-1 sm:grid-cols-3 md:flex 
-                md:flex-row md:items-center 
-                gap-3 md:gap-4 text-base-content/80
-                w-full md:w-auto
-              "
+                            grid grid-cols-1 sm:grid-cols-3 md:flex 
+                            md:flex-row md:items-center 
+                            gap-3 md:gap-4 text-base-content/80
+                            w-full md:w-auto
+                        "
                     >
-                        <div className="flex justify-center md:justify-start">
-                            <AddFlashcardForm
-                                handleAddCard={handleAddCard}
-                                isOpen={isOpenAddModal}
-                                handleNewCard={handleNewCard}
-                                handleCloseModal={handleCloseModal}
-                                question={newQuestion}
-                                answer={newAnswer}
-                                setQuestion={setNewQuestion}
-                                setAnswer={setNewAnswer}
-                                loading={loading}
-                                isUpdateCard={targetCard !== null}
-                                error={error || ""}
-                                subjectColor={group?.GroupColor || "from-pink-400 to-rose-500"}
-                            />
-                        </div>
+                        {isSubscriptionView ? (
+                            // РЕЖИМ ПОДПИСКИ: Кнопка "Начать урок"
+                            <div className="flex justify-center md:justify-start">
+                                <Button
+                                    variant="accent"
+                                    size="md"
+                                    onClick={handleStartLesson}
+                                    className="w-full md:w-auto"
+                                    disabled={dataDetail.length === 0}
+                                >
+                                    Начать урок
+                                </Button>
+                            </div>
+                        ) : (
+                            // РЕЖИМ СОБСТВЕННОЙ ГРУППЫ: Кнопка "Добавить/Редактировать карточку"
+                            <div className="flex justify-center md:justify-start">
+                                <AddFlashcardForm
+                                    handleAddCard={handleAddCard}
+                                    isOpen={isOpenAddModal}
+                                    handleNewCard={handleNewCard}
+                                    handleCloseModal={handleCloseModal}
+                                    question={newQuestion}
+                                    answer={newAnswer}
+                                    setQuestion={setNewQuestion}
+                                    setAnswer={setNewAnswer}
+                                    loading={loading}
+                                    isUpdateCard={targetCard !== null}
+                                    error={error || ""}
+                                    subjectColor={group?.GroupColor || "from-pink-400 to-rose-500"}
+                                />
+                            </div>
+                        )}
 
                         <div className="flex items-center justify-center md:justify-start gap-2">
                             <Trophy className="w-5 h-5" />
                             <span>
-                Завершено{" "}
+                                Завершено{" "}
                                 {dataDetail.filter((item) => item.LastRating > 0).length} из{" "}
                                 {dataDetail.length}
-              </span>
+                            </span>
                         </div>
                     </div>
                 </motion.div>
@@ -400,8 +506,9 @@ export default function StudyPage({}) {
                                     onClick={() => {
                                         handleSelectLesson(filterCards, group!, index);
                                     }}
-                                    onDelete={() => handleDeleteCard(item)}
-                                    onEdit={() => handleEditCard(item)}
+                                    // Скрываем кнопки удаления/редактирования в режиме подписки
+                                    onDelete={!isSubscriptionView ? () => handleDeleteCard(item) : undefined}
+                                    onEdit={!isSubscriptionView ? () => handleEditCard(item) : undefined}
                                 />
                             </motion.div>
                         ))}

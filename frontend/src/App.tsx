@@ -60,6 +60,18 @@ function App() {
                         </PrivateRoute>
                     }
                 />
+
+                <Route
+                    path="/subscription/:id"
+                    element={
+                        <PrivateRoute>
+                            <>
+                                <ScrollToTop />
+                                <StudyPage />
+                            </>
+                        </PrivateRoute>
+                    }
+                />
             </Route>
 
             <Route path="*" element={<NotFoundPage />} />
