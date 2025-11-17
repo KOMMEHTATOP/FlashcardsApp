@@ -12,6 +12,7 @@ import {
     Frown,
     GalleryVerticalEndIcon,
     Trophy,
+    Users,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import MotivationCard from "../components/cards/Motivation_card";
@@ -46,6 +47,10 @@ export default function StudyPage({}) {
 
     const [targetStar] = useState<number>(0);
 
+    // Состояние для публикации
+    const [isPublishing, setIsPublishing] = useState(false);
+    const [publishError, setPublishError] = useState<string | null>(null);
+
     const filterCards = useMemo(() => {
         return dataDetail.filter((card) =>
             targetStar !== 0 ? card.LastRating === targetStar : card
@@ -78,6 +83,37 @@ export default function StudyPage({}) {
     }, [id]);
 
     useTitle(group?.GroupName || "");
+
+    // Функция переключения публичности
+    const handleTogglePublish = async () => {
+        if (!group) return;
+
+        setIsPublishing(true);
+        setPublishError(null);
+
+        try {
+            await apiFetch.post(`/Group/change-access-group`, {
+                GroupId: id
+            });
+
+            setGroup(prev => prev ? { ...prev, IsPublished: !prev.IsPublished } : null);
+
+            // Синхронизируем с глобальным состоянием
+            setGroups(prev =>
+                prev.map(g =>
+                    g.Id === id ? { ...g, IsPublished: !g.IsPublished } : g
+                )
+            );
+        } catch (err: any) {
+            const errorMessage = err.response?.data?.errors?.[0] ||
+                err.response?.data?.message ||
+                'Ошибка при изменении доступа';
+            setPublishError(errorMessage);
+            console.error('Ошибка публикации:', err);
+        } finally {
+            setIsPublishing(false);
+        }
+    };
 
     const handleAddCard = async (
         question: string,
@@ -158,6 +194,8 @@ export default function StudyPage({}) {
         availableIcons.find((icon) => icon.name === group.GroupIcon)?.icon ||
         BookHeartIcon;
 
+    const canPublish = (group?.CardCount || 0) >= 10;
+
     return (
         <div className="min-h-screen">
             <Link
@@ -193,7 +231,7 @@ export default function StudyPage({}) {
                         </motion.div>
 
                         <div className="flex-1 text-center sm:text-left">
-                            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 mb-2 w-full">
+                            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 mb-2 w-full flex-wrap">
                                 <h1 className="text-4xl text-white">{group?.GroupName}</h1>
                                 {Number(group?.CardCount) > 0 && (
                                     <motion.div
@@ -211,7 +249,56 @@ export default function StudyPage({}) {
                                         </span>
                                     </motion.div>
                                 )}
+
+                                {/* Счётчик подписчиков */}
+                                {group?.IsPublished && (group?.SubscriberCount || 0) > 0 && (
+                                    <div className="bg-white/20 text-white px-3 py-2 rounded-full flex items-center gap-1 text-sm">
+                                        <Users className="w-4 h-4" />
+                                        <span>{group.SubscriberCount} подписчиков</span>
+                                    </div>
+                                )}
+
+                                {/* Spacer для прижатия checkbox вправо */}
+                                <div className="flex-1" />
+
+                                {/* Checkbox публикации */}
+                                <div className="flex flex-col items-end">
+                                    <label className={`
+                                        flex items-center gap-2 cursor-pointer
+                                        ${!canPublish ? 'opacity-50 cursor-not-allowed' : ''}
+                                        ${isPublishing ? 'opacity-50 cursor-wait' : ''}
+                                    `}>
+                                        <span className="text-white text-sm">
+                                            Поделиться с другими
+                                        </span>
+                                        <input
+                                            type="checkbox"
+                                            checked={group?.IsPublished || false}
+                                            onChange={handleTogglePublish}
+                                            disabled={isPublishing || !canPublish}
+                                            className="checkbox checkbox-success bg-white border-2 border-gray-800"
+                                        />
+                                        {isPublishing && (
+                                            <span className="loading loading-spinner loading-xs text-white"></span>
+                                        )}
+                                    </label>
+
+                                    {/* Подсказка о минимуме карточек */}
+                                    {!canPublish && (
+                                        <div className="text-xs text-white/70 mt-1">
+                                            Нужно минимум 10 карточек
+                                        </div>
+                                    )}
+                                </div>
                             </div>
+
+                            {/* Ошибка публикации */}
+                            {publishError && (
+                                <div className="bg-red-500/20 text-white px-3 py-2 rounded-lg text-sm mb-2">
+                                    {publishError}
+                                </div>
+                            )}
+
                             <p className="text-white/90 text-lg mb-4">
                                 Овладейте основами и раскройте свой потенциал
                             </p>

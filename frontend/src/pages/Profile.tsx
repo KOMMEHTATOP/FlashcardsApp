@@ -277,9 +277,18 @@ export function ProfilePage() {
                                         <span className="text-xl">{group.GroupIcon}</span>
                                         <span className="font-medium">{group.GroupName}</span>
                                     </div>
-                                    <span className="text-sm text-base-content/70">
-                                        {group.CardCount} карточек
-                                    </span>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-sm text-base-content/70">
+                                            {group.CardCount} карточек
+                                        </span>
+                                        <div className="w-4">
+                                            {group.IsPublished && (
+                                                <div className="tooltip tooltip-left" data-tip="Опубликовано">
+                                                    <Globe className="w-4 h-4 text-green-500" />
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
                             ))}
                         </div>

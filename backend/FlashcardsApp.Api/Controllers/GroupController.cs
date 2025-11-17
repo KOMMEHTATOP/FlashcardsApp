@@ -112,10 +112,11 @@ namespace FlashcardsApp.Api.Controllers
         /// <param name="dto">Модель с параметрами</param>
 
         [HttpPost("change-access-group")]
-        public async Task<IActionResult> ChangeAccessGroup([FromBody]ChangeAccessGroupDto dto)
+        public async Task<IActionResult> ChangeAccessGroup([FromBody] ChangeAccessGroupDto dto)
         {
-            var result = await _groupBl.ChangeAccessGroupAsync(dto.GroupId, dto.UserId, dto.IsPublished);
-            return  OkOrBadRequest(result);
+            var userId = GetCurrentUserId(); 
+            var result = await _groupBl.ChangeAccessGroupAsync(dto.GroupId, userId, dto.IsPublished);
+            return OkOrBadRequest(result);
         }
         
     }
