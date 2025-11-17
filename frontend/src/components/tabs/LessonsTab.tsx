@@ -23,13 +23,12 @@ export function LessonsTab({ groups, onOpenSettings }: LessonsTabProps) {
         try {
             const response = await apiFetch.get(`/Subscriptions/public/${subscription.Id}/cards`);
 
-            // Маппим карточки, добавляя недостающие поля для GroupCardType
             const cards: GroupCardType[] = response.data.map((card: any) => ({
                 CardId: card.CardId,
                 GroupId: subscription.Id,
                 Question: card.Question,
                 Answer: card.Answer,
-                LastRating: 0, // У пользователя своя история изучения
+                LastRating: 0,
                 completed: false,
                 UpdatedAt: card.CreatedAt,
                 CreatedAt: card.CreatedAt
@@ -37,7 +36,7 @@ export function LessonsTab({ groups, onOpenSettings }: LessonsTabProps) {
 
             if (!cards || cards.length === 0) return;
 
-            // Создаём объект группы для handleSelectLesson
+            // Конвертируем SubscribedGroupDto в GroupType для handleSelectLesson
             const groupForLesson: GroupType = {
                 Id: subscription.Id,
                 GroupName: subscription.GroupName,
@@ -46,12 +45,9 @@ export function LessonsTab({ groups, onOpenSettings }: LessonsTabProps) {
                 CreatedAt: subscription.SubscribedAt,
                 Order: 0,
                 CardCount: subscription.CardCount,
-                Icon: subscription.GroupIcon || "",
             };
 
-            // Скроллим вверх перед запуском урока
             window.scrollTo({ top: 0, behavior: "smooth" });
-
             handleSelectLesson(cards, groupForLesson);
         } catch (err) {
             console.error("Ошибка загрузки карточек подписки:", err);

@@ -1,3 +1,5 @@
+// ==================== CORE TYPES ====================
+
 type AppContextType = {
   user: UserData | undefined;
   setUser: React.Dispatch<React.SetStateAction<UserData | undefined>>;
@@ -14,9 +16,9 @@ type AppContextType = {
   putGroups: (group: GroupType) => void;
 
   handleSelectLesson: (
-    subject: GroupCardType[],
-    group: GroupType,
-    index?: number
+      subject: GroupCardType[],
+      group: GroupType,
+      index?: number
   ) => void;
 
   currentLesson: CurrentLessonState | undefined;
@@ -35,19 +37,14 @@ type AppContextType = {
   motivationText: MotivationType | undefined;
 };
 
-type CurrentLessonState = {
-  group: GroupType;
-  cards: GroupCardType[];
-  initialIndex: number;
-  length: number;
-};
+// ==================== USER ====================
 
 interface UserData {
-  Id: string;  
+  Id: string;
   Login?: string;
   Email: string;
-  TotalSubscribers?: number;  
-  MySubscriptions?: SubscribedGroupDto[]; 
+  TotalSubscribers?: number;
+  MySubscriptions?: SubscribedGroupDto[];
   Statistics: UserState;
   Groups: GroupType[];
 }
@@ -60,11 +57,94 @@ interface UserState {
   XPRequiredForCurrentLevel: number;
   CurrentStreak: number;
   BestStreak: number;
-  TotalStudyTime: String;
+  TotalStudyTime: string;
   TotalCardsStudied: number;
   TotalCardsCreated: number;
   PerfectRatingsStreak: number;
 }
+
+// ==================== GROUPS ====================
+
+// Своя группа пользователя
+interface GroupType {
+  Id: string;
+  GroupName: string;
+  GroupColor: string;
+  GroupIcon: string;
+  CreatedAt: string;
+  Order: number;
+  CardCount: number;
+  IsPublished?: boolean;
+  SubscriberCount?: number;
+}
+
+// Публичная группа в магазине
+interface PublicGroupDto {
+  Id: string;
+  GroupName: string;
+  GroupColor: string;
+  GroupIcon: string | null;
+  AuthorName: string;
+  CardCount: number;
+  SubscriberCount: number;
+  CreatedAt: string;
+}
+
+// Подписка на чужую группу
+interface SubscribedGroupDto {
+  Id: string;
+  GroupName: string;
+  GroupColor: string;
+  GroupIcon: string | null;
+  AuthorName: string;
+  CardCount: number;
+  SubscribedAt: string;
+}
+
+// ==================== CARDS ====================
+
+interface GroupCardType {
+  CardId: string;
+  GroupId: string;
+  Question: string;
+  Answer: string;
+  LastRating: number;
+  completed: boolean;
+  UpdatedAt: string;
+  CreatedAt: string;
+}
+
+// Для предпросмотра публичных карточек (API response)
+interface PublicGroupCardDto {
+  CardId: string;
+  Question: string;
+  Answer: string;
+  CreatedAt: string;
+}
+
+// ==================== STUDY ====================
+
+type CurrentLessonState = {
+  group: GroupType;
+  cards: GroupCardType[];
+  initialIndex: number;
+  length: number;
+};
+
+interface StudyHistoryDto {
+  CardId: string;
+  CardQuestion: string;
+  Answer: string;
+  Rating: number;
+  StudiedAt: string;
+  XPEarned: number;
+  GroupName: string;
+  GroupColor: string;
+}
+
+type RatingValue = 0 | 1 | 2 | 3 | 4 | 5;
+
+// ==================== SETTINGS ====================
 
 interface SettingType {
   StudyOrder: string;
@@ -73,6 +153,8 @@ interface SettingType {
   CompletionThreshold: number;
   ShuffleOnRepeat: boolean;
 }
+
+// ==================== ACHIEVEMENTS ====================
 
 interface AchievementsType {
   Id: string;
@@ -86,39 +168,7 @@ interface AchievementsType {
   Rarity: string;
 }
 
-interface GroupType {
-  Id: string;
-  GroupName: string;
-  GroupColor: string;
-  GroupIcon: string;
-  CreatedAt: string;
-  Order: number;
-  CardCount: number;
-  Icon: string;
-  IsPublished?: boolean; 
-  SubscriberCount?: number;  
-
-}
-
-interface GroupCardType {
-  CardId: string;
-  GroupId: string;
-  Question: string;
-  Answer: string;
-  LastRating: number;
-  completed: boolean;
-  UpdatedAt: string;
-  CreatedAt: string;
-}
-
-type RatingValue = 0 | 1 | 2 | 3 | 4 | 5;
-
-interface FlashCard {
-  id: number;
-  question: string;
-  answer: string;
-  hint?: string;
-}
+// ==================== UI ====================
 
 type ConfrimModalState = {
   title: string;
@@ -133,69 +183,37 @@ type MotivationType = {
   Type: string;
 };
 
-interface QuestionType {
-  question: string;
-  gradient: string;
-}
-
-// Типы для публичного магазина групп
-interface PublicGroupDto {
-  Id: string;
-  GroupName: string;
-  GroupColor: string;
-  GroupIcon: string | null;
-  AuthorName: string;
-  CardCount: number;
-  SubscriberCount: number;
-  CreatedAt: string;
-}
-
-// Типы для подписок
-interface SubscribedGroupDto {
-  Id: string;
-  GroupName: string;
-  GroupColor: string;
-  GroupIcon: string | null;
-  AuthorName: string;
-  CardCount: number;
-  SubscribedAt: string;
-}
-// Тип для карточек публичной группы (предпросмотр)
-interface PublicGroupCardDto {
-  CardId: string;
-  Question: string;
-  Answer: string;
-  CreatedAt: string;
-}
-
-interface StudyHistoryDto {
-  CardId: string;
-  CardQuestion: string;
-  Answer: string;
-  Rating: number;
-  StudiedAt: string;
-  XPEarned: number;
-  GroupName: string;
-  GroupColor: string;
-}
-
+// ==================== EXPORTS ====================
 
 export type {
+  // Core
+  AppContextType,
+
+  // User
   UserState,
   UserData,
-  GroupCardType,
-  RatingValue,
-  FlashCard,
-  AchievementsType,
+
+  // Groups
   GroupType,
-  ConfrimModalState,
-  SettingType,
-  MotivationType,
-  AppContextType,
-  CurrentLessonState,
-  QuestionType,
   PublicGroupDto,
   SubscribedGroupDto,
+
+  // Cards
+  GroupCardType,
   PublicGroupCardDto,
+  RatingValue,
+
+  // Study
+  CurrentLessonState,
   StudyHistoryDto,
+
+  // Settings
+  SettingType,
+
+  // Achievements
+  AchievementsType,
+
+  // UI
+  ConfrimModalState,
+  MotivationType,
 };

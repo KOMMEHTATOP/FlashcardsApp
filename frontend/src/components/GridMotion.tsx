@@ -1,9 +1,13 @@
 import { useEffect, useRef, type FC } from "react";
 import { gsap } from "gsap";
-import type { QuestionType } from "../types/types";
+
+interface GridItem {
+  question: string;
+  gradient: string;
+}
 
 interface GridMotionProps {
-  items?: QuestionType[];
+  items?: GridItem[];
   gradientColor?: string;
   isMobile?: boolean;
 }
@@ -19,7 +23,7 @@ const GridMotion: FC<GridMotionProps> = ({
 
   const totalItems = 28;
 
-  const defaultItems: QuestionType[] = Array.from(
+  const defaultItems: GridItem[] = Array.from(
     { length: totalItems },
     (_, index) => ({
       question: `Item ${index + 1}`,
@@ -27,7 +31,7 @@ const GridMotion: FC<GridMotionProps> = ({
     })
   );
 
-  const combinedItems: QuestionType[] =
+  const combinedItems: GridItem[] =
     items.length > 0 ? items.slice(0, totalItems) : defaultItems;
 
   useEffect(() => {

@@ -10,7 +10,19 @@ import {
   Crown,
   Rocket,
 } from "lucide-react";
-import type { FlashCard, QuestionType } from "../types/types";
+
+interface FlashCard {
+  id: number;
+  question: string;
+  answer: string;
+  hint?: string;
+}
+
+interface QuestionType {
+  question: string;
+  gradient: string;
+}
+
 
 const testStudyData = [
   {

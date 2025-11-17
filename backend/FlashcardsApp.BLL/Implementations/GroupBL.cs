@@ -222,17 +222,37 @@ public class GroupBL : IGroupBL
             return ServiceResult<bool>.Failure("Группа не найдена");
         }
 
-        var cardCount = await _context.Cards
-            .CountAsync(c => c.GroupId == groupId);
-
-        if (cardCount < 10)
+        // Проверка минимума карточек только при публикации
+        if (isPublish)
         {
-            return ServiceResult<bool>.Failure("В группе должно быть минимум 10 карточек для публикации");
+            var cardCount = await _context.Cards
+                .CountAsync(c => c.GroupId == groupId);
+
+            if (cardCount < 10)
+            {
+                return ServiceResult<bool>.Failure("В группе должно быть минимум 10 карточек для публикации");
+            }
         }
 
         try
         {
             group.IsPublished = isPublish;
+
+            // Если снимаем с публикации — удаляем все подписки
+            if (!isPublish)
+            {
+                var subscriptions = await _context.UserGroupSubscriptions
+                    .Where(s => s.GroupId == groupId)
+                    .ToListAsync();
+
+                if (subscriptions.Any())
+                {
+                    _context.UserGroupSubscriptions.RemoveRange(subscriptions);
+                    _logger.LogInformation("Removed {Count} subscriptions for unpublished group {GroupId}", 
+                        subscriptions.Count, groupId);
+                }
+            }
+
             await _context.SaveChangesAsync();
             _logger.LogInformation("Group {GroupId} access changed to {IsPublish}", groupId, isPublish);
             return ServiceResult<bool>.Success(true);
@@ -243,7 +263,7 @@ public class GroupBL : IGroupBL
             return ServiceResult<bool>.Failure("Ошибка при изменении доступа к группе");
         }
     }
-
+    
     private async Task<Group?> GetUserGroupAsync(Guid groupId, Guid userId)
     {
         var group = await _context.Groups
