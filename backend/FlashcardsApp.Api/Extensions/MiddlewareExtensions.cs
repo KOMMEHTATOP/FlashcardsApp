@@ -1,4 +1,5 @@
 using FlashcardsApp.Api.Hubs;
+using FlashcardsApp.BLL.Interfaces.Achievements;
 using FlashcardsApp.DAL;
 using FlashcardsApp.DAL.Models;
 using FlashcardsApp.DAL.Seeds;
@@ -40,7 +41,7 @@ public static class MiddlewareExtensions
             app.UseSwaggerUI();
         }
 
-        // Seed initial data (migrations are applied in DatabaseExtensions)
+        // Seed initial data
         var autoSeed = configuration.GetValue("AutoSeed", false);
 
         if (autoSeed)
@@ -58,7 +59,7 @@ public static class MiddlewareExtensions
         // Контроллеры
         app.MapControllers();
 
-        // Health Check endpoint с проверкой БД
+        // Health Check endpoint
         app.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
         {
             ResponseWriter = async (context, report) =>
@@ -79,17 +80,13 @@ public static class MiddlewareExtensions
                 await context.Response.WriteAsync(result);
             }
         });
-        
+
         // SignalR Hub
         app.MapHub<NotificationHub>("/hubs/notifications");
 
         return app;
     }
 
-    /// <summary>
-    /// Заполнение базы данных начальными данными (seed)
-    /// Миграции должны быть применены ДО вызова этого метода
-    /// </summary>
     private static void ApplySeedData(this WebApplication app, ILogger logger)
     {
         logger.LogInformation("=== AUTO SEED ENABLED ===");
@@ -105,12 +102,29 @@ public static class MiddlewareExtensions
 
             SeedManager.SeedAsync(db, userManager).GetAwaiter().GetResult();
 
-            logger.LogInformation("✓ Database seeding completed successfully!");
+            logger.LogInformation("✓ Database seeding completed!");
+
+            // Проверяем достижения для тестового пользователя
+            var achievementBL = scope.ServiceProvider.GetRequiredService<IAchievementBL>();
+            var testUserId = SeedManager.GetTestUserId();
+
+            var result = achievementBL.CheckAndUnlockAchievementsAsync(testUserId)
+                .GetAwaiter().GetResult();
+
+            if (result.IsSuccess && result.Data.Any())
+            {
+                logger.LogInformation("✓ {Count} achievements unlocked for test user", result.Data.Count);
+            }
+            else
+            {
+                logger.LogInformation("✓ No new achievements to unlock");
+            }
+
+            logger.LogInformation("✓ Seed process completed successfully!");
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "✗ Error during database seeding");
-            // Не падаем - seed не критичен для запуска приложения
         }
     }
 }

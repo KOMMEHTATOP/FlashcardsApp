@@ -75,6 +75,9 @@ public class GamificationBL : IGamificationBL
         };
     }
     
+    
+    
+    
     /// <summary>
     /// Генерирует мотивационное сообщение
     /// </summary>
