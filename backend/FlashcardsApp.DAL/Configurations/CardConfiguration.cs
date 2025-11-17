@@ -9,11 +9,11 @@ public class CardConfiguration : IEntityTypeConfiguration<Card>
     public void Configure(EntityTypeBuilder<Card> builder)
     {
         builder.Property(c => c.Question)
-            .HasMaxLength(300)
+            .HasMaxLength(5000)
             .IsRequired();
 
         builder.Property(c => c.Answer)
-            .HasMaxLength(2000)
+            .HasMaxLength(10000)
             .IsRequired();
 
         builder.HasIndex(c => new { c.GroupId, c.Question })

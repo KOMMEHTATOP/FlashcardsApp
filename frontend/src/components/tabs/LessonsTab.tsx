@@ -69,7 +69,7 @@ export function LessonsTab({ groups, onOpenSettings }: LessonsTabProps) {
         >
             {/* Секция "Ваши карточки" */}
             <div className="flex items-center justify-between">
-                <h2 className="text-2xl text-base-content">Ваши карточки</h2>
+                <h2 className="text-2xl text-base-content">Мои карточки</h2>
                 <div
                     onClick={onOpenSettings}
                     className="flex items-center gap-2 hover:scale-105 duration-300 transition-all cursor-pointer group opacity-70 hover:opacity-100"

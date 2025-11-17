@@ -59,7 +59,12 @@ export function CardQuestion({
                                 isCompleted ? "text-base-content" : "text-gray-400"
                             }`}
                         >
-                            {item.Question}
+                            <div
+                                className={`mb-1 text-base font-medium line-clamp-2 ${
+                                    isCompleted ? "text-base-content" : "text-gray-400"
+                                }`}
+                                dangerouslySetInnerHTML={{ __html: item.Question }}
+                            />
                         </h3>
 
                         <div className="flex items-center gap-1">
