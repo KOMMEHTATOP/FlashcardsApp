@@ -1,10 +1,17 @@
+/* ========================================
+   1. IMPORTS & BASE
+   ======================================== */
 @import url('https://fonts.cdnfonts.com/css/oswald-4');
 @import "tailwindcss";
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
+
+/* ========================================
+   2. DAISYUI THEMES
+   ======================================== */
 @plugin "daisyui" {
-    themes: dark --default, light, mainbreaker, cupcake;
+  themes: dark --default, light, mainbreaker, cupcake;
 }
 
 @plugin "daisyui/theme" {
@@ -12,10 +19,10 @@
   default: false;
   prefersdark: false;
   color-scheme: "dark";
-  --color-base-100: oklch(14% 0 0);
-  --color-base-200: oklch(20% 0 0);
-  --color-base-300: oklch(26% 0 0);
-  --color-base-content: oklch(97% 0 0);
+  --color-base-100: oklch(18% 0.02 265);
+  --color-base-200: oklch(24% 0.02 265);
+  --color-base-300: oklch(30% 0.02 265);
+  --color-base-content: oklch(95% 0.01 265);
   --color-primary: oklch(60% 0.118 184.704);
   --color-primary-content: oklch(98% 0.014 180.72);
   --color-secondary: oklch(60% 0.126 221.723);
@@ -42,6 +49,9 @@
   --noise: 0;
 }
 
+/* ========================================
+   3. TYPOGRAPHY
+   ======================================== */
 * {
   font-family: 'Oswald Regular', sans-serif;
 }
@@ -60,45 +70,9 @@
   font-weight: 500;
 }
 
-.border-gradient {
-  background-image: linear-gradient(90deg, #34d399, #10b981, #3b82f6, #10b981);
-  background-size: 200% 200%;
-  animation: gradientMove 4s linear infinite;
-}
-
-.border-gradient-success-r {
-
-  background-image: linear-gradient(
-    90deg,
-    rgba(134, 239, 172, 0) 0%, 
-    rgba(134, 239, 172, 0.1) 50%,
-    #4ade80 85%,              
-    #22c55e 100%              
-  );
-  background-size: 200% 200%;
-  animation: gradientMove 10s linear infinite;
-  transition: all 0.4s ease-in-out;
-  overflow: hidden;
-}
-
-.border-gradient-success-r::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: linear-gradient(
-    90deg,
-    rgba(34, 197, 94, 0.05) 0%,
-    rgba(34, 197, 94, 0.15) 100%
-  );
-  opacity: 0;
-  transition: opacity 0.4s ease-in-out;
-}
-
-.border-gradient-success-r:hover::before {
-  opacity: 1;
-}
-
+/* ========================================
+   4. TIPTAP EDITOR STYLES
+   ======================================== */
 .tiptap p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
   float: left;
@@ -107,7 +81,6 @@
   height: 0;
 }
 
-/* Стили для списков в TipTap */
 .tiptap ul {
   list-style-type: disc;
   padding-left: 1.5rem;
@@ -128,7 +101,7 @@
   margin: 0;
 }
 
-/* Стили для prose-invert (белый текст на цветном фоне) */
+/* Prose invert for white text on colored backgrounds */
 .prose-invert ul {
   list-style-type: disc;
   padding-left: 1.5rem;
@@ -143,18 +116,130 @@
   color: white;
 }
 
+/* ========================================
+   5. NEON BORDER EFFECTS (Profile Page)
+   ======================================== */
+.neon-border {
+  position: relative;
+  border-radius: 1rem;
+  background: oklch(24% 0.02 265);
+  isolation: isolate;
+}
+
+.neon-border::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 1rem;
+  padding: 2px; /* Толщина обводки */
+  background: linear-gradient(135deg, #06b6d4, #8b5cf6, #ec4899, #06b6d4);
+  background-size: 300% 300%;
+  animation: neonGlow 4s ease infinite;
+  -webkit-mask:
+          linear-gradient(#fff 0 0) content-box,
+          linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.neon-border-blue {
+  position: relative;
+  border-radius: 1rem;
+  background: oklch(24% 0.02 265);
+  isolation: isolate;
+}
+
+.neon-border-blue::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 1rem;
+  padding: 2px;
+  background: linear-gradient(135deg, #06b6d4, #3b82f6, #06b6d4);
+  background-size: 200% 200%;
+  animation: neonGlow 3s ease infinite;
+  -webkit-mask:
+          linear-gradient(#fff 0 0) content-box,
+          linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Неоновый фон (для хедера профиля) */
+.neon-bg {
+  background: linear-gradient(135deg, #06b6d4, #8b5cf6, #ec4899, #06b6d4);
+  background-size: 300% 300%;
+  animation: neonGlow 4s ease infinite;
+}
+
+@keyframes neonGlow {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* ========================================
+   6. GRADIENT BORDERS (Card Success State)
+   ======================================== */
+.border-gradient {
+  background-image: linear-gradient(90deg, #34d399, #10b981, #3b82f6, #10b981);
+  background-size: 200% 200%;
+  animation: gradientMove 4s linear infinite;
+}
+
+.border-gradient-success-r {
+  background-image: linear-gradient(
+          90deg,
+          rgba(134, 239, 172, 0) 0%,
+          rgba(134, 239, 172, 0.1) 50%,
+          #4ade80 85%,
+          #22c55e 100%
+  );
+  background-size: 200% 200%;
+  animation: gradientMove 10s linear infinite;
+  transition: all 0.4s ease-in-out;
+  overflow: hidden;
+}
+
+.border-gradient-success-r::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+          90deg,
+          rgba(34, 197, 94, 0.05) 0%,
+          rgba(34, 197, 94, 0.15) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.4s ease-in-out;
+}
+
+.border-gradient-success-r:hover::before {
+  opacity: 1;
+}
+
+.border-gradient-primary {
+  background-image: linear-gradient(
+          90deg,
+          rgba(252, 29, 166, 0.7),
+          rgba(250, 96, 217, 0) 50%,
+          #bb11ca 85%,
+          #eb25dba2 100%
+  );
+  background-size: 200% 200%;
+  animation: gradientMove 4s linear infinite;
+}
+
+/* ========================================
+   7. SHADOW EFFECTS
+   ======================================== */
 .shadow-gradient-success-r {
   position: relative;
   transition: all 0.3s ease-in-out;
-}
-
-.scroll-bar-none::-webkit-scrollbar {
-  display: none;
-}
-
-.scroll-bar-none {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
 }
 
 .shadow-gradient-success-r::after {
@@ -176,25 +261,24 @@
   opacity: 1;
 }
 
-.border-gradient-primary {
-  background-image: linear-gradient(
-    90deg,
-    rgba(252, 29, 166, 0.7), 
-    rgba(250, 96, 217, 0) 50%,
-    #bb11ca 85%,              
-    #eb25dba2 100%              
-  );
-  background-size: 200% 200%;
-  animation: gradientMove 4s linear infinite;
+/* ========================================
+   8. UTILITY CLASSES
+   ======================================== */
+.scroll-bar-none::-webkit-scrollbar {
+  display: none;
 }
 
+.scroll-bar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ========================================
+   9. ANIMATIONS
+   ======================================== */
 @keyframes shine {
-  0% {
-    background-position: 0% 50%;
-  }
-  100% {
-    background-position: 200% 50%;
-  }
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
 }
 
 @keyframes gradientMove {

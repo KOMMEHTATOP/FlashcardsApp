@@ -116,17 +116,17 @@ export default function GroupCard({
 
                 {/* Контент карточки */}
                 <div
-                    className={`bg-card text-card-foreground flex flex-col rounded-xl p-6 bg-gradient-to-br ${gradient} shadow-lg`}
+                    className={`bg-card text-card-foreground flex flex-col rounded-xl p-4 bg-gradient-to-br ${gradient} shadow-lg min-h-[180px]`}
                 >
-                    <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-start justify-between mb-2">
                         {/* Иконка + кнопка редактирования */}
                         <div className="relative">
                             <motion.div
-                                className="bg-white/20 backdrop-blur-sm p-3 rounded-2xl flex items-center justify-center"
+                                className="bg-white/20 backdrop-blur-sm p-2 rounded-xl flex items-center justify-center"
                                 animate={{ opacity: [1, 1] }}
                                 transition={{ duration: 0.2 }}
                             >
-                                <Icon className="w-8 h-8 text-white transition-all duration-300 group-hover:opacity-0" />
+                                <Icon className="w-6 h-6 text-white transition-all duration-300 group-hover:opacity-0" />
                             </motion.div>
 
                             {/* Кнопка редактирования — только для своих групп */}
@@ -137,10 +137,10 @@ export default function GroupCard({
                                     whileHover={{ scale: 1.0 }}
                                     whileTap={{ scale: 0.9 }}
                                     className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 
-                       opacity-0 group-hover:opacity-100 transition-all duration-300"
+                   opacity-0 group-hover:opacity-100 transition-all duration-300"
                                 >
                                     <ButtonCard>
-                                        <PenSquareIcon className="w-6 h-6 text-base-content" />
+                                        <PenSquareIcon className="w-5 h-5 text-base-content" />
                                     </ButtonCard>
                                 </motion.div>
                             )}
@@ -171,7 +171,7 @@ export default function GroupCard({
 
                     {/* Заголовок */}
                     <div className="flex-1">
-                        <h3 className="text-white text-xl mb-1 select-none">{title}</h3>
+                        <h3 className="text-white text-lg mb-1 select-none">{title}</h3>
 
                         {/* Автор — только для подписок */}
                         {authorName && (

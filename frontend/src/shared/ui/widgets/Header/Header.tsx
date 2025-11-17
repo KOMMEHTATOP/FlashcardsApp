@@ -19,7 +19,7 @@ export function Header({ user, onLogout, className }: HeaderProps) {
             role="banner"
             aria-label="Верхняя панель"
         >
-            <div className="flex items-center justify-between max-w-7xl mx-auto">
+            <div className="flex items-center justify-between max-w-6xl mx-auto px-4 sm:px-6 md:px-10">
                 {/* Левая часть */}
                 <motion.div
                     initial={{ opacity: 0, x: -20 }}

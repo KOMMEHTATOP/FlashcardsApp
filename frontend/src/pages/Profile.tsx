@@ -18,6 +18,7 @@ import formatTotalHour from "../utils/formatTotalHour";
 import apiFetch from "../utils/apiFetch";
 import { recallRatingInfo } from "../test/data";
 import { Link } from "react-router-dom";
+import { availableIcons } from "../test/data";
 
 interface StudyHistoryItem {
     Id: string;
@@ -70,14 +71,14 @@ export function ProfilePage() {
                 className="space-y-6"
             >
                 {/* I. ХЕДЕР - Профиль и Уровень */}
-                <div className="bg-base-200 rounded-2xl p-6">
+                {/* I. ХЕДЕР - Профиль и Уровень */}
+                <div className="neon-bg rounded-2xl p-6">
                     <div className="flex items-center gap-6">
                         {/* Аватар с уровнем */}
                         <div className="relative">
-                            <div className="w-32 h-32 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 p-1">
+                            <div className="w-32 h-32 rounded-full bg-white/20 backdrop-blur-sm p-1">
                                 <div className="w-full h-full rounded-full bg-base-100 flex items-center justify-center relative overflow-hidden">
                                     <User className="w-16 h-16 text-base-content/50" />
-                                    {/* Прогресс-кольцо */}
                                     <svg className="absolute inset-0 w-full h-full -rotate-90">
                                         <circle
                                             cx="50%"
@@ -114,27 +115,27 @@ export function ProfilePage() {
 
                         {/* Информация о пользователе */}
                         <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
-                                <h1 className="text-3xl font-bold text-base-content">{user?.Login}</h1>
-                                <div className="flex items-center gap-1 bg-amber-500/20 px-3 py-1 rounded-full">
-                                    <Crown className="w-4 h-4 text-amber-500" />
-                                    <span className="text-amber-500 font-bold text-sm">
-                                        Rating: {user?.TotalSubscribers || 0}
-                                    </span>
+                            <div className="flex items-center justify-between mb-2">
+                                <h1 className="text-3xl font-bold text-white">{user?.Login}</h1>
+                                <div className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-yellow-400 px-4 py-2 rounded-full shadow-lg">
+                                    <Crown className="w-5 h-5 text-white" />
+                                    <span className="text-white font-bold text-lg">
+            {user?.TotalSubscribers || 0}
+          </span>
                                 </div>
                             </div>
-                            <div className="text-base-content/70 mb-4">{user?.Email}</div>
+                            <div className="text-white/90 mb-4 text-lg">{user?.Email}</div>
 
-                            {/* XP прогресс */}
-                            <div className="bg-base-300 rounded-full h-3 w-full max-w-md overflow-hidden">
+                            {/* XP прогресс - на всю ширину */}
+                            <div className="relative bg-transparent rounded-full h-4 w-full overflow-hidden border-2 border-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.5)]">
                                 <motion.div
                                     initial={{ width: 0 }}
                                     animate={{ width: `${progressPercent}%` }}
                                     transition={{ duration: 1, ease: "easeOut" }}
-                                    className="h-full bg-gradient-to-r from-purple-500 to-pink-500"
+                                    className="h-full bg-white rounded-full"
                                 />
                             </div>
-                            <div className="flex justify-between max-w-md mt-1 text-sm text-base-content/70">
+                            <div className="flex justify-between w-full mt-2 text-base font-bold text-white">
                                 <span>{user?.Statistics?.TotalXP || 0} XP</span>
                                 <span>{progressPercent}%</span>
                             </div>
@@ -145,65 +146,66 @@ export function ProfilePage() {
                 {/* II. ЦЕНТРАЛЬНЫЙ БЛОК - Статистика и Streak */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Левая часть - 6 плиток статистики */}
-                    <div className="lg:col-span-2 bg-base-200 rounded-2xl p-6">
+                    {/* Battle Stats */}
+                    <div className="lg:col-span-2 neon-border p-6">
                         <h2 className="text-xl font-bold text-base-content mb-4">Battle Stats</h2>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                            <div className="bg-base-100 rounded-xl p-4">
+                            <div className="bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl p-4">
                                 <div className="flex items-center gap-2 mb-2">
-                                    <Clock className="w-5 h-5 text-blue-500" />
-                                    <span className="text-base-content/70 text-sm">Время</span>
+                                    <Clock className="w-5 h-5 text-white" />
+                                    <span className="text-white/80 text-sm">Время</span>
                                 </div>
-                                <div className="text-2xl font-bold text-base-content">
+                                <div className="text-2xl font-bold text-white">
                                     {formatTotalHour(user?.Statistics?.TotalStudyTime || "0")} ч
                                 </div>
                             </div>
 
-                            <div className="bg-base-100 rounded-xl p-4">
+                            <div className="bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl p-4">
                                 <div className="flex items-center gap-2 mb-2">
-                                    <BookOpen className="w-5 h-5 text-green-500" />
-                                    <span className="text-base-content/70 text-sm">Изучено</span>
+                                    <BookOpen className="w-5 h-5 text-white" />
+                                    <span className="text-white/80 text-sm">Изучено</span>
                                 </div>
-                                <div className="text-2xl font-bold text-base-content">
+                                <div className="text-2xl font-bold text-white">
                                     {user?.Statistics?.TotalCardsStudied || 0}
                                 </div>
                             </div>
 
-                            <div className="bg-base-100 rounded-xl p-4">
+                            <div className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl p-4">
                                 <div className="flex items-center gap-2 mb-2">
-                                    <BookCopyIcon className="w-5 h-5 text-purple-500" />
-                                    <span className="text-base-content/70 text-sm">Создано</span>
+                                    <BookCopyIcon className="w-5 h-5 text-white" />
+                                    <span className="text-white/80 text-sm">Создано</span>
                                 </div>
-                                <div className="text-2xl font-bold text-base-content">
+                                <div className="text-2xl font-bold text-white">
                                     {user?.Statistics?.TotalCardsCreated || 0}
                                 </div>
                             </div>
 
-                            <div className="bg-base-100 rounded-xl p-4">
+                            <div className="bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl p-4">
                                 <div className="flex items-center gap-2 mb-2">
-                                    <Target className="w-5 h-5 text-yellow-500" />
-                                    <span className="text-base-content/70 text-sm">Общий XP</span>
+                                    <Target className="w-5 h-5 text-white" />
+                                    <span className="text-white/80 text-sm">Общий XP</span>
                                 </div>
-                                <div className="text-2xl font-bold text-base-content">
+                                <div className="text-2xl font-bold text-white">
                                     {user?.Statistics?.TotalXP || 0}
                                 </div>
                             </div>
 
-                            <div className="bg-base-100 rounded-xl p-4">
+                            <div className="bg-gradient-to-br from-rose-500 to-red-500 rounded-xl p-4">
                                 <div className="flex items-center gap-2 mb-2">
-                                    <Flame className="w-5 h-5 text-rose-500" />
-                                    <span className="text-base-content/70 text-sm">Идеальных</span>
+                                    <Flame className="w-5 h-5 text-white" />
+                                    <span className="text-white/80 text-sm">Идеальных</span>
                                 </div>
-                                <div className="text-2xl font-bold text-base-content">
+                                <div className="text-2xl font-bold text-white">
                                     {user?.Statistics?.PerfectRatingsStreak || 0}
                                 </div>
                             </div>
 
-                            <div className="bg-base-100 rounded-xl p-4">
+                            <div className="bg-gradient-to-br from-cyan-500 to-blue-500 rounded-xl p-4">
                                 <div className="flex items-center gap-2 mb-2">
-                                    <Globe className="w-5 h-5 text-cyan-500" />
-                                    <span className="text-base-content/70 text-sm">Мои группы</span>
+                                    <Globe className="w-5 h-5 text-white" />
+                                    <span className="text-white/80 text-sm">Мои группы</span>
                                 </div>
-                                <div className="text-2xl font-bold text-base-content">
+                                <div className="text-2xl font-bold text-white">
                                     {groups?.length || 0}
                                 </div>
                             </div>
@@ -214,25 +216,25 @@ export function ProfilePage() {
                     <div className="space-y-6">
                         {/* Streak */}
                         <div className="bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl p-6 text-white">
-                            <h3 className="text-lg font-bold mb-3">Streak & Glory</h3>
+                            <h3 className="text-lg font-bold mb-3">Ваше упорство и слава</h3>
                             <div className="flex items-center gap-3">
                                 <Zap className="w-10 h-10" />
                                 <div>
                                     <div className="text-3xl font-bold">
-                                        {user?.Statistics?.CurrentStreak || 0}-DAY STREAK!
+                                        {user?.Statistics?.CurrentStreak || 0}-дней подряд!
                                     </div>
                                     <div className="text-white/80 text-sm">
-                                        Best: {user?.Statistics?.BestStreak || 0} days
+                                        Лучшая серия: {user?.Statistics?.BestStreak || 0} дней
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         {/* Достижения (превью) */}
-                        <div className="bg-base-200 rounded-2xl p-6">
+                        <div className="neon-border-blue p-6">
                             <div className="flex justify-between items-center mb-4">
                                 <h3 className="text-lg font-bold text-base-content">
-                                    MY ACHIEVEMENTS ({unlockedAchievements.length}/{achivment?.length || 0})
+                                    Мои достижения ({unlockedAchievements.length}/{achivment?.length || 0})
                                 </h3>
                             </div>
                             <div className="flex gap-3 mb-3">
@@ -252,9 +254,10 @@ export function ProfilePage() {
                             </div>
                             <Link
                                 to="/"
+                                onClick={() => localStorage.setItem('activeTab', '2')}
                                 className="text-primary hover:underline text-sm flex items-center gap-1"
                             >
-                                View All <ChevronRight className="w-4 h-4" />
+                                Смотреть все <ChevronRight className="w-4 h-4" />
                             </Link>
                         </div>
                     </div>
@@ -263,39 +266,49 @@ export function ProfilePage() {
                 {/* III. НИЖНИЙ БЛОК - Группы и Активность */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Мои группы */}
-                    <div className="bg-base-200 rounded-2xl p-6">
+                    <div className="neon-border p-6">
                         <h2 className="text-xl font-bold text-base-content mb-4">
-                            Мои Колоды ({groups?.length || 0})
+                            Мои группы ({groups?.length || 0})
                         </h2>
                         <div className="space-y-3 max-h-64 overflow-y-auto">
-                            {groups?.slice(0, 5).map((group) => (
-                                <div
-                                    key={group.Id}
-                                    className="flex items-center justify-between bg-base-100 rounded-lg p-3"
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <span className="text-xl">{group.GroupIcon}</span>
-                                        <span className="font-medium">{group.GroupName}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-sm text-base-content/70">
-                                            {group.CardCount} карточек
-                                        </span>
-                                        <div className="w-4">
-                                            {group.IsPublished && (
-                                                <div className="tooltip tooltip-left" data-tip="Опубликовано">
-                                                    <Globe className="w-4 h-4 text-green-500" />
-                                                </div>
+                            {groups?.slice(0, 5).map((group) => {
+                                const IconComponent = availableIcons.find(
+                                    (icon) => icon.name === group.GroupIcon
+                                )?.icon;
+
+                                return (
+                                    <div
+                                        key={group.Id}
+                                        className="flex items-center justify-between bg-base-100 rounded-lg p-3"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            {IconComponent ? (
+                                                <IconComponent className="w-6 h-6 text-base-content" />
+                                            ) : (
+                                                <span className="text-xl">{group.GroupIcon}</span>
                                             )}
+                                            <span className="font-medium">{group.GroupName}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+            <span className="text-sm text-base-content/70">
+              {group.CardCount} карточек
+            </span>
+                                            <div className="w-4">
+                                                {group.IsPublished && (
+                                                    <div className="tooltip tooltip-left" data-tip="Опубликовано">
+                                                        <Globe className="w-4 h-4 text-green-500" />
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </div>
 
                     {/* Недавняя активность */}
-                    <div className="bg-base-200 rounded-2xl p-6">
+                    <div className="neon-border p-6">
                         <h2 className="text-xl font-bold text-base-content mb-4">
                             Недавняя активность
                         </h2>

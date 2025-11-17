@@ -36,7 +36,7 @@ function AppLayoutContent() {
         <div className="flex flex-col justify-center items-center min-h-screen bg-base-300">
             <Header user={user} onLogout={logout} />
 
-            <main className="flex-1 w-full max-w-6xl pt-30 px-2 md:px-0">
+            <main className="flex-1 w-full max-w-6xl pt-30 px-4 sm:px-6 md:px-10">
                 {confrimModal && (
                     <ConfrimModal
                         text={confrimModal.title}
@@ -75,7 +75,7 @@ export default function AppLayout() {
 
     return (
         <div className="flex flex-col justify-center items-center min-h-screen bg-base-300">
-            <main className="flex-1 w-full max-w-6xl pt-30 px-2 md:px-0">
+            <main className="flex-1 w-full max-w-6xl pt-30 px-4 sm:px-6 md:px-10">
                 <Outlet />
             </main>
             <Footer />

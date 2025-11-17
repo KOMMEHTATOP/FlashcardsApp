@@ -15,15 +15,18 @@ namespace FlashcardsApp.Api.Controllers
         private readonly IAuthBL _authBl;
         private readonly ITokenService _tokenService;
         private readonly IConfiguration _configuration;
+        private readonly IWebHostEnvironment _environment;
         
         public AuthController(
             IAuthBL authBl,
             ITokenService tokenService,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IWebHostEnvironment environment)
         {
             _authBl = authBl;
             _tokenService = tokenService;
             _configuration = configuration;
+            _environment = environment;
         }
 
         [AllowAnonymous]
@@ -101,22 +104,21 @@ namespace FlashcardsApp.Api.Controllers
         [Authorize]
         public async Task<IActionResult> Logout()
         {
-            // HTTP-логика: чтение cookie
             Request.Cookies.TryGetValue("refreshToken", out var refreshTokenValue);
 
             await _authBl.Logout(refreshTokenValue);
 
-            // HTTP-логика: удаление cookie
             Response.Cookies.Delete("refreshToken", new CookieOptions
             {
                 HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.None,
+                Secure = !_environment.IsDevelopment(),
+                SameSite = _environment.IsDevelopment() ? SameSiteMode.Lax : SameSiteMode.None,
                 Path = "/"
             });
 
             return Ok(new { message = "Выход выполнен успешно" });
         }
+        
         
         //легкий эндпоинт для проверки токена (нужен фронту)
         [HttpGet("validate")]
@@ -134,8 +136,8 @@ namespace FlashcardsApp.Api.Controllers
             var cookieOptions = new CookieOptions
             {
                 HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.None,
+                Secure = !_environment.IsDevelopment(),
+                SameSite = _environment.IsDevelopment() ? SameSiteMode.Lax : SameSiteMode.None,
                 Expires = DateTimeOffset.UtcNow.AddDays(expirationDays),
                 Path = "/"
             };

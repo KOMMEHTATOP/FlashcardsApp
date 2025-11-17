@@ -186,18 +186,18 @@ export default function SortableList({
                             whileHover={{ scale: 1.01, y: -5 }}
                             whileTap={{ scale: 1 }}
                             transition={{ duration: 0.2 }}
-                            className="group relative w-full md:w-70 h-40"
+                            className="group relative w-full"
                             onClick={handleOpen}
                         >
-                            <Card className="p-6 border-2 border-dashed border-purple-300  hover:border-purple-500 bg-base-300  backdrop-blur-sm transition-all cursor-pointer h-full flex flex-col items-center justify-center">
+                            <Card className="p-4 border-2 border-dashed border-purple-300 hover:border-purple-500 bg-base-300 backdrop-blur-sm transition-all cursor-pointer h-full flex flex-col items-center justify-center min-h-[180px]">
                                 <motion.div
                                     animate={{ rotate: [0, 90, 0] }}
                                     transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
-                                    className="bg-gradient-to-br from-purple-400 to-pink-500 p-4 rounded-2xl mb-4 shadow-lg"
+                                    className="bg-gradient-to-br from-purple-400 to-pink-500 p-3 rounded-2xl mb-3 shadow-lg"
                                 >
-                                    <Plus className="w-8 h-8 text-white" />
+                                    <Plus className="w-6 h-6 text-white" />
                                 </motion.div>
-                                <p className="text-base-content/80 ">Добавить новую группу</p>
+                                <p className="text-base-content/80 text-sm">Добавить новую группу</p>
                             </Card>
                         </motion.button>
                         <GroupForm
