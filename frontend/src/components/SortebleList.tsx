@@ -26,7 +26,7 @@ import apiFetch from "../utils/apiFetch";
 import { Card } from "../shared/ui/Card";
 import shuffleArray from "../utils/shuffleArray";
 import { availableIcons } from "../test/data";
-import GroupCard from "./cards/Group_card";
+import GroupCard from "../../src/components/cards/GroupCard";
 
 export function SortableItem({
                                  id,
@@ -211,8 +211,7 @@ export default function SortableList({
                                 <GroupCard
                                     id={item.Id}
                                     gradient={item.GroupColor || "from-green-400 to-emerald-500"}
-                                    streak={item.CardCount}
-                                    progress={(item.CardCount / 10) * 100}
+                                    cardCount={item.CardCount}
                                     icon={
                                         availableIcons.find((i) => i.name === item.GroupIcon)
                                             ?.icon || BookHeartIcon
@@ -221,7 +220,8 @@ export default function SortableList({
                                     onClick={() => navigate(`/study/${item.Id.toString()}`)}
                                     onDelete={() => handleDeleteGroup(item)}
                                     onEdit={() => handleEdit(item)}
-                                    onLessonPlayer={() => handleStartLesson(item)}
+                                    onStartLesson={() => handleStartLesson(item)}
+                                    isPublished={item.IsPublished}
                                 />
                             </SortableItem>
                         ))}

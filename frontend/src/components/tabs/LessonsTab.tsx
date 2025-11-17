@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Settings2Icon, BookHeartIcon, Users } from "lucide-react";
 import SortableList from "../SortebleList";
-import SubscriptionCard from "../cards/SubscriptionCard.tsx";
+import GroupCard from "../../components/cards/GroupCard";
 import type { GroupType, SubscribedGroupDto, GroupCardType } from "../../types/types";
 import { useData } from "../../context/DataContext";
 import { availableIcons } from "../../test/data";
@@ -95,7 +95,7 @@ export function LessonsTab({ groups, onOpenSettings }: LessonsTabProps) {
                 {subscriptions.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         {subscriptions.map((subscription) => (
-                            <SubscriptionCard
+                            <GroupCard
                                 key={subscription.Id}
                                 id={subscription.Id}
                                 icon={

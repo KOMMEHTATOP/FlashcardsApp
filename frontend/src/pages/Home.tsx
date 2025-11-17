@@ -123,7 +123,7 @@ export function HomePage() {
                     />
                     <StateCard
                         icon={BookCopyIcon}
-                        label="Общее количество карточек"
+                        label="Создано карточек"
                         value={totalCardCount.toString() || "0"}
                         gradient="from-purple-500 to-pink-500"
                         delay={0.4}
