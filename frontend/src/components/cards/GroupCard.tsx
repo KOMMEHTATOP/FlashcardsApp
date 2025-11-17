@@ -2,7 +2,6 @@ import { motion } from "framer-motion";
 import {
     GalleryVerticalEndIcon,
     Globe,
-    GripVertical,
     PenSquareIcon,
     Users,
     X,
@@ -19,14 +18,10 @@ interface GroupCardProps {
     gradient: string;
     onClick?: () => void;
     onStartLesson?: () => void;
-
-    // Опциональные props для своих групп
     onDelete?: () => void;
     onEdit?: () => void;
     dragHandleProps?: any;
     isPublished?: boolean;
-
-    // Опциональные props для подписок
     authorName?: string;
 }
 
@@ -84,6 +79,8 @@ export default function GroupCard({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.3 }}
+            {...dragHandleProps}
+            style={{ touchAction: "none" }}
         >
             <motion.div
                 whileHover={{ scale: 1.01, y: -5 }}
@@ -93,18 +90,6 @@ export default function GroupCard({
                 transition={{ duration: 0.2 }}
                 className="cursor-pointer relative group"
             >
-                {/* Drag handle — только для своих групп */}
-                {dragHandleProps && (
-                    <div
-                        {...dragHandleProps}
-                        style={{ touchAction: "none" }}
-                        className="absolute top-0 left-0 text-base-content/50 hover:text-base-content cursor-grab active:cursor-grabbing p-1 rounded-md"
-                    >
-                        <GripVertical className="w-7 h-7" />
-                    </div>
-                )}
-
-                {/* Кнопка удаления — только для своих групп */}
                 {onDelete && (
                     <ButtonCard
                         data-name="delete"
@@ -114,12 +99,10 @@ export default function GroupCard({
                     </ButtonCard>
                 )}
 
-                {/* Контент карточки */}
                 <div
                     className={`bg-card text-card-foreground flex flex-col rounded-xl p-4 bg-gradient-to-br ${gradient} shadow-lg min-h-[180px]`}
                 >
                     <div className="flex items-start justify-between mb-2">
-                        {/* Иконка + кнопка редактирования */}
                         <div className="relative">
                             <motion.div
                                 className="bg-white/20 backdrop-blur-sm p-2 rounded-xl flex items-center justify-center"
@@ -129,7 +112,6 @@ export default function GroupCard({
                                 <Icon className="w-6 h-6 text-white transition-all duration-300 group-hover:opacity-0" />
                             </motion.div>
 
-                            {/* Кнопка редактирования — только для своих групп */}
                             {onEdit && (
                                 <motion.div
                                     data-name="edit"
@@ -137,7 +119,7 @@ export default function GroupCard({
                                     whileHover={{ scale: 1.0 }}
                                     whileTap={{ scale: 0.9 }}
                                     className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 
-                   opacity-0 group-hover:opacity-100 transition-all duration-300"
+                                               opacity-0 group-hover:opacity-100 transition-all duration-300"
                                 >
                                     <ButtonCard>
                                         <PenSquareIcon className="w-5 h-5 text-base-content" />
@@ -146,7 +128,6 @@ export default function GroupCard({
                             )}
                         </div>
 
-                        {/* Индикатор публикации + Количество карточек */}
                         <div className="flex items-center gap-2">
                             {isPublished && (
                                 <motion.div
@@ -169,11 +150,9 @@ export default function GroupCard({
                         </div>
                     </div>
 
-                    {/* Заголовок */}
                     <div className="flex-1">
                         <h3 className="text-white text-lg mb-1 select-none">{title}</h3>
 
-                        {/* Автор — только для подписок */}
                         {authorName && (
                             <div className="flex items-center gap-1 text-white/70 text-sm mb-3">
                                 <Users className="w-4 h-4" />
@@ -182,7 +161,6 @@ export default function GroupCard({
                         )}
                     </div>
 
-                    {/* Кнопка "Начать" */}
                     <div className="flex justify-end">
                         <Button
                             data-name="lesson"
