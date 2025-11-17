@@ -141,6 +141,7 @@ export default function SortableList({
         if (setting?.ShuffleOnRepeat) res = shuffleArray(res);
 
         if (!res || res.length === 0) return;
+        window.scrollTo({ top: 0, behavior: "smooth" });
         handleSelectLesson(res, group);
     };
 

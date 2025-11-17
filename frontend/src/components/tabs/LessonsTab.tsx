@@ -7,7 +7,6 @@ import { useData } from "../../context/DataContext";
 import { availableIcons } from "../../test/data";
 import { useNavigate } from "react-router-dom";
 import apiFetch from "../../utils/apiFetch";
-import shuffleArray from "../../utils/shuffleArray";
 
 interface LessonsTabProps {
     groups: GroupType[] | undefined;
@@ -15,24 +14,26 @@ interface LessonsTabProps {
 }
 
 export function LessonsTab({ groups, onOpenSettings }: LessonsTabProps) {
-    const { user, handleSelectLesson, setting } = useData();
+    const { user, handleSelectLesson } = useData();
     const navigate = useNavigate();
 
     const subscriptions = user?.MySubscriptions || [];
 
     const handleStartSubscriptionLesson = async (subscription: SubscribedGroupDto) => {
         try {
-            let cards: GroupCardType[] = await apiFetch
-                .get(`/Subscriptions/public/${subscription.Id}/cards`)
-                .then((res) => res.data)
-                .catch(() => []);
+            const response = await apiFetch.get(`/Subscriptions/public/${subscription.Id}/cards`);
 
-            if (!cards || cards.length === 0) return;
-
-            // Применяем настройки пользователя
-            cards = cards.filter((card) => card.LastRating >= setting?.MinRating);
-            cards = cards.filter((card) => card.LastRating <= setting?.MaxRating);
-            if (setting?.ShuffleOnRepeat) cards = shuffleArray(cards);
+            // Маппим карточки, добавляя недостающие поля для GroupCardType
+            const cards: GroupCardType[] = response.data.map((card: any) => ({
+                CardId: card.CardId,
+                GroupId: subscription.Id,
+                Question: card.Question,
+                Answer: card.Answer,
+                LastRating: 0, // У пользователя своя история изучения
+                completed: false,
+                UpdatedAt: card.CreatedAt,
+                CreatedAt: card.CreatedAt
+            }));
 
             if (!cards || cards.length === 0) return;
 
@@ -48,6 +49,9 @@ export function LessonsTab({ groups, onOpenSettings }: LessonsTabProps) {
                 Icon: subscription.GroupIcon || "",
             };
 
+            // Скроллим вверх перед запуском урока
+            window.scrollTo({ top: 0, behavior: "smooth" });
+
             handleSelectLesson(cards, groupForLesson);
         } catch (err) {
             console.error("Ошибка загрузки карточек подписки:", err);
@@ -55,7 +59,6 @@ export function LessonsTab({ groups, onOpenSettings }: LessonsTabProps) {
     };
 
     const handleViewSubscription = (subscriptionId: string) => {
-        // Переходим на страницу просмотра подписки
         navigate(`/subscription/${subscriptionId}`);
     };
 
@@ -83,7 +86,7 @@ export function LessonsTab({ groups, onOpenSettings }: LessonsTabProps) {
             </div>
             <SortableList initalItems={groups || []} />
 
-            {/* Секция "Мои подписки" — Теперь всегда отображается */}
+            {/* Секция "Мои подписки" */}
             <div className="space-y-6 mt-12">
                 <div className="flex items-center gap-3">
                     <Users className="w-6 h-6 text-base-content/70" />
@@ -94,7 +97,6 @@ export function LessonsTab({ groups, onOpenSettings }: LessonsTabProps) {
                 </div>
 
                 {subscriptions.length > 0 ? (
-                    // 1. Отображение списка подписок
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         {subscriptions.map((subscription) => (
                             <SubscriptionCard
@@ -115,7 +117,6 @@ export function LessonsTab({ groups, onOpenSettings }: LessonsTabProps) {
                         ))}
                     </div>
                 ) : (
-                    // 2. Отображение заглушки
                     <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
