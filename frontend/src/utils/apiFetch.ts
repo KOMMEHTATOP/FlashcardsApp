@@ -17,6 +17,11 @@ export const setUnauthorizedCallback = (callback: () => void) => {
     onUnauthorized = callback;
 };
 
+const initialToken = localStorage.getItem("accessToken");
+if (initialToken) {
+    apiFetch.defaults.headers.common["Authorization"] = `Bearer ${initialToken}`;
+}
+
 const processQueue = (error: any, token = null) => {
     failedQueue.forEach((prom: any) => {
         if (error) prom.reject(error);
@@ -37,7 +42,9 @@ export const removeAuthToken = () => {
 
 apiFetch.interceptors.request.use((config) => {
     const token = localStorage.getItem("accessToken");
-    if (token) config.headers["Authorization"] = `Bearer ${token}`;
+    if (token && !config.headers["Authorization"]) {
+        config.headers["Authorization"] = `Bearer ${token}`;
+    }
     return config;
 });
 
@@ -50,10 +57,16 @@ apiFetch.interceptors.response.use(
             originalRequest._retry = true;
 
             if (isRefreshing) {
+                console.log("-> Refresh already in progress. Queuing request:", originalRequest.url); 
                 return new Promise((resolve, reject) => {
                     failedQueue.push({ resolve, reject });
                 })
                     .then((token) => {
+                        // Защитный механизм для заголовков
+                        if (!originalRequest.headers) {
+                            originalRequest.headers = {};
+                        }
+
                         originalRequest.headers["Authorization"] = `Bearer ${token}`;
                         return apiFetch(originalRequest);
                     })
@@ -69,10 +82,18 @@ apiFetch.interceptors.response.use(
                     { withCredentials: true }
                 );
 
-                const newToken = response?.data.AccessToken;
-                setAuthToken(newToken);
+                // ИСПРАВЛЕНИЕ КЛЮЧА
+                const newToken = response?.data.accessToken;
 
-                processQueue(null, newToken);
+                if (!newToken) {
+                    throw new Error("Refresh token failed: Missing Access Token in response");
+                }
+
+                setAuthToken(newToken); 
+                processQueue(null, newToken); 
+
+                originalRequest.headers["Authorization"] = `Bearer ${newToken}`;
+                
                 return apiFetch(originalRequest);
             } catch (err) {
                 processQueue(err);

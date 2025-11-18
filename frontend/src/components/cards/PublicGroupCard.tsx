@@ -86,7 +86,8 @@ export default function PublicGroupCard({
             >
                 {/* Контент */}
                 <div
-                    className={`bg-card text-card-foreground flex flex-col rounded-xl p-6 bg-gradient-to-br ${gradient} shadow-lg min-h-[240px]`}
+                    className={`bg-card text-card-foreground flex flex-col rounded-xl p-4 bg-gradient-to-br 
+                    ${gradient} shadow-lg min-h-[240px]`}
                 >
                     <div className="flex items-start justify-between mb-4">
                         {/* Иконка */}
@@ -133,7 +134,7 @@ export default function PublicGroupCard({
                         <Button
                             data-action="view"
                             variant="accent"
-                            size="md"
+                            size="sm"
                             className="rounded-xl flex-1 flex items-center justify-center gap-2"
                         >
                             <Eye className="w-4 h-4" />
@@ -142,7 +143,7 @@ export default function PublicGroupCard({
                         <Button
                             data-action="subscribe"
                             variant="accent"
-                            size="md"
+                            size="sm"
                             className={`rounded-xl flex-1 flex items-center justify-center gap-2 ${
                                 isSubscribed
                                     ? 'bg-red-500/80 hover:bg-red-600/80'

@@ -27,10 +27,9 @@ export function Header({ user, onLogout, className }: HeaderProps) {
                     transition={{ duration: 0.3 }}
                     className="flex items-center gap-3 sm:gap-4"
                 >
-                    <div className="bg-gradient-to-br from-purple-500 to-pink-500 p-2.5 sm:p-3 rounded-2xl flex items-center justify-center">
+                    <div className="bg-gradient-to-br from-purple-500 to-pink-500 p-2.5 sm:p-3 rounded-2xl flex items-center justify-center hidden md:flex">
                         <Brain className="h-7 w-7 sm:h-9 sm:w-9 text-white" />
                     </div>
-
                     <div className="flex flex-col">
                         <Link
                             to="/"

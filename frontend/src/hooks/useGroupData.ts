@@ -3,6 +3,10 @@ import { useParams, useLocation } from "react-router-dom";
 import type { GroupCardType, GroupType } from "../types/types";
 import apiFetch from "../utils/apiFetch";
 
+interface GroupDetailDto extends GroupType {
+    IsSubscribed?: boolean;
+}
+
 interface UseGroupDataResult {
     group: GroupType | null;
     setGroup: React.Dispatch<React.SetStateAction<GroupType | null>>;
@@ -27,6 +31,9 @@ export function useGroupData(): UseGroupDataResult {
     const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
 
     useEffect(() => {
+        const controller = new AbortController();
+        const signal = controller.signal;
+
         const fetchData = async () => {
             if (!id) return;
 
@@ -34,18 +41,21 @@ export function useGroupData(): UseGroupDataResult {
                 setLoading(true);
 
                 if (isSubscriptionView) {
-                    // Загрузка данных подписки
-                    const [groupRes, cardsRes] = await Promise.all([
-                        apiFetch.get(`/Subscriptions/${id}`),
-                        apiFetch.get(`/Subscriptions/public/${id}/cards`)
-                    ]);
+                    // === ЗАГРУЗКА ПОДПИСКИ: ПОСЛЕДОВАТЕЛЬНО (Устранение гонки) ===
 
-                    const groupData = groupRes.data as GroupType & { IsSubscribed?: boolean };
+                    // 1. Запрос данных группы. Добавляем { signal }
+                    const groupRes = await apiFetch.get<GroupDetailDto>(`/Subscriptions/${id}`, { signal });
+                    const groupData = groupRes.data;
+
+                    // 2. Запрос карточек. Добавляем { signal }
+                    const cardsRes = await apiFetch.get(`/Subscriptions/public/${id}/cards`, { signal });
+                    const cardsData = cardsRes.data;
+
                     setGroup(groupData);
                     setIsSubscribed(groupData.IsSubscribed ?? false);
 
                     // Маппим карточки подписки
-                    const mappedCards: GroupCardType[] = cardsRes.data.map((card: any) => ({
+                    const mappedCards: GroupCardType[] = cardsData.map((card: any) => ({
                         CardId: card.CardId,
                         GroupId: id,
                         Question: card.Question,
@@ -58,16 +68,25 @@ export function useGroupData(): UseGroupDataResult {
                     setCards(mappedCards.reverse());
 
                 } else {
-                    // Загрузка данных своей группы
-                    const [groupRes, cardsRes] = await Promise.all([
-                        apiFetch.get(`/Group/${id}`),
-                        apiFetch.get(`/groups/${id}/cards`)
-                    ]);
+                    // === ЗАГРУЗКА СВОЕЙ ГРУППЫ ===
 
-                    setGroup(groupRes.data);
-                    setCards(cardsRes.data.reverse());
+                    // 1. Запрос данных группы. Добавляем { signal }
+                    const groupRes = await apiFetch.get<GroupType>(`/Group/${id}`, { signal });
+                    const groupData = groupRes.data;
+
+                    // 2. Запрос карточек. Добавляем { signal }
+                    const cardsRes = await apiFetch.get(`/groups/${id}/cards`, { signal });
+                    const cardsData = cardsRes.data;
+
+                    setGroup(groupData);
+                    setCards(cardsData.reverse());
                 }
-            } catch (err) {
+            } catch (err: any) {
+                // Игнорируем ошибку отмены (запрос AbortController)
+                if (err.name === 'CanceledError' || (err.response && err.response.data && err.response.data.message === 'Request aborted')) {
+                    console.log('Request aborted by cleanup.');
+                    return;
+                }
                 console.error("Ошибка загрузки данных группы:", err);
             } finally {
                 setLoading(false);
@@ -75,6 +94,11 @@ export function useGroupData(): UseGroupDataResult {
         };
 
         fetchData();
+
+        // Функция очистки: вызывается, чтобы отменить запросы при следующем вызове useEffect
+        return () => {
+            controller.abort();
+        };
     }, [id, isSubscriptionView]);
 
     return {

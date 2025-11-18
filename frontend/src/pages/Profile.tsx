@@ -148,7 +148,7 @@ export function ProfilePage() {
                     {/* Левая часть - 6 плиток статистики */}
                     {/* Battle Stats */}
                     <div className="lg:col-span-2 neon-border p-6">
-                        <h2 className="text-xl font-bold text-base-content mb-4">Battle Stats</h2>
+                        <h2 className="text-xl font-bold text-base-content mb-4">Статистика</h2>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                             <div className="bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl p-4">
                                 <div className="flex items-center gap-2 mb-2">

@@ -100,7 +100,8 @@ export default function GroupCard({
                 )}
 
                 <div
-                    className={`bg-card text-card-foreground flex flex-col rounded-xl p-4 bg-gradient-to-br ${gradient} shadow-lg min-h-[180px]`}
+                    className={`bg-card text-card-foreground flex flex-col rounded-xl p-4 bg-gradient-to-br 
+                    ${gradient} shadow-lg min-h-[180px]`}
                 >
                     <div className="flex items-start justify-between mb-2">
                         <div className="relative">
@@ -165,7 +166,7 @@ export default function GroupCard({
                         <Button
                             data-name="lesson"
                             variant="accent"
-                            size="md"
+                            size="sm"
                             className="rounded-xl"
                         >
                             Начать
