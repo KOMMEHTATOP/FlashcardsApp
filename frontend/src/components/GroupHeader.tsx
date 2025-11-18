@@ -38,7 +38,12 @@ export function GroupHeader({
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className={`relative bg-gradient-to-br ${group.GroupColor || 'from-blue-500 to-blue-700'} px-4 sm:px-6 lg:px-8 py-12 overflow-hidden rounded-2xl shadow-xl flex flex-col items-center`}
+            // ИЗМЕНЕНИЕ: Убраны 'max-w-7xl mx-auto'. Добавлен 'w-full'.
+            // Отступы 'px-4 sm:px-6 lg:px-8' выравнивают контент с кнопкой 'Назад'.
+            // Высота 'pt-8 pb-6' оставлена уменьшенной.
+            className={`relative bg-gradient-to-br ${
+                group.GroupColor || "from-blue-500 to-blue-700"
+            } w-full px-4 sm:px-6 lg:px-8 pt-8 pb-6 overflow-hidden rounded-2xl shadow-xl flex flex-col items-center`}
         >
             {/* Паттерн фона */}
             <div
@@ -50,22 +55,22 @@ export function GroupHeader({
                 }}
             />
 
-            <div className="max-w-7xl mx-auto relative z-10 w-full">
-                <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-6 mb-8 w-full">
+            <div className="relative z-10 w-full">
+                <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-6 mb-0 w-full">
                     {/* Иконка группы */}
                     <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         transition={{ type: "spring", stiffness: 200 }}
-                        className="bg-white/20 backdrop-blur-sm p-6 rounded-3xl flex-shrink-0"
+                        className="bg-white/20 backdrop-blur-sm p-4 rounded-3xl flex-shrink-0"
                     >
-                        <Icon className="w-20 h-20 md:w-16 md:h-16 text-white" />
+                        <Icon className="w-16 h-16 md:w-16 md:h-16 text-white" />
                     </motion.div>
 
                     <div className="flex-1 text-center sm:text-left">
                         {/* Заголовок и бейджи */}
                         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 mb-2 w-full flex-wrap">
-                            <h1 className="text-4xl text-white">{group.GroupName}</h1>
+                            <h1 className="text-3xl text-white">{group.GroupName}</h1>
 
                             {/* Количество карточек */}
                             {Number(group.CardCount) > 0 && (
@@ -156,7 +161,7 @@ export function GroupHeader({
                             </div>
                         )}
 
-                        <p className="text-white/90 text-lg mb-4">
+                        <p className="text-white/90 text-base mb-6">
                             Овладейте основами и раскройте свой потенциал
                         </p>
 

@@ -12,7 +12,6 @@ interface CardsListProps {
     onCardClick: (cards: GroupCardType[], group: GroupType, index: number) => void;
     onDeleteCard?: (card: GroupCardType) => void;
     onEditCard?: (card: GroupCardType) => void;
-    // Props для формы добавления карточки (только для своих групп)
     addCardFormProps?: {
         isOpen: boolean;
         question: string;
@@ -40,7 +39,8 @@ export function CardsList({
     const completedCount = cards.filter((item) => item.LastRating > 0).length;
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        // ИЗМЕНЕНИЕ: Убраны 'px-4 sm:px-6 lg:px-8'. Теперь ширина контента совпадает с шапкой.
+        <div className="w-full py-12">
             {/* Заголовок и действия */}
             <motion.div
                 initial={{ opacity: 0 }}
@@ -53,7 +53,7 @@ export function CardsList({
                 </h2>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 md:flex md:flex-row md:items-center gap-3 md:gap-4 text-base-content/80 w-full md:w-auto">
-                    {/* Кнопка добавления карточки (только для своих групп) */}
+                    {/* Кнопка добавления карточки */}
                     {!isSubscriptionView && addCardFormProps && (
                         <div className="flex justify-center md:justify-start">
                             <AddFlashcardForm
