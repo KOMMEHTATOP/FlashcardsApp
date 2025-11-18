@@ -37,7 +37,7 @@ try
             };
         });
 
-    // INFRASTRUCTURE LAYER
+    // INFRASTRUCTURE LAYER 
     services
         .AddDatabaseConfiguration(builder.Configuration)
         .AddIdentityConfiguration()
