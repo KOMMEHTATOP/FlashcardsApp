@@ -11,4 +11,8 @@
         <PackageReference Include="Ookii.Dialogs.Wpf" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\FlashcardsApp.DAL\FlashcardsApp.DAL.csproj" />
+    </ItemGroup>
+
 </Project>

@@ -6,9 +6,9 @@ import {
     BookOpen,
     Medal,
     BookCopyIcon,
-    Library // <--- Новая иконка
+    Library 
 } from "lucide-react";
-import { Helmet } from "react-helmet-async"; // <--- SEO компонент
+import { Helmet } from "react-helmet-async";
 
 import LevelCard from "../components/cards/Level_card";
 import StateCard from "../components/cards/State_card";
@@ -23,7 +23,6 @@ import { LessonsTab } from "../components/tabs/LessonsTab";
 import { StoreTab } from "../components/tabs/StoreTab";
 import { AchievementsTab } from "../components/tabs/AchievementsTab";
 
-// Обновляем названия вкладок
 const modulePage = [
     { name: "Мои колоды" }, 
     { name: "Библиотека" }, 
