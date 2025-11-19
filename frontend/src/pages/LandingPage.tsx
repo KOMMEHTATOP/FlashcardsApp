@@ -5,13 +5,16 @@ import {
     CheckCircle2,
     ArrowRight,
     ArrowUpFromDotIcon,
+    Library,
+    UserPlus,
+    Search // Добавлена иконка поиска
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { LandingContentService } from "./landing/landingContent";
 import FeatureCard from "../components/landing/FeatureCard";
 import StatCard from "../components/landing/StatCard";
 import BenefitItem from "../components/landing/BenefitItem";
-import {Header} from "../shared/ui/widgets/Header";
+import { Header } from "../shared/ui/widgets/Header";
 import { Button } from "../shared/ui/Button";
 import CardSwap from "../components/CardSwap";
 import { forwardRef, useEffect, useMemo, useState } from "react";
@@ -116,6 +119,7 @@ export default function LandingPage() {
                 )}
             </AnimatePresence>
 
+            {/* --- HERO SECTION --- */}
             <section className="relative overflow-hidden pt-30 md:py-28 px-4 pb-4">
                 <div className="absolute inset-0 z-0">
                     <GridMotion
@@ -143,7 +147,7 @@ export default function LandingPage() {
                         </motion.div>
                         <div className="items-center justify-center flex text-5xl text-white">
                             <RotatingText
-                                texts={["Учись", "Развивайся", "Изучай"]}
+                                texts={["Быстро", "Легко", "Бесплатно"]}
                                 mainClassName="px-2 sm:px-2 md:px-3 bg-gradient-to-r from-purple-600 to-pink-600 overflow-hidden py-0.5 sm:py-1 md:py-2 justify-center 
                 rounded-lg transition-all duration-300 ease-in-out"
                                 staggerFrom={"last"}
@@ -155,35 +159,44 @@ export default function LandingPage() {
                                 transition={{ type: "spring", damping: 30, stiffness: 400 }}
                                 rotationInterval={4000}
                             />
-                            <span className="ml-2">c</span>
                         </div>
                         <h1 className="text-5xl md:text-7xl font-bold text-base-content">
               <span className="block mt-4 bg-gradient-to-r from-purple-400 via-pink-500 to-orange-500 bg-clip-text text-transparent">
                 FlashcardsLoop
               </span>
                         </h1>
+
+                        {/* ТЕКСТ С КЛЮЧЕВЫМИ СЛОВАМИ ДЛЯ SEO */}
                         <p className="text-xl md:text-2xl text-base-content/70 max-w-3xl mx-auto">
-                            Современное веб-приложение для эффективного запоминания информации
-                            с помощью карточек. Создавайте, изучайте, прокачивайтесь!
+                            Простой способ запомнить всё: от английских слов до кода.
+                            Используйте <b>интервальные повторения</b>, создавайте свои колоды
+                            или изучайте тысячи готовых карточек в библиотеке.
                         </p>
+
                         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                            {/* Кнопка 1: Начать */}
                             <Button
-                                className="flex hover:scale-105 transition-all duration-300 shadow-2xl hover:shadow-pink-500/50 group text-2xl w-full md:w-fit"
+                                className="flex hover:scale-105 transition-all duration-300 shadow-2xl hover:shadow-pink-500/50 group text-xl w-full md:w-fit"
                                 onClick={() => navigate("/login")}
                                 size="lg"
                                 variant="secondary"
                             >
-                                Начать
-                                <ArrowRight className="w-5 h-5 group-hover:translate-x-5 transition-transform duration-500" />
+                                Начать бесплатно
+                                <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform duration-300" />
                             </Button>
+
+                            {/* Кнопка 2: Библиотека */}
                             <Button
                                 size="lg"
-                                onClick={() => handleScroll("features")}
-                                className="hover:scale-105 transition-transform text-2xl w-full md:w-fit"
+                                variant="ghost"
+                                onClick={() => navigate("/store")}
+                                className="hover:scale-105 transition-transform text-xl w-full md:w-fit border border-white/20 hover:bg-white/10"
                             >
-                                Узнать больше
+                                <Search className="w-5 h-5 mr-2" />
+                                Найти карточки
                             </Button>
                         </div>
+
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto ">
                             {stats.map((stat, index) => (
                                 <StatCard
@@ -200,6 +213,8 @@ export default function LandingPage() {
                     </motion.div>
                 </div>
             </section>
+
+            {/* Секции Features, Gamification остаются без изменений ... */}
 
             <section id="features" className="py-24 px-4 bg-base-200">
                 <div className="max-w-6xl mx-auto">
@@ -274,13 +289,14 @@ export default function LandingPage() {
                 </div>
             </section>
 
+            {/* --- СЕКЦИЯ КАК НАЧАТЬ --- */}
             <section className="py-24 px-4 bg-base-200">
                 <div className="max-w-6xl mx-auto">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        className="text-center"
+                        className="text-center mb-12"
                     >
                         <h2 className="text-4xl md:text-5xl font-bold text-base-content mb-4">
                             Как начать?
@@ -289,33 +305,66 @@ export default function LandingPage() {
                             Всего 4 простых шага до первого урока
                         </p>
                     </motion.div>
-                </div>
-                <div className="relative max-w-7xl mx-auto">
-                    <ScrollStack
-                        className="max-h-[70dvh] scroll-bar-none"
-                        baseScale={0.9}
-                        itemDistance={160}
-                        blurAmount={1}
-                        stackPosition="10%"
-                        itemStackDistance={60}
-                    >
-                        {steps.map((step, index) => (
-                            <ScrollStackItem key={index}>
-                                <div
-                                    className={`bg-gradient-to-br ${step.gradient} rounded-2xl p-8 shadow-lg h-full overflow-hidden `}
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+                        <div className="h-[500px] w-full relative">
+                            <ScrollStack
+                                className="h-full w-full scroll-bar-none"
+                                baseScale={0.9}
+                                itemDistance={40}
+                                blurAmount={1}
+                                stackPosition="0%"
+                                itemStackDistance={20}
+                            >
+                                {steps.map((step, index) => (
+                                    <ScrollStackItem key={index}>
+                                        <div
+                                            className={`bg-gradient-to-br ${step.gradient} rounded-2xl p-8 shadow-lg h-full overflow-hidden flex flex-col justify-center`}
+                                        >
+                                            <div className="text-6xl font-bold text-white/40 mb-4">
+                                                {step.number}
+                                            </div>
+                                            <h3 className="text-3xl font-bold text-white mb-3">
+                                                {step.title}
+                                            </h3>
+                                            <p className="text-xl text-white/90">{step.description}</p>
+                                        </div>
+                                    </ScrollStackItem>
+                                ))}
+                            </ScrollStack>
+                        </div>
+
+                        <motion.div
+                            initial={{ opacity: 0, x: 20 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.6 }}
+                            className="text-left space-y-6 px-4 lg:px-10"
+                        >
+                            <h3 className="text-3xl md:text-4xl font-bold text-base-content">
+                                Готовы к быстрому старту?
+                            </h3>
+                            <p className="text-lg text-base-content/70">
+                                Вам не нужно ничего устанавливать. Регистрация займет всего пару кликов,
+                                и вы сразу сможете создать свою первую колоду или найти готовые карточки в библиотеке.
+                            </p>
+
+                            <div className="pt-4">
+                                <Button
+                                    size="lg"
+                                    variant="confirm"
+                                    onClick={() => navigate("/login")}
+                                    className="w-full sm:w-auto text-lg py-6"
                                 >
-                                    <div className="text-6xl font-bold text-white/40 mb-4">
-                                        {step.number}
-                                    </div>
-                                    <h3 className="text-4xl font-bold text-white mb-3">
-                                        {step.title}
-                                    </h3>
-                                    <p className="text-2xl text-white/90">{step.description}</p>
-                                </div>
-                            </ScrollStackItem>
-                        ))}
-                    </ScrollStack>
-                    <div className="absolute bg-gradient-to-t from-base-200 to-base-300/0 w-full h-10 -bottom-1" />
+                                    <UserPlus className="w-5 h-5 mr-2" />
+                                    Создать аккаунт
+                                </Button>
+                                <p className="text-sm text-base-content/50 mt-4">
+                                    * Это бесплатно и не требует привязки карты
+                                </p>
+                            </div>
+                        </motion.div>
+                    </div>
                 </div>
             </section>
 
@@ -340,52 +389,62 @@ export default function LandingPage() {
                 </div>
             </section>
 
-            <section className="py-20 px-4 bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500">
+            {/* --- КОМПАКТНАЯ ФИНАЛЬНАЯ СЕКЦИЯ --- */}
+            <section className="py-10 px-4 bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500">
                 <motion.div
-                    initial={{ opacity: 0, y: 30 }}
+                    initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    className="max-w-4xl mx-auto text-center space-y-8"
+                    className="max-w-4xl mx-auto text-center space-y-5"
                 >
                     <motion.div
                         animate={{ scale: [1, 1.05, 1] }}
                         transition={{ duration: 2, repeat: Infinity }}
                     >
-                        <Trophy className="w-20 h-20 text-white mx-auto" />
+                        <Trophy className="w-14 h-14 text-white mx-auto" />
                     </motion.div>
 
-                    <h2 className="text-4xl md:text-6xl font-bold text-white">
+                    <h2 className="text-3xl md:text-5xl font-bold text-white leading-tight">
                         Готовы начать обучение?
                     </h2>
 
-                    <p className="text-xl md:text-2xl text-white/90">
-                        Присоединяйтесь к пользователям, которые уже прокачивают свои навыки
+                    <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto">
+                        Присоединяйтесь к тысячам пользователей, которые уже прокачивают свои навыки
                         с FlashcardsLoop
                     </p>
 
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-2">
                         <Button
-                            className="flex hover:scale-105 transition-all duration-300 group"
+                            className="flex hover:scale-105 transition-all duration-300 group shadow-lg shadow-purple-900/20"
                             onClick={() => navigate("/login")}
                             size="lg"
                             variant="accent"
                         >
-                            Начать
+                            Начать бесплатно
                             <ArrowRight className="w-5 h-5 group-hover:translate-x-5 transition-transform duration-500" />
+                        </Button>
+                        <Button
+                            size="lg"
+                            variant="ghost"
+                            onClick={() => navigate("/store")}
+                            className="flex hover:scale-105 transition-all duration-300 border border-white/30 hover:bg-white/20 text-white"
+                        >
+                            <Library className="w-5 h-5 mr-2" />
+                            Библиотека
                         </Button>
                     </div>
 
-                    <div className="pt-8 flex justify-center gap-8 text-white/80 text-md md:text-lg">
+                    <div className="pt-4 flex flex-wrap justify-center gap-x-8 gap-y-2 text-white/80 text-sm md:text-base">
                         <div className="flex items-center gap-2">
-                            <CheckCircle2 className="w-5 h-5" />
+                            <CheckCircle2 className="w-4 h-4" />
                             <span>Бесплатно</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <CheckCircle2 className="w-5 h-5" />
+                            <CheckCircle2 className="w-4 h-4" />
                             <span>Без рекламы</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <CheckCircle2 className="w-5 h-5" />
+                            <CheckCircle2 className="w-4 h-4" />
                             <span>Без ограничений</span>
                         </div>
                     </div>

@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, BookHeartIcon, Trophy, BowArrowIcon } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 
+// Импорты
 import apiFetch from "../utils/apiFetch";
 import { useAuth } from "../context/AuthContext";
 import { useData } from "../context/DataContext";
@@ -27,10 +28,8 @@ export default function PublicGroupView() {
     const [error, setError] = useState<string | null>(null);
     const [submittingSubscription, setSubmittingSubscription] = useState(false);
 
-    // --- ЗАГРУЗКА ДАННЫХ ---
     useEffect(() => {
         if (!id) return;
-
         const fetchData = async () => {
             setLoading(true);
             try {
@@ -42,17 +41,43 @@ export default function PublicGroupView() {
                 setCardsDto(cardsRes.data);
             } catch (err: any) {
                 console.error(err);
-                setError("Группа не найдена или была удалена автором");
+                setError("Эта колода не найдена или была удалена автором");
             } finally {
                 setLoading(false);
             }
         };
-
         fetchData();
     }, [id]);
 
-    // --- АДАПТЕРЫ ТИПОВ (Исправляем ошибки TS) ---
+    // SEO: JSON-LD для Google
+    const structuredData = useMemo(() => {
+        if (!groupDto || cardsDto.length === 0) return null;
+        return {
+            "@context": "https://schema.org",
+            "@type": "LearningResource", // Более точный тип для учебных материалов
+            "name": groupDto.GroupName,
+            "description": `Колода карточек по теме ${groupDto.GroupName}. Автор: ${groupDto.AuthorName}.`,
+            "learningResourceType": "Flashcards",
+            "educationalLevel": "Beginner", // Можно динамически менять, если будет поле
+            "author": {
+                "@type": "Person",
+                "name": groupDto.AuthorName
+            },
+            "hasPart": {
+                "@type": "FAQPage",
+                "mainEntity": cardsDto.map(card => ({
+                    "@type": "Question",
+                    "name": card.Question,
+                    "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": card.Answer || "Ответ доступен в полной версии"
+                    }
+                }))
+            }
+        };
+    }, [groupDto, cardsDto]);
 
+    // АДАПТЕРЫ
     const groupForHeader: GroupType | null = useMemo(() => {
         if (!groupDto) return null;
         return {
@@ -65,7 +90,6 @@ export default function PublicGroupView() {
             IsPublished: true,
             UserId: "",
             CreatedAt: groupDto.CreatedAt,
-            // Заглушки для совместимости с GroupType
             Order: 0,
             Cards: []
         } as unknown as GroupType;
@@ -81,22 +105,16 @@ export default function PublicGroupView() {
             LastRating: 0,
             NextReviewDate: "",
             completed: false,
-            // Заглушка для совместимости с GroupCardType
             Order: 0
         } as unknown as GroupCardType));
     }, [cardsDto, id]);
 
-    // --- ОБРАБОТЧИКИ ---
-
     const handleToggleSubscription = async () => {
-        // Если гость пытается подписаться - отправляем на логин
         if (!user) {
             navigate("/login");
             return;
         }
-
         if (!groupDto) return;
-
         setSubmittingSubscription(true);
         try {
             if (groupDto.IsSubscribed) {
@@ -107,48 +125,45 @@ export default function PublicGroupView() {
                 setGroupDto(prev => prev ? { ...prev, IsSubscribed: true, SubscriberCount: prev.SubscriberCount + 1 } : null);
             }
         } catch (err: any) {
-            console.error("Ошибка подписки:", err);
+            console.error("Ошибка действия:", err);
         } finally {
             setSubmittingSubscription(false);
         }
     };
 
-    // Обработчик клика по карточке
     const handleCardClick = () => {
-        // Для авторизованных пользователей здесь можно добавить логику,
-        // например, открытие детального просмотра или проигрывания озвучки.
-        // Пока оставляем пустым, чтобы не мешать стандартному поведению (если CardQuestion раскрывается сам).
-        if (!user) {
-            navigate("/login");
-        }
+        if (!user) navigate("/login");
     };
 
-    // --- РЕНДЕР ---
+    if (loading) return <div className="min-h-screen flex items-center justify-center bg-base-300"><span className="loading loading-spinner loading-lg text-primary"></span></div>;
 
-    if (loading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-base-300">
-                <span className="loading loading-spinner loading-lg text-primary"></span>
-            </div>
-        );
-    }
-
-    if (error || !groupDto || !groupForHeader) {
-        return (
-            <div className="min-h-screen flex flex-col items-center justify-center bg-base-300 gap-4">
-                <h2 className="text-2xl font-bold text-error">{error || "Ошибка 404"}</h2>
-                <Link to="/store" className="btn btn-primary">Вернуться в каталог</Link>
-            </div>
-        );
-    }
+    if (error || !groupDto || !groupForHeader) return (
+        <div className="min-h-screen flex flex-col items-center justify-center bg-base-300 gap-4">
+            <h2 className="text-2xl font-bold text-error">{error || "Ошибка 404"}</h2>
+            <Link to="/store" className="btn btn-primary">В библиотеку</Link>
+        </div>
+    );
 
     const Icon = availableIcons.find((icon) => icon.name === groupDto.GroupIcon)?.icon || BookHeartIcon;
+    const pageTitle = `${groupDto.GroupName} - Карточки для запоминания | FlashcardsLoop`;
+    const pageDesc = `Бесплатная колода карточек по теме "${groupDto.GroupName}" от ${groupDto.AuthorName}. ${groupDto.CardCount} вопросов. Учите онлайн с интервальными повторениями.`;
 
     return (
         <div className="min-h-screen bg-base-300 flex flex-col">
             <Helmet>
-                <title>{`${groupDto.GroupName} | Карточки`}</title>
-                <meta name="description" content={`Изучайте карточки по теме "${groupDto.GroupName}". Автор: ${groupDto.AuthorName}.`} />
+                <title>{pageTitle}</title>
+                <meta name="description" content={pageDesc} />
+
+                {/* Open Graph / Facebook / Telegram Preview */}
+                <meta property="og:type" content="article" />
+                <meta property="og:title" content={pageTitle} />
+                <meta property="og:description" content={pageDesc} />
+                <meta property="og:url" content={window.location.href} />
+                {/* Если есть картинка группы, можно добавить og:image */}
+
+                {structuredData && (
+                    <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
+                )}
             </Helmet>
 
             <Header user={user} onLogout={logout} />
@@ -160,10 +175,9 @@ export default function PublicGroupView() {
                         className="text-base-content/70 hover:text-primary mb-6 flex items-center rounded px-4 py-2 duration-300 transition w-fit"
                     >
                         <ArrowLeft className="w-5 h-5 mr-2" />
-                        Назад в каталог
+                        Назад в библиотеку
                     </Link>
 
-                    {/* Шапка группы */}
                     <GroupHeader
                         group={groupForHeader}
                         icon={Icon}
@@ -178,34 +192,29 @@ export default function PublicGroupView() {
                         onToggleSubscription={handleToggleSubscription}
                     />
 
-                    {/* Список карточек */}
                     <CardsList
                         cards={allCardsForList}
                         group={groupForHeader}
-                        isSubscriptionView={true} // Скрывает кнопки редактирования/удаления
-
-                        // Если пользователь не вошел - блюрим всё после 3-й карточки
+                        isSubscriptionView={true}
                         blurAfterIndex={!user ? 3 : undefined}
-
-                        // Обработчик клика
                         onCardClick={handleCardClick}
+                        isAuthenticated={!!user}
                     />
 
-                    {/* Мотивационная карточка (видна только авторизованным, так как у гостей есть CTA внутри CardsList) */}
                     {user && (
                         <MotivationCard
                             animated="scale"
                             animatedDelay={1}
                             icon={Trophy}
-                            label={groupDto.IsSubscribed ? "Вы подписаны!" : "Добавьте в коллекцию"}
+                            label={groupDto.IsSubscribed ? "Колода добавлена!" : "Добавить в свои колоды"}
                             description={groupDto.IsSubscribed
-                                ? "Эта группа находится в вашем списке 'Мои группы'. Вы можете переходить к изучению."
-                                : "Подпишитесь на группу, чтобы она появилась в вашем личном кабинете и вы могли начать обучение."
+                                ? "Эта колода находится в вашей библиотеке. Вы можете переходить к изучению."
+                                : "Сохраните эту колоду себе, чтобы отслеживать прогресс изучения и повторять сложные карточки."
                             }
                             textIcon={BowArrowIcon}
                             gradient={groupDto.GroupColor || ""}
                             delay={0.2}
-                            className="mt-8"
+                            className="mt-8 cursor-pointer"
                             onClick={handleToggleSubscription}
                         />
                     )}

@@ -1,12 +1,15 @@
-import { Edit, Star, Trash } from "lucide-react";
-import type { GroupCardType } from "../../../types/types"; 
-import { ButtonCircle } from "../Button"; 
+import { useState } from "react";
+import { Edit, Star, Trash, FileText, ChevronRight, ChevronDown } from "lucide-react";
+import type { GroupCardType } from "../../../types/types";
+import { ButtonCircle } from "../Button";
+import { AnimatePresence, motion } from "framer-motion";
 
 type CardQuestionProps = {
     item: GroupCardType;
     onClick?: () => void;
     onDelete?: () => void;
     onEdit?: () => void;
+    showOverviewButton?: boolean; // <--- НОВЫЙ ПРОП
 };
 
 export function CardQuestion({
@@ -14,8 +17,22 @@ export function CardQuestion({
                                  onClick,
                                  onDelete,
                                  onEdit,
+                                 showOverviewButton,
                              }: CardQuestionProps) {
+    const [isOpen, setIsOpen] = useState(false); // Локальное состояние для раскрытия ответа
     const isCompleted = item.LastRating > 0;
+    const isOwnerMode = !!onEdit;
+
+    // Обработчик клика: если есть onClick (внешний), зовем его.
+    // Если это режим просмотра (showOverviewButton), то переключаем видимость ответа.
+    const handleClick = (e?: React.MouseEvent) => {
+        e?.stopPropagation();
+        if (showOverviewButton) {
+            setIsOpen(!isOpen);
+        } else {
+            onClick?.();
+        }
+    };
 
     return (
         <div
@@ -24,79 +41,115 @@ export function CardQuestion({
                     ? "p-[2px] shadow-gradient-success-r"
                     : "border border-base-300"
             }`}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => e.key === "Enter" && onClick?.()}
         >
-            {/* Градиентная подсветка для завершённых */}
             {isCompleted && (
                 <div className="absolute inset-0 rounded-xl bg-[length:200%_200%] border-gradient-success-r animate-[shine_3s_linear_infinite]" />
             )}
 
             <div
-                className="relative z-10 rounded-[10px] p-6 shadow-lg transition-all bg-base-100"
-                onClick={onClick}
+                className={`relative z-10 rounded-[10px] p-6 shadow-lg transition-all bg-base-100 
+                ${(onClick || showOverviewButton) ? "cursor-pointer hover:bg-base-200/50" : "cursor-default"}`}
+                onClick={handleClick}
             >
-                <div className="flex items-center overflow-hidden">
-                    {/* Иконка */}
+                <div className="flex items-start overflow-hidden">
+                    {/* ЛЕВАЯ ИКОНКА */}
                     <div
-                        className={`shrink-0 w-12 h-12 rounded-full flex items-center justify-center transition-all bg-gray-400/70 hover:bg-green-400/80`}
+                        className={`shrink-0 w-12 h-12 rounded-full flex items-center justify-center transition-all mt-1
+                        ${isOwnerMode ? "bg-gray-400/70 hover:bg-green-400/80" : "bg-base-200"}`}
                     >
-                        <ButtonCircle
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onEdit?.();
-                            }}
-                        >
-                            <Edit className="w-6 h-6 text-base-content" />
-                        </ButtonCircle>
+                        {isOwnerMode ? (
+                            <ButtonCircle
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onEdit?.();
+                                }}
+                            >
+                                <Edit className="w-6 h-6 text-base-content" />
+                            </ButtonCircle>
+                        ) : (
+                            <FileText className="w-6 h-6 text-base-content/30" />
+                        )}
                     </div>
 
-                    {/* Вопрос и рейтинг */}
-                    <div className="flex-1 ml-2">
-                        <h3
-                            className={`mb-1 text-base font-medium line-clamp-2 ${
-                                isCompleted ? "text-base-content" : "text-gray-400"
+                    {/* ЦЕНТР: Контент */}
+                    <div className="flex-1 ml-4">
+                        {/* Вопрос */}
+                        <div
+                            className={`mb-2 text-base font-medium ${
+                                isCompleted ? "text-base-content" : "text-gray-500"
                             }`}
-                        >
-                            <div
-                                className={`mb-1 text-base font-medium line-clamp-2 ${
-                                    isCompleted ? "text-base-content" : "text-gray-400"
-                                }`}
-                                dangerouslySetInnerHTML={{ __html: item.Question }}
-                            />
-                        </h3>
+                            dangerouslySetInnerHTML={{ __html: item.Question }}
+                        />
 
-                        <div className="flex items-center gap-1">
+                        {/* Рейтинг */}
+                        <div className="flex items-center gap-1 mb-2">
                             {[...Array(5)].map((_, i) => (
                                 <Star
                                     key={i}
-                                    className={`w-5 h-5 transition-colors ${
+                                    className={`w-4 h-4 transition-colors ${
                                         i < item.LastRating
                                             ? "text-yellow-500 fill-yellow-500"
-                                            : "text-gray-600"
+                                            : "text-base-content/20"
                                     }`}
                                 />
                             ))}
                         </div>
+
+                        {/* ОТВЕТ (Раскрывается) */}
+                        <AnimatePresence>
+                            {isOpen && (
+                                <motion.div
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: "auto", opacity: 1 }}
+                                    exit={{ height: 0, opacity: 0 }}
+                                    className="overflow-hidden"
+                                >
+                                    <div className="pt-4 mt-2 border-t border-base-200 text-base-content">
+                                        <span className="text-xs font-bold text-base-content/50 uppercase block mb-1">Ответ:</span>
+                                        <div dangerouslySetInnerHTML={{ __html: item.Answer }} />
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
-                    <div className="md:opacity-0 group-hover:opacity-100 transition-all duration-600 flex mx-4 gap-2">
-                        <ButtonCircle
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onDelete?.();
-                            }}
-                        >
-                            <Trash className="w-6 h-6 text-error" />
-                        </ButtonCircle>
+
+                    {/* ПРАВАЯ ЧАСТЬ */}
+
+                    {/* Удаление (только владелец) */}
+                    {onDelete && (
+                        <div className="md:opacity-0 group-hover:opacity-100 transition-all duration-600 flex mx-2 self-center">
+                            <ButtonCircle
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onDelete();
+                                }}
+                            >
+                                <Trash className="w-6 h-6 text-error" />
+                            </ButtonCircle>
+                        </div>
+                    )}
+
+                    {/* Кнопка ОБЗОР (Владелец ИЛИ Авторизованный) */}
+                    <div className="ml-2 self-center">
+                        {(isOwnerMode || showOverviewButton) ? (
+                            <button
+                                onClick={handleClick}
+                                className={`px-4 py-2 rounded text-sm font-medium hidden md:flex items-center gap-2 
+                                ${isOpen ? "bg-base-300 text-base-content" : "bg-green-500 hover:bg-green-600 text-white"} 
+                                shadow-md hover:shadow-lg transition-all`}
+                            >
+                                {isOpen ? "Скрыть" : "Обзор"}
+                                {isOpen ? <ChevronDown className="w-4 h-4"/> : <ChevronRight className="w-4 h-4"/>}
+                            </button>
+                        ) : (
+                            // Для гостей - стрелочка
+                            onClick && (
+                                <div className="p-2 text-base-content/30">
+                                    <ChevronRight className="w-6 h-6" />
+                                </div>
+                            )
+                        )}
                     </div>
-                    {/* Кнопка “Обзор” */}
-                    <button
-                        onClick={onClick}
-                        className={`px-4 py-2 rounded text-base font-medium hidden md:block bg-green-500 hover:bg-green-600 text-white`}
-                    >
-                        Обзор
-                    </button>
                 </div>
             </div>
         </div>

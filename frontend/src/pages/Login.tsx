@@ -11,16 +11,15 @@ import {
     Zap,
 } from "lucide-react";
 import { useState } from "react";
+import { Helmet } from "react-helmet-async"; 
+
 import Input from "../components/ui/input";
 import { Button } from "../shared/ui/Button";
 import { Card } from "../shared/ui/Card";
-
-import useTitle from "../utils/useTitle";
 import { floatingIcons, TITLE_APP } from "../test/data";
 import { useAuth } from "../context/AuthContext";
 
 export default function LoginPage() {
-    useTitle("Войти");
     const { login: authLogin, register: authRegister } = useAuth();
 
     const [selectedBlock, setSelectedBlock] = useState<"login" | "register">(
@@ -41,7 +40,6 @@ export default function LoginPage() {
 
     const handleLogin = async (e?: React.FormEvent) => {
         e?.preventDefault();
-
         if (!email) {
             setError("Введите email");
             return;
@@ -50,13 +48,11 @@ export default function LoginPage() {
             return;
         }
         setLoading(true);
-
         try {
             await authLogin(email, password);
         } catch (err: any) {
             console.log(err);
             const errors = err.response?.data?.errors;
-
             if (errors && typeof errors === "object") {
                 const messages = Object.values(errors).flat().join("\n");
                 setError(messages);
@@ -83,12 +79,10 @@ export default function LoginPage() {
             return;
         }
         setLoading(true);
-
         try {
             await authRegister(login, email, password);
         } catch (err: any) {
             const errors = err.response?.data?.errors;
-
             if (errors && typeof errors === "object") {
                 const messages = Object.values(errors).flat().join("\n");
                 setError(messages);
@@ -108,8 +102,21 @@ export default function LoginPage() {
             ? error.trim() !== ""
             : Boolean(error);
 
+    // 2. Настраиваем SEO тексты в зависимости от вкладки
+    const pageTitle = selectedBlock === "login"
+        ? "Вход в систему | FlashcardsLoop - Учить карточки"
+        : "Регистрация | Создать свои карточки бесплатно";
+
+    const pageDescription = "Войдите или зарегистрируйтесь в FlashcardsLoop, чтобы создавать учебные карточки, использовать интервальные повторения и учить языки бесплатно.";
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-base-300 via-base-100 to-base-300 flex items-center justify-center p-4 relative overflow-hidden">
+            {/* SEO META */}
+            <Helmet>
+                <title>{pageTitle}</title>
+                <meta name="description" content={pageDescription} />
+            </Helmet>
+
             <div className="absolute inset-0 opacity-30">
                 <div
                     className="absolute inset-0"
@@ -158,11 +165,13 @@ export default function LoginPage() {
                             <Brain className="w-16 h-16 text-white" />
                         </div>
                     </motion.div>
-                    <h1 className="text-5xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2 p-2">
+                    <h1 className="text-5xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2 p-2 font-bold">
                         {TITLE_APP}
                     </h1>
+
+                    {/* 3. Оптимизированный подзаголовок с ключевыми словами */}
                     <p className="text-gray-600 dark:text-gray-400 text-lg text-subtitle">
-                        Повышайте уровень своего обучения вместе с нами! 🚀
+                        Создавайте карточки и прокачивайте знания бесплатно! 🚀
                     </p>
                 </motion.div>
 
@@ -173,11 +182,12 @@ export default function LoginPage() {
                 >
                     <motion.div
                         transition={{ duration: 0.4, ease: "easeInOut" }}
-                        className={`p-8 backdrop-blur-xl bg-white/80 border-2 border-purple-300 shadow-2xl rounded-xl overflow-hidden max-h-dvh transition-all duration-300 ${
+                        className={`p-8 backdrop-blur-xl bg-white/80 border-2 border-purple-300 shadow-2xl rounded-xl overflow-hidden transition-all duration-300 ${
                             selectedBlock === "login" ? "h-100" : hasError ? "h-130" : "h-120"
                         }`}
                     >
                         <div className="space-y-4">
+                            {/* Переключатель Вход / Регистрация */}
                             <div className="overflow-hidden grid w-full grid-cols-2 bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/50 dark:to-pink-900/50 rounded-2xl p-1 relative">
                                 <div className="absolute inset-1 rounded-full overflow-hidden">
                                     <motion.div
@@ -188,7 +198,7 @@ export default function LoginPage() {
                                     />
                                 </div>
                                 <div
-                                    className={`transition-all items-center justify-center flex p-1 z-10 cursor-pointer hover:bg-white/10 rounded-2xl ${
+                                    className={`transition-all items-center justify-center flex p-1 z-10 cursor-pointer hover:bg-white/10 rounded-2xl font-medium ${
                                         selectedBlock === "login" ? "text-white" : "text-gray-900"
                                     }`}
                                     onClick={() => handleSelect("login")}
@@ -196,7 +206,7 @@ export default function LoginPage() {
                                     Вход
                                 </div>
                                 <div
-                                    className={`transition-all items-center justify-center flex p-1 z-10 cursor-pointer hover:bg-white/10 rounded-2xl ${
+                                    className={`transition-all items-center justify-center flex p-1 z-10 cursor-pointer hover:bg-white/10 rounded-2xl font-medium ${
                                         selectedBlock === "register"
                                             ? "text-white"
                                             : "text-gray-900"
@@ -247,13 +257,13 @@ export default function LoginPage() {
                                                     loadingIcon={Sparkles}
                                                     rightIcon={BowArrow}
                                                 >
-                                                    Войти
+                                                    Войти в аккаунт
                                                 </Button>
-                                                <button className="w-full text-purple-600 hover:text-purple-700 text-subtitle hover:bg-purple-300/20 py-2 rounded-xl">
+                                                <button className="w-full text-purple-600 hover:text-purple-700 text-subtitle hover:bg-purple-300/20 py-2 rounded-xl text-sm">
                                                     Забыли пароль?
                                                 </button>
                                                 <span className="items-center text-center">
-                                                    {error && <p className="text-red-500">{error}</p>}
+                                                    {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
                                                 </span>
                                             </motion.form>
                                         </div>
@@ -307,15 +317,14 @@ export default function LoginPage() {
                                                     loadingIcon={Sparkles}
                                                     rightIcon={Rocket}
                                                 >
-                                                    Начать путешествие
+                                                    Начать бесплатно
                                                 </Button>
 
                                                 <p className="text-xs text-center text-gray-500 dark:text-gray-400">
-                                                    Регистрируясь, вы соглашаетесь с нашими Условиями
-                                                    предоставления услуг и Политикой конфиденциальности
+                                                    Регистрируясь, вы принимаете условия сервиса
                                                 </p>
                                                 <span className="items-center text-center">
-                                                    {error && <p className="text-red-500">{error}</p>}
+                                                    {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
                                                 </span>
                                             </motion.form>
                                         </div>
@@ -326,6 +335,7 @@ export default function LoginPage() {
                     </motion.div>
                 </motion.div>
 
+                {/* Футер с преимуществами (для убеждения зарегистрироваться) */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -335,17 +345,17 @@ export default function LoginPage() {
                     {[
                         {
                             icon: Brain,
-                            label: "Становитесь умнее",
+                            label: "Умное повторение",
                             gradient: "from-yellow-400 to-orange-500",
                         },
                         {
                             icon: Zap,
-                            label: "Получите опыт",
+                            label: "Свои колоды",
                             gradient: "from-purple-500 to-pink-500",
                         },
                         {
                             icon: Star,
-                            label: "Повышайте уровень",
+                            label: "Прогресс и уровни",
                             gradient: "from-blue-500 to-cyan-500",
                         },
                     ].map((feature, index) => (
@@ -359,8 +369,8 @@ export default function LoginPage() {
                             <Card
                                 className={`p-4 text-center bg-gradient-to-br ${feature.gradient} border-none shadow-lg`}
                             >
-                                <feature.icon className="w-10 h-10 text-white mx-auto mb-2" />
-                                <p className="text-white text-sm truncate">{feature.label}</p>
+                                <feature.icon className="w-8 h-8 sm:w-10 sm:h-10 text-white mx-auto mb-2" />
+                                <p className="text-white text-xs sm:text-sm truncate font-medium">{feature.label}</p>
                             </Card>
                         </motion.div>
                     ))}

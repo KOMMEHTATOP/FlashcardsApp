@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { BookHeartIcon, Frown, Trophy, Lock, ArrowRight } from "lucide-react";
+import { BookHeartIcon, Trophy, Lock, ArrowRight } from "lucide-react";
 import type { GroupCardType, GroupType } from "../types/types";
 import { CardQuestion } from "../shared/ui/CardQuestion";
 import AddFlashcardForm from "../components/modal/AddFlashcardForm";
@@ -11,10 +11,11 @@ interface CardsListProps {
     cards: GroupCardType[];
     group: GroupType;
     isSubscriptionView: boolean;
-    onCardClick?: (cards: GroupCardType[], group: GroupType, index: number) => void; // Сделал опциональным
+    onCardClick?: (cards: GroupCardType[], group: GroupType, index: number) => void;
     onDeleteCard?: (card: GroupCardType) => void;
     onEditCard?: (card: GroupCardType) => void;
-    blurAfterIndex?: number; // <--- Новый проп для блюра
+    blurAfterIndex?: number;
+    isAuthenticated?: boolean; 
     addCardFormProps?: {
         isOpen: boolean;
         question: string;
@@ -39,28 +40,26 @@ export function CardsList({
                               onEditCard,
                               addCardFormProps,
                               blurAfterIndex,
+                              isAuthenticated,
                           }: CardsListProps) {
     const navigate = useNavigate();
     const completedCount = cards.filter((item) => item.LastRating > 0).length;
-
-    // Если передан индекс для блюра, показываем CTA
     const showLockedContent = blurAfterIndex !== undefined && cards.length > blurAfterIndex;
 
     return (
         <div className="w-full py-12 relative">
-            {/* Заголовок и действия */}
             <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5 }}
                 className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4"
             >
+                {/* ... (Верхняя часть без изменений: Заголовок, Кнопка добавления, Трофей) ... */}
                 <h2 className="text-lg md:text-2xl text-base-content/80">
                     Путь обучения
                 </h2>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 md:flex md:flex-row md:items-center gap-3 md:gap-4 text-base-content/80 w-full md:w-auto">
-                    {/* Кнопка добавления карточки (Скрыта в SubscriptionView) */}
                     {!isSubscriptionView && addCardFormProps && (
                         <div className="flex justify-center md:justify-start">
                             <AddFlashcardForm
@@ -80,19 +79,15 @@ export function CardsList({
                         </div>
                     )}
 
-                    {/* Счётчик (Скрываем для гостей, если они не видят прогресс) */}
                     {!showLockedContent && (
                         <div className="flex items-center justify-center md:justify-start gap-2">
                             <Trophy className="w-5 h-5" />
-                            <span>
-                                Завершено {completedCount} из {cards.length}
-                            </span>
+                            <span>Завершено {completedCount} из {cards.length}</span>
                         </div>
                     )}
                 </div>
             </motion.div>
 
-            {/* Список карточек */}
             <div className="space-y-4 relative">
                 {cards.length === 0 && (
                     <motion.div
@@ -102,17 +97,14 @@ export function CardsList({
                         className="text-center text-base-content/80 text-xl rounded-2xl py-20"
                     >
                         <BookHeartIcon className="w-15 h-15 inline-block mr-2" />
-                        <p className="text-center text-base-content/80 text-xl">
-                            Не нашлось ни одной карточки
-                            <Frown className="w-5 h-5 inline-block ml-2" />
-                        </p>
+                        <p>Не нашлось ни одной карточки</p>
                     </motion.div>
                 )}
 
                 <AnimatePresence>
                     {cards.map((item, index) => {
-                        // Логика блюра: если есть лимит и текущий индекс больше или равен лимиту
                         const isBlur = blurAfterIndex !== undefined && index >= blurAfterIndex;
+                        const isFirstBlur = blurAfterIndex !== undefined && index === blurAfterIndex;
 
                         return (
                             <motion.div
@@ -121,48 +113,53 @@ export function CardsList({
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: -20 }}
                                 transition={{ delay: index * 0.1 }}
-                                className={`relative ${isBlur ? "blur-sm select-none pointer-events-none opacity-60" : ""}`}
+                                className="relative"
                             >
-                                <CardQuestion
-                                    item={item}
-                                    // Если onCardClick передан, вызываем его, иначе undefined
-                                    onClick={onCardClick ? () => onCardClick(cards, group, index) : undefined}
-                                    // ВАЖНО: Если isSubscriptionView, мы передаем undefined. 
-                                    // Если кнопки всё равно видны - проблема в CardQuestion.
-                                    onDelete={!isSubscriptionView && onDeleteCard ? () => onDeleteCard(item) : undefined}
-                                    onEdit={!isSubscriptionView && onEditCard ? () => onEditCard(item) : undefined}
-                                />
+                                <div className={isBlur ? "blur-sm opacity-40 pointer-events-none select-none" : ""}>
+                                    <CardQuestion
+                                        item={item}
+                                        // Передаем onClick если передан родителем
+                                        onClick={onCardClick ? () => onCardClick(cards, group, index) : undefined}
+
+                                        onDelete={!isSubscriptionView && onDeleteCard ? () => onDeleteCard(item) : undefined}
+                                        onEdit={!isSubscriptionView && onEditCard ? () => onEditCard(item) : undefined}
+
+                                        // Показываем кнопку обзор, если пользователь авторизован
+                                        showOverviewButton={isAuthenticated}
+                                    />
+                                </div>
+
+                                {isFirstBlur && (
+                                    <div className="absolute top-0 left-0 right-0 z-20 pt-4 px-6 md:px-20">
+                                        <div className="bg-base-100/90 backdrop-blur-md shadow-2xl rounded-3xl p-6 md:p-8 text-center border border-base-content/10">
+                                            <div className="flex justify-center mb-4">
+                                                <div className="bg-primary/10 p-3 rounded-full">
+                                                    <Lock className="w-6 h-6 text-primary" />
+                                                </div>
+                                            </div>
+                                            <h3 className="text-xl md:text-2xl font-bold mb-2">
+                                                Хотите увидеть остальные карточки?
+                                            </h3>
+                                            <p className="text-base-content/70 mb-6 text-sm md:text-base">
+                                                Зарегистрируйтесь бесплатно, чтобы получить полный доступ к этой колоде,
+                                                отслеживать свой прогресс и использовать режим интервального повторения.
+                                            </p>
+                                            <div className="flex justify-center">
+                                                <Button
+                                                    variant="confirm"
+                                                    onClick={() => navigate("/login")}
+                                                    rightIcon={ArrowRight}
+                                                >
+                                                    Начать бесплатно
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </motion.div>
                         );
                     })}
                 </AnimatePresence>
-
-                {/* OVERLAY CTA для гостей */}
-                {showLockedContent && (
-                    <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-base-300 via-base-300/90 to-transparent flex items-end justify-center pb-20 z-20">
-                        <div className="bg-base-100/80 backdrop-blur-md shadow-2xl rounded-3xl p-8 max-w-xl text-center border border-base-content/10 mx-4">
-                            <div className="flex justify-center mb-4">
-                                <div className="bg-primary/10 p-4 rounded-full">
-                                    <Lock className="w-8 h-8 text-primary" />
-                                </div>
-                            </div>
-                            <h3 className="text-2xl font-bold mb-2">
-                                Хотите увидеть ещё {cards.length - (blurAfterIndex || 0)} карточек?
-                            </h3>
-                            <p className="text-base-content/70 mb-6">
-                                Зарегистрируйтесь бесплатно, чтобы получить полный доступ к этой колоде,
-                                отслеживать свой прогресс и использовать режим интервального повторения.
-                            </p>
-                            <Button
-                                variant="confirm"
-                                onClick={() => navigate("/login")}
-                                rightIcon={ArrowRight}
-                            >
-                                Начать бесплатно
-                            </Button>
-                        </div>
-                    </div>
-                )}
             </div>
         </div>
     );

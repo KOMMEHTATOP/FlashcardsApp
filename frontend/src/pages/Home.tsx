@@ -6,8 +6,9 @@ import {
     BookOpen,
     Medal,
     BookCopyIcon,
-    Store
+    Library // <--- Новая иконка
 } from "lucide-react";
+import { Helmet } from "react-helmet-async"; // <--- SEO компонент
 
 import LevelCard from "../components/cards/Level_card";
 import StateCard from "../components/cards/State_card";
@@ -15,7 +16,6 @@ import { useData } from "../context/DataContext";
 import { AnimatePresence } from "framer-motion";
 import MotivationCard from "../components/cards/Motivation_card";
 import { useMemo, useState } from "react";
-import useTitle from "../utils/useTitle";
 import formatTotalHour from "../utils/formatTotalHour";
 import SettingModal from "../components/modal/SettingModal";
 
@@ -23,19 +23,18 @@ import { LessonsTab } from "../components/tabs/LessonsTab";
 import { StoreTab } from "../components/tabs/StoreTab";
 import { AchievementsTab } from "../components/tabs/AchievementsTab";
 
+// Обновляем названия вкладок
 const modulePage = [
-    { name: "Мои группы" },
-    { name: "Общие группы" },
+    { name: "Мои колоды" }, 
+    { name: "Библиотека" }, 
     { name: "Достижения" }
 ];
 
 export function HomePage() {
-    const { user,achivment, groups, motivationText } = useData();
-    useTitle("Главная");
-
+    const { user, achivment, groups, motivationText } = useData();
     const [modul] = useState<typeof modulePage>(modulePage);
 
-    // Восстанавливаем активную вкладку из localStorage при загрузке
+    // Восстанавливаем активную вкладку из localStorage
     const [currentModul, setCurrentModul] = useState<number>(() => {
         const saved = localStorage.getItem('activeTab');
         return saved ? parseInt(saved, 10) : 0;
@@ -57,14 +56,13 @@ export function HomePage() {
     const selectModul = (name: string) => {
         const index = modul.findIndex((item) => item.name === name);
         setCurrentModul(index);
-        // Сохраняем активную вкладку в localStorage
         localStorage.setItem('activeTab', index.toString());
     };
 
     const handleOpenSetting = () => setIsOpenSetting(true);
     const handleCloseSetting = () => setIsOpenSetting(false);
 
-    // Функция для рендера текущей вкладки
+    // Рендер текущей вкладки
     const renderCurrentTab = () => {
         switch (currentModul) {
             case 0:
@@ -75,7 +73,7 @@ export function HomePage() {
                     />
                 );
             case 1:
-                return <StoreTab />;
+                return <StoreTab />; 
             case 2:
                 return <AchievementsTab />;
             default:
@@ -85,6 +83,11 @@ export function HomePage() {
 
     return (
         <div className="w-full pb-10">
+            {/* Устанавливаем заголовок вкладки браузера */}
+            <Helmet>
+                <title>Моё обучение | FlashcardsLoop</title>
+            </Helmet>
+
             <div className="space-y-8">
                 {/* Карточка уровня */}
                 <div>
@@ -123,43 +126,43 @@ export function HomePage() {
                     />
                     <StateCard
                         icon={BookCopyIcon}
-                        label="Создано карточек"
+                        label="Всего карточек" 
                         value={totalCardCount.toString() || "0"}
                         gradient="from-purple-500 to-pink-500"
                         delay={0.4}
                     />
                 </div>
 
-                {/* Табы */}
+                {/* Табы (Навигация) */}
                 <div role="tablist" className="tabs tabs-border">
                     <button
                         role="tab"
                         className={`tab gap-2 transition-all duration-300 ${
-                            currentModul === 0 ? "tab-active bg-base-100" : "opacity-50"
+                            currentModul === 0 ? "tab-active bg-base-100 font-medium" : "opacity-60"
                         }`}
-                        onClick={() => selectModul("Мои группы")}
+                        onClick={() => selectModul("Мои колоды")}
                     >
-                        <BookOpen className="h-5 w-5 text-base-content" />
-                        Мои группы
+                        <BookOpen className="h-5 w-5" />
+                        Мои колоды
                     </button>
                     <button
                         role="tab"
                         className={`tab gap-2 transition-all duration-300 ${
-                            currentModul === 1 ? "tab-active bg-base-100" : "opacity-50"
+                            currentModul === 1 ? "tab-active bg-base-100 font-medium" : "opacity-60"
                         }`}
-                        onClick={() => selectModul("Общие группы")}
+                        onClick={() => selectModul("Библиотека")}
                     >
-                        <Store className="h-5 w-5 text-base-content" />
-                        Общие группы
+                        <Library className="h-5 w-5" /> {/* Иконка Библиотеки */}
+                        Библиотека
                     </button>
                     <button
                         role="tab"
                         className={`tab gap-2 transition-all duration-300 ${
-                            currentModul === 2 ? "tab-active bg-base-100" : "opacity-50"
+                            currentModul === 2 ? "tab-active bg-base-100 font-medium" : "opacity-60"
                         }`}
                         onClick={() => selectModul("Достижения")}
                     >
-                        <Medal className="h-5 w-5 text-base-content" />
+                        <Medal className="h-5 w-5" />
                         Достижения
                     </button>
                 </div>
