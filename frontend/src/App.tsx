@@ -10,16 +10,19 @@ import { PrivateRoute } from "./layout/PrivateRoute";
 import { GuestRoute } from "./layout/GuestRoute";
 import { lazy } from "react";
 import ScrollToTop from "./utils/scrollToTop";
+import { DataProvider } from "./context/DataContext"; // <--- Не забудь этот импорт!
 
 const LandingPage = lazy(() => import("./pages/LandingPage"));
 const PublicStorePage = lazy(() => import("./pages/PublicStore"));
+const PublicGroupView = lazy(() => import("./pages/PublicGroupView")); // <--- Импорт новой страницы
 
 export const DEV = false;
 
 function App() {
     return (
         <Routes>
-            {/* Публичный лендинг */}
+            {/* --- ПУБЛИЧНЫЕ СТРАНИЦЫ --- */}
+
             <Route path="/about" element={
                 <>
                     <ScrollToTop />
@@ -27,7 +30,6 @@ function App() {
                 </>
             } />
 
-            {/* Публичный каталог (Магазин) */}
             <Route path="/store" element={
                 <>
                     <ScrollToTop />
@@ -35,14 +37,23 @@ function App() {
                 </>
             } />
 
-            {/* Страница входа (доступна только гостям) */}
+            {/* Страница просмотра группы (доступна всем, поэтому оборачиваем в DataProvider вручную) */}
+            <Route path="/subscription/:id" element={
+                <DataProvider>
+                    <ScrollToTop />
+                    <PublicGroupView />
+                </DataProvider>
+            } />
+
+            {/* --------------------------- */}
+
             <Route path="/login" element={
                 <GuestRoute>
                     <LoginPage />
                 </GuestRoute>
             } />
 
-            {/* Защищенная зона приложения */}
+            {/* --- ЗАЩИЩЕННЫЕ СТРАНИЦЫ (Только для авторизованных) --- */}
             <Route element={<AppLayout />}>
                 <Route
                     path="/"
@@ -61,6 +72,11 @@ function App() {
                     }
                 />
 
+                {/* Обрати внимание: Маршрут /subscription/:id отсюда УБРАН. 
+                    Теперь он публичный и обрабатывается выше.
+                    
+                    Маршрут /study/:id остался для режима обучения.
+                */}
                 <Route
                     path="/study/:id"
                     element={
@@ -72,21 +88,8 @@ function App() {
                         </PrivateRoute>
                     }
                 />
-
-                <Route
-                    path="/subscription/:id"
-                    element={
-                        <PrivateRoute>
-                            <>
-                                <ScrollToTop />
-                                <StudyPage />
-                            </>
-                        </PrivateRoute>
-                    }
-                />
             </Route>
 
-            {/* Страница 404 */}
             <Route path="*" element={<NotFoundPage />} />
         </Routes>
     );

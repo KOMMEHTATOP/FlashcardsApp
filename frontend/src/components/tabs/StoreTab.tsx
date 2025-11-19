@@ -1,18 +1,16 @@
 import { motion } from "framer-motion";
-import { Store, Search, TrendingUp, Calendar, SortAsc, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, TrendingUp, Calendar, SortAsc, ChevronLeft, ChevronRight, BookHeartIcon } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import apiFetch from "../../utils/apiFetch";
 import type { PublicGroupDto } from "../../types/types";
 import PublicGroupCard from "../cards/PublicGroupCard";
-import GroupPreviewModal from "../modal/GroupPreviewModal";
 import { availableIcons } from "../../test/data";
-import { BookHeartIcon } from "lucide-react";
 import { useData } from "../../context/DataContext";
-import { useNavigate } from "react-router-dom"; // <--- ДОБАВЛЕНО
 
 export function StoreTab() {
     const { user, setUser } = useData();
-    const navigate = useNavigate(); // <--- ДОБАВЛЕНО
+    const navigate = useNavigate();
 
     const [groups, setGroups] = useState<PublicGroupDto[]>([]);
     const [loading, setLoading] = useState(false);
@@ -24,19 +22,8 @@ export function StoreTab() {
     const [page, setPage] = useState(1);
     const [pageSize] = useState(20);
 
-    // Модалка предпросмотра
-    const [previewModal, setPreviewModal] = useState<{
-        isOpen: boolean;
-        group: PublicGroupDto | null;
-    }>({
-        isOpen: false,
-        group: null,
-    });
-
-    // Получаем ID групп, на которые подписан пользователь
     const subscribedGroupIds = user?.MySubscriptions?.map(sub => sub.Id) || [];
 
-    // Загрузка данных при изменении фильтров
     useEffect(() => {
         loadPublicGroups();
     }, [search, sortBy, page]);
@@ -44,18 +31,10 @@ export function StoreTab() {
     const loadPublicGroups = async () => {
         setLoading(true);
         setError(null);
-
         try {
-            // Запрос идет, API его пропустит даже для анонима
             const response = await apiFetch.get("/Subscriptions/public", {
-                params: {
-                    search: search || undefined,
-                    sortBy,
-                    page,
-                    pageSize
-                }
+                params: { search: search || undefined, sortBy, page, pageSize }
             });
-
             setGroups(response.data);
         } catch (err: any) {
             console.error("Ошибка загрузки публичных групп:", err);
@@ -77,18 +56,12 @@ export function StoreTab() {
     };
 
     const handleSubscribe = async (groupId: string) => {
-        // --- НОВАЯ ЛОГИКА: ЗАЩИТА ОТ ГОСТЕЙ ---
         if (!user) {
-            // Если пользователь не вошел, перекидываем на логин
             navigate("/login");
             return;
         }
-        // ---------------------------------------
-
         try {
             await apiFetch.post(`/Subscriptions/${groupId}/subscribe`);
-
-            // Находим группу для добавления в подписки
             const subscribedGroup = groups.find(g => g.Id === groupId);
             if (subscribedGroup && user) {
                 setUser(prev => prev ? {
@@ -107,12 +80,8 @@ export function StoreTab() {
                     ]
                 } : prev);
             }
-
-            // Обновляем счётчик подписчиков в списке
             setGroups(prev => prev.map(g =>
-                g.Id === groupId
-                    ? { ...g, SubscriberCount: g.SubscriberCount + 1 }
-                    : g
+                g.Id === groupId ? { ...g, SubscriberCount: g.SubscriberCount + 1 } : g
             ));
         } catch (err: any) {
             alert(err.response?.data?.errors?.[0] || "Ошибка подписки");
@@ -122,38 +91,23 @@ export function StoreTab() {
     const handleUnsubscribe = async (groupId: string) => {
         try {
             await apiFetch.delete(`/Subscriptions/${groupId}/subscribe`);
-
-            // Удаляем из подписок пользователя
             if (user) {
                 setUser(prev => prev ? {
                     ...prev,
                     MySubscriptions: (prev.MySubscriptions || []).filter(sub => sub.Id !== groupId)
                 } : prev);
             }
-
-            // Обновляем счётчик подписчиков в списке
             setGroups(prev => prev.map(g =>
-                g.Id === groupId
-                    ? { ...g, SubscriberCount: Math.max(0, g.SubscriberCount - 1) }
-                    : g
+                g.Id === groupId ? { ...g, SubscriberCount: Math.max(0, g.SubscriberCount - 1) } : g
             ));
         } catch (err: any) {
             alert(err.response?.data?.errors?.[0] || "Ошибка отписки");
         }
     };
 
+    // ИЗМЕНЕНИЕ: Теперь мы переходим на страницу вместо открытия модалки
     const handleView = (group: PublicGroupDto) => {
-        setPreviewModal({
-            isOpen: true,
-            group,
-        });
-    };
-
-    const handleClosePreview = () => {
-        setPreviewModal({
-            isOpen: false,
-            group: null,
-        });
+        navigate(`/subscription/${group.Id}`);
     };
 
     return (
@@ -167,7 +121,7 @@ export function StoreTab() {
         >
             <h2 className="text-2xl text-base-content">Магазин публичных колод</h2>
 
-            {/* Поиск и фильтры */}
+            {/* Поиск и Сортировка (UI без изменений) */}
             <div className="space-y-4">
                 <form onSubmit={handleSearchSubmit} className="flex gap-2">
                     <div className="relative flex-1">
@@ -180,56 +134,25 @@ export function StoreTab() {
                             className="input input-bordered w-full pl-10"
                         />
                     </div>
-                    <button type="submit" className="btn btn-primary">
-                        Найти
-                    </button>
+                    <button type="submit" className="btn btn-primary">Найти</button>
                 </form>
 
                 <div className="flex gap-2 flex-wrap">
-                    <button
-                        onClick={() => handleSortChange("date")}
-                        className={`btn btn-sm gap-2 ${sortBy === "date" ? "btn-primary" : "btn-ghost"}`}
-                    >
-                        <Calendar className="w-4 h-4" />
-                        Новые
+                    <button onClick={() => handleSortChange("date")} className={`btn btn-sm gap-2 ${sortBy === "date" ? "btn-primary" : "btn-ghost"}`}>
+                        <Calendar className="w-4 h-4" /> Новые
                     </button>
-                    <button
-                        onClick={() => handleSortChange("popular")}
-                        className={`btn btn-sm gap-2 ${sortBy === "popular" ? "btn-primary" : "btn-ghost"}`}
-                    >
-                        <TrendingUp className="w-4 h-4" />
-                        Популярные
+                    <button onClick={() => handleSortChange("popular")} className={`btn btn-sm gap-2 ${sortBy === "popular" ? "btn-primary" : "btn-ghost"}`}>
+                        <TrendingUp className="w-4 h-4" /> Популярные
                     </button>
-                    <button
-                        onClick={() => handleSortChange("name")}
-                        className={`btn btn-sm gap-2 ${sortBy === "name" ? "btn-primary" : "btn-ghost"}`}
-                    >
-                        <SortAsc className="w-4 h-4" />
-                        По алфавиту
+                    <button onClick={() => handleSortChange("name")} className={`btn btn-sm gap-2 ${sortBy === "name" ? "btn-primary" : "btn-ghost"}`}>
+                        <SortAsc className="w-4 h-4" /> По алфавиту
                     </button>
                 </div>
             </div>
 
-            {loading && (
-                <div className="flex justify-center py-12">
-                    <span className="loading loading-spinner loading-lg"></span>
-                </div>
-            )}
-
-            {error && (
-                <div className="alert alert-error">
-                    <span>{error}</span>
-                </div>
-            )}
-
-            {!loading && !error && groups.length === 0 && (
-                <div className="text-center py-12">
-                    <Store className="w-16 h-16 mx-auto mb-4 opacity-30" />
-                    <p className="text-base-content opacity-70">
-                        {search ? "Ничего не найдено" : "Пока нет публичных колод"}
-                    </p>
-                </div>
-            )}
+            {/* Состояния загрузки */}
+            {loading && <div className="flex justify-center py-12"><span className="loading loading-spinner loading-lg"></span></div>}
+            {error && <div className="alert alert-error"><span>{error}</span></div>}
 
             {!loading && !error && groups.length > 0 && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -237,11 +160,7 @@ export function StoreTab() {
                         <PublicGroupCard
                             key={group.Id}
                             id={group.Id}
-                            icon={
-                                group.GroupIcon
-                                    ? (availableIcons.find((i) => i.name === group.GroupIcon)?.icon || group.GroupIcon)
-                                    : BookHeartIcon
-                            }
+                            icon={group.GroupIcon ? (availableIcons.find((i) => i.name === group.GroupIcon)?.icon || group.GroupIcon) : BookHeartIcon}
                             title={group.GroupName}
                             cardCount={group.CardCount}
                             subscriberCount={group.SubscriberCount}
@@ -249,7 +168,7 @@ export function StoreTab() {
                             gradient={group.GroupColor}
                             createdAt={group.CreatedAt}
                             isSubscribed={subscribedGroupIds.includes(group.Id)}
-                            onView={() => handleView(group)}
+                            onView={() => handleView(group)} // Теперь это navigate
                             onSubscribe={() => handleSubscribe(group.Id)}
                             onUnsubscribe={() => handleUnsubscribe(group.Id)}
                         />
@@ -257,39 +176,16 @@ export function StoreTab() {
                 </div>
             )}
 
+            {/* Пагинация (UI без изменений) */}
             {!loading && groups.length > 0 && (
                 <div className="flex justify-center gap-2 mt-6">
-                    <button
-                        onClick={() => setPage(p => Math.max(1, p - 1))}
-                        disabled={page === 1}
-                        className="btn btn-circle btn-sm"
-                    >
-                        <ChevronLeft className="w-4 h-4" />
-                    </button>
-                    <span className="flex items-center px-4">
-                        Страница {page}
-                    </span>
-                    <button
-                        onClick={() => setPage(p => p + 1)}
-                        disabled={groups.length < pageSize}
-                        className="btn btn-circle btn-sm"
-                    >
-                        <ChevronRight className="w-4 h-4" />
-                    </button>
+                    <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="btn btn-circle btn-sm"><ChevronLeft className="w-4 h-4" /></button>
+                    <span className="flex items-center px-4">Страница {page}</span>
+                    <button onClick={() => setPage(p => p + 1)} disabled={groups.length < pageSize} className="btn btn-circle btn-sm"><ChevronRight className="w-4 h-4" /></button>
                 </div>
             )}
 
-            {previewModal.group && (
-                <GroupPreviewModal
-                    isOpen={previewModal.isOpen}
-                    onClose={handleClosePreview}
-                    groupId={previewModal.group?.Id || ""}
-                    groupName={previewModal.group?.GroupName || ""}
-                    gradient={previewModal.group?.GroupColor || "from-gray-500 to-gray-600"}
-                    // Здесь мы тоже используем handleSubscribe, который теперь защищен
-                    onSubscribe={() => previewModal.group && handleSubscribe(previewModal.group.Id)}
-                />
-            )}
+            {/* Модальное окно удалено из JSX */}
         </motion.div>
     );
 }

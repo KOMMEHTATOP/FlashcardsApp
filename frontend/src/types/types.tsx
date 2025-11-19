@@ -88,6 +88,7 @@ interface PublicGroupDto {
   CardCount: number;
   SubscriberCount: number;
   CreatedAt: string;
+  IsSubscribed: boolean;
 }
 
 // Подписка на чужую группу
