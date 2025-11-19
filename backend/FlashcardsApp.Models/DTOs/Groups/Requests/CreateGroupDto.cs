@@ -7,5 +7,5 @@ public class CreateGroupDto
     public string GroupIcon { get; set; }
     public int Order { get; set; }
     public bool IsPublished { get; set; }
-
+    public List<string> Tags { get; set; } = new();
 }

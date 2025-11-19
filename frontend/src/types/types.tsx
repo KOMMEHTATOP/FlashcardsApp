@@ -76,6 +76,7 @@ interface GroupType {
   CardCount: number;
   IsPublished?: boolean;
   SubscriberCount?: number;
+  Tags?: TagDto[];
 }
 
 // Публичная группа в магазине
@@ -184,6 +185,13 @@ type MotivationType = {
   Type: string;
 };
 
+interface TagDto {
+  Id: string;
+  Name: string;
+  Slug: string;
+  Color?: string;
+}
+
 // ==================== EXPORTS ====================
 
 export type {
@@ -217,4 +225,5 @@ export type {
   // UI
   ConfrimModalState,
   MotivationType,
+  TagDto
 };

@@ -1,3 +1,5 @@
+using FlashcardsApp.Models.DTOs.Tags;
+
 namespace FlashcardsApp.Models.DTOs.Groups.Responses;
 
 public class ResultGroupDto
@@ -11,4 +13,5 @@ public class ResultGroupDto
     public int Order { get; set; }
     public int SubscriberCount { get; set; } 
     public int CardCount { get; set; }
+    public List<GroupTagDto> Tags { get; set; } = new();
 }

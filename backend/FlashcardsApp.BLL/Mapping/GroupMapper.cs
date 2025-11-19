@@ -1,14 +1,14 @@
 using System.Linq.Expressions;
 using FlashcardsApp.DAL.Models;
 using FlashcardsApp.Models.DTOs.Groups.Responses;
+using FlashcardsApp.Models.DTOs.Tags;
 
 namespace FlashcardsApp.BLL.Mapping;
 
 public static class GroupMapper
 {
     /// <summary>
-    /// Маппинг для загруженной сущности (после ToListAsync)
-    /// Используется когда данные уже в памяти
+    /// Маппинг для загруженной сущности (когда используем FindAsync или получили объект после SaveChanges)
     /// </summary>
     public static ResultGroupDto ToDto(this Group model)
     {
@@ -22,13 +22,21 @@ public static class GroupMapper
             CreatedAt = model.CreatedAt,
             Order = model.Order,
             SubscriberCount = model.SubscriberCount,
-            CardCount = model.Cards?.Count ?? 0
+            CardCount = model.Cards?.Count ?? 0,
+            
+            // --- МАППИНГ ТЕГОВ ---
+            Tags = model.Tags?.Select(t => new GroupTagDto
+            {
+                Id = t.Id,
+                Name = t.Name,
+                Slug = t.Slug,
+                Color = t.Color
+            }).ToList() ?? new List<GroupTagDto>()
         };
     }
 
     /// <summary>
-    /// Expression для проекции в EF Core запросах (до ToListAsync)
-    /// Позволяет EF Core генерировать оптимальный SQL с COUNT вместо загрузки всех карточек
+    /// Проекция для EF Core (SQL генерация)
     /// </summary>
     public static Expression<Func<Group, ResultGroupDto>> ToDtoExpression()
     {
@@ -42,7 +50,17 @@ public static class GroupMapper
             CreatedAt = g.CreatedAt,
             Order = g.Order,
             SubscriberCount = g.SubscriberCount,
-            CardCount = g.Cards!.Count  // EF Core превратит в COUNT(*) в SQL
+            CardCount = g.Cards!.Count, // COUNT(*)
+            
+            // --- ПРОЕКЦИЯ ТЕГОВ ---
+            // EF Core превратит это в эффективный JOIN
+            Tags = g.Tags.Select(t => new GroupTagDto
+            {
+                Id = t.Id,
+                Name = t.Name,
+                Slug = t.Slug,
+                Color = t.Color
+            }).ToList()
         };
     }
 }

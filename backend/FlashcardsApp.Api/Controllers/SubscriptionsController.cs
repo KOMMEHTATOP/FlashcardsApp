@@ -42,10 +42,11 @@ namespace FlashcardsApp.Api.Controllers
             [FromQuery] string? search = null,
             [FromQuery] string sortBy = "date",
             [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 20)
+            [FromQuery] int pageSize = 20,
+            [FromQuery] Guid? tagId = null)
         {
             var userId = GetUserIdOrEmpty(); 
-            var result = await _subscriptionBL.GetPublicGroupsAsync(userId, search, sortBy, page, pageSize);
+            var result = await _subscriptionBL.GetPublicGroupsAsync(userId, search, sortBy, page, pageSize, tagId);
             return OkOrBadRequest(result);
         }
 
@@ -102,6 +103,14 @@ namespace FlashcardsApp.Api.Controllers
             return OkOrNotFound(result);
         }
         
+        [HttpGet("tags")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetTags()
+        {
+            var result = await _subscriptionBL.GetTagsAsync();
+            return OkOrBadRequest(result);
+        }
+        
         // Вспомогательный метод для безопасного получения ID
         // Если пользователь вошел - возвращает его ID.
         // Если гость - возвращает Guid.Empty (0000-000...), чтобы логика BL работала корректно.
@@ -111,5 +120,7 @@ namespace FlashcardsApp.Api.Controllers
                 ? GetCurrentUserId() 
                 : Guid.Empty;
         }
+        
+
     }
 }
