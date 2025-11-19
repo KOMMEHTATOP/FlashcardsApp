@@ -9,7 +9,7 @@ type CardQuestionProps = {
     onClick?: () => void;
     onDelete?: () => void;
     onEdit?: () => void;
-    showOverviewButton?: boolean; // <--- НОВЫЙ ПРОП
+    showOverviewButton?: boolean;
 };
 
 export function CardQuestion({
@@ -19,12 +19,10 @@ export function CardQuestion({
                                  onEdit,
                                  showOverviewButton,
                              }: CardQuestionProps) {
-    const [isOpen, setIsOpen] = useState(false); // Локальное состояние для раскрытия ответа
+    const [isOpen, setIsOpen] = useState(false);
     const isCompleted = item.LastRating > 0;
     const isOwnerMode = !!onEdit;
 
-    // Обработчик клика: если есть onClick (внешний), зовем его.
-    // Если это режим просмотра (showOverviewButton), то переключаем видимость ответа.
     const handleClick = (e?: React.MouseEvent) => {
         e?.stopPropagation();
         if (showOverviewButton) {
@@ -75,7 +73,7 @@ export function CardQuestion({
                     <div className="flex-1 ml-4">
                         {/* Вопрос */}
                         <div
-                            className={`mb-2 text-base font-medium ${
+                            className={`mb-2 text-base font-medium prose prose-sm max-w-none ${
                                 isCompleted ? "text-base-content" : "text-gray-500"
                             }`}
                             dangerouslySetInnerHTML={{ __html: item.Question }}
@@ -106,7 +104,10 @@ export function CardQuestion({
                                 >
                                     <div className="pt-4 mt-2 border-t border-base-200 text-base-content">
                                         <span className="text-xs font-bold text-base-content/50 uppercase block mb-1">Ответ:</span>
-                                        <div dangerouslySetInnerHTML={{ __html: item.Answer }} />
+                                        <div
+                                            className="prose prose-sm max-w-none"
+                                            dangerouslySetInnerHTML={{ __html: item.Answer }}
+                                        />
                                     </div>
                                 </motion.div>
                             )}
@@ -142,7 +143,6 @@ export function CardQuestion({
                                 {isOpen ? <ChevronDown className="w-4 h-4"/> : <ChevronRight className="w-4 h-4"/>}
                             </button>
                         ) : (
-                            // Для гостей - стрелочка
                             onClick && (
                                 <div className="p-2 text-base-content/30">
                                     <ChevronRight className="w-6 h-6" />
