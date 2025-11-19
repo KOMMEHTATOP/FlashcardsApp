@@ -8,7 +8,7 @@ namespace FlashcardsApp.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    [Authorize] 
     public class SubscriptionsController : BaseController
     {
         private readonly ISubscriptionBL _subscriptionBL;
@@ -21,49 +21,48 @@ namespace FlashcardsApp.Api.Controllers
             _subscriptionBL = subscriptionBL;
         }
 
-        // НОВЫЙ МЕТОД: Получение деталей публичной группы по ID.
         /// <summary>
         /// Получить детали публичной группы по ID. Используется для просмотра содержимого.
         /// </summary>
-        /// <param name="groupId">Идентификатор группы</param>
-        /// <response code="200">Возвращает детали группы</response>
-        /// <response code="404">Группа не найдена или не опубликована</response>
-        /// <response code="401">Пользователь не авторизован</response>
-        [HttpGet("{groupId:guid}")] // <--- ЭНДПОИНТ, ВЫЗЫВАЮЩИЙСЯ С ФРОНТЕНДА
+        [HttpGet("{groupId:guid}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetPublicGroupDetails(Guid groupId)
         {
-            var userId = GetCurrentUserId(); // Получаем ID для проверки подписки
+            var userId = GetUserIdOrEmpty(); 
             var result = await _subscriptionBL.GetPublicGroupDetailsAsync(groupId, userId);
             return OkOrNotFound(result);
         }
 
         /// <summary>
-        /// Получить список публичных групп для подписки
+        /// Получить список публичных групп (Каталог)
         /// </summary>
-        /// <param name="search">Поисковый запрос (необязательный)</param>
-        /// <param name="sortBy">Сортировка: date (новые), popular (популярные), name (по алфавиту)</param>
-        /// <param name="page">Номер страницы (по умолчанию 1)</param>
-        /// <param name="pageSize">Количество элементов на странице (по умолчанию 20, макс 100)</param>
-        /// <response code="200">Возвращает список публичных групп</response>
-        /// <response code="400">Ошибка валидации или выполнения запроса</response>
         [HttpGet("public")]
+        [AllowAnonymous] 
         public async Task<IActionResult> GetPublicGroups(
             [FromQuery] string? search = null,
             [FromQuery] string sortBy = "date",
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 20)
         {
-            var userId = GetCurrentUserId();
+            var userId = GetUserIdOrEmpty(); 
             var result = await _subscriptionBL.GetPublicGroupsAsync(userId, search, sortBy, page, pageSize);
             return OkOrBadRequest(result);
         }
 
         /// <summary>
+        /// Получить карточки публичной группы для предпросмотра
+        /// </summary>
+        [HttpGet("public/{groupId:guid}/cards")]
+        [AllowAnonymous] 
+        public async Task<IActionResult> GetPublicGroupCards(Guid groupId)
+        {
+            var result = await _subscriptionBL.GetPublicGroupCardsAsync(groupId);
+            return OkOrBadRequest(result);
+        }
+        
+        /// <summary>
         /// Получить группы, на которые подписан текущий пользователь
         /// </summary>
-        /// <response code="200">Возвращает список подписок пользователя</response>
-        /// <response code="400">Ошибка выполнения запроса</response>
-        /// <response code="401">Пользователь не авторизован</response>
         [HttpGet("my")]
         public async Task<IActionResult> GetMySubscriptions()
         {
@@ -72,14 +71,6 @@ namespace FlashcardsApp.Api.Controllers
             return OkOrBadRequest(result);
         }
 
-        /// <summary>
-        /// Подписаться на группу
-        /// </summary>
-        /// <param name="groupId">Идентификатор группы</param>
-        /// <response code="200">Подписка успешно создана</response>
-        /// <response code="400">Ошибка валидации (например, уже подписан)</response>
-        /// <response code="404">Группа не найдена</response>
-        /// <response code="401">Пользователь не авторизован</response>
         [HttpPost("{groupId:guid}/subscribe")]
         public async Task<IActionResult> SubscribeToGroup(Guid groupId)
         {
@@ -88,13 +79,6 @@ namespace FlashcardsApp.Api.Controllers
             return OkOrNotFound(result);
         }
 
-        /// <summary>
-        /// Отписаться от группы
-        /// </summary>
-        /// <param name="groupId">Идентификатор группы</param>
-        /// <response code="204">Отписка выполнена успешно</response>
-        /// <response code="400">Ошибка валидации</response>
-        /// <response code="401">Пользователь не авторизован</response>
         [HttpDelete("{groupId:guid}/subscribe")]
         public async Task<IActionResult> UnsubscribeFromGroup(Guid groupId)
         {
@@ -103,13 +87,6 @@ namespace FlashcardsApp.Api.Controllers
             return NoContentOrBadRequest(result);
         }
 
-        /// <summary>
-        /// Проверить, подписан ли текущий пользователь на группу
-        /// </summary>
-        /// <param name="groupId">Идентификатор группы</param>
-        /// <response code="200">Возвращает статус подписки (true/false)</response>
-        /// <response code="400">Ошибка выполнения запроса</response>
-        /// <response code="401">Пользователь не авторизован</response>
         [HttpGet("{groupId:guid}/is-subscribed")]
         public async Task<IActionResult> IsSubscribed(Guid groupId)
         {
@@ -118,13 +95,6 @@ namespace FlashcardsApp.Api.Controllers
             return OkOrBadRequest(result);
         }
 
-        /// <summary>
-        /// Получить рейтинг автора
-        /// </summary>
-        /// <param name="authorId">Идентификатор автора</param>
-        /// <response code="200">Возвращает рейтинг автора</response>
-        /// <response code="400">Ошибка выполнения запроса</response>
-        /// <response code="404">Автор не найден</response>
         [HttpGet("authors/{authorId:guid}/rating")]
         public async Task<IActionResult> GetAuthorRating(Guid authorId)
         {
@@ -132,14 +102,14 @@ namespace FlashcardsApp.Api.Controllers
             return OkOrNotFound(result);
         }
         
-        /// <summary>
-        /// Получить карточки публичной группы для предпросмотра
-        /// </summary>
-        [HttpGet("public/{groupId:guid}/cards")]
-        public async Task<IActionResult> GetPublicGroupCards(Guid groupId)
+        // Вспомогательный метод для безопасного получения ID
+        // Если пользователь вошел - возвращает его ID.
+        // Если гость - возвращает Guid.Empty (0000-000...), чтобы логика BL работала корректно.
+        private Guid GetUserIdOrEmpty()
         {
-            var result = await _subscriptionBL.GetPublicGroupCardsAsync(groupId);
-            return OkOrBadRequest(result);
+            return User.Identity?.IsAuthenticated == true 
+                ? GetCurrentUserId() 
+                : Guid.Empty;
         }
     }
 }
