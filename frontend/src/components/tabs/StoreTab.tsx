@@ -8,9 +8,11 @@ import GroupPreviewModal from "../modal/GroupPreviewModal";
 import { availableIcons } from "../../test/data";
 import { BookHeartIcon } from "lucide-react";
 import { useData } from "../../context/DataContext";
+import { useNavigate } from "react-router-dom"; // <--- ДОБАВЛЕНО
 
 export function StoreTab() {
     const { user, setUser } = useData();
+    const navigate = useNavigate(); // <--- ДОБАВЛЕНО
 
     const [groups, setGroups] = useState<PublicGroupDto[]>([]);
     const [loading, setLoading] = useState(false);
@@ -44,6 +46,7 @@ export function StoreTab() {
         setError(null);
 
         try {
+            // Запрос идет, API его пропустит даже для анонима
             const response = await apiFetch.get("/Subscriptions/public", {
                 params: {
                     search: search || undefined,
@@ -74,6 +77,14 @@ export function StoreTab() {
     };
 
     const handleSubscribe = async (groupId: string) => {
+        // --- НОВАЯ ЛОГИКА: ЗАЩИТА ОТ ГОСТЕЙ ---
+        if (!user) {
+            // Если пользователь не вошел, перекидываем на логин
+            navigate("/login");
+            return;
+        }
+        // ---------------------------------------
+
         try {
             await apiFetch.post(`/Subscriptions/${groupId}/subscribe`);
 
@@ -158,7 +169,6 @@ export function StoreTab() {
 
             {/* Поиск и фильтры */}
             <div className="space-y-4">
-                {/* Поиск */}
                 <form onSubmit={handleSearchSubmit} className="flex gap-2">
                     <div className="relative flex-1">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-base-content opacity-50" />
@@ -175,7 +185,6 @@ export function StoreTab() {
                     </button>
                 </form>
 
-                {/* Сортировка */}
                 <div className="flex gap-2 flex-wrap">
                     <button
                         onClick={() => handleSortChange("date")}
@@ -201,7 +210,6 @@ export function StoreTab() {
                 </div>
             </div>
 
-            {/* Состояния загрузки и ошибки */}
             {loading && (
                 <div className="flex justify-center py-12">
                     <span className="loading loading-spinner loading-lg"></span>
@@ -214,7 +222,6 @@ export function StoreTab() {
                 </div>
             )}
 
-            {/* Список групп */}
             {!loading && !error && groups.length === 0 && (
                 <div className="text-center py-12">
                     <Store className="w-16 h-16 mx-auto mb-4 opacity-30" />
@@ -250,7 +257,6 @@ export function StoreTab() {
                 </div>
             )}
 
-            {/* Пагинация */}
             {!loading && groups.length > 0 && (
                 <div className="flex justify-center gap-2 mt-6">
                     <button
@@ -273,7 +279,6 @@ export function StoreTab() {
                 </div>
             )}
 
-            {/* Модалка предпросмотра */}
             {previewModal.group && (
                 <GroupPreviewModal
                     isOpen={previewModal.isOpen}
@@ -281,6 +286,7 @@ export function StoreTab() {
                     groupId={previewModal.group?.Id || ""}
                     groupName={previewModal.group?.GroupName || ""}
                     gradient={previewModal.group?.GroupColor || "from-gray-500 to-gray-600"}
+                    // Здесь мы тоже используем handleSubscribe, который теперь защищен
                     onSubscribe={() => previewModal.group && handleSubscribe(previewModal.group.Id)}
                 />
             )}

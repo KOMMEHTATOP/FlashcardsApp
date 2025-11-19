@@ -12,12 +12,14 @@ import { lazy } from "react";
 import ScrollToTop from "./utils/scrollToTop";
 
 const LandingPage = lazy(() => import("./pages/LandingPage"));
+const PublicStorePage = lazy(() => import("./pages/PublicStore"));
 
 export const DEV = false;
 
 function App() {
     return (
         <Routes>
+            {/* Публичный лендинг */}
             <Route path="/about" element={
                 <>
                     <ScrollToTop />
@@ -25,12 +27,22 @@ function App() {
                 </>
             } />
 
+            {/* Публичный каталог (Магазин) */}
+            <Route path="/store" element={
+                <>
+                    <ScrollToTop />
+                    <PublicStorePage />
+                </>
+            } />
+
+            {/* Страница входа (доступна только гостям) */}
             <Route path="/login" element={
                 <GuestRoute>
                     <LoginPage />
                 </GuestRoute>
             } />
 
+            {/* Защищенная зона приложения */}
             <Route element={<AppLayout />}>
                 <Route
                     path="/"
@@ -74,6 +86,7 @@ function App() {
                 />
             </Route>
 
+            {/* Страница 404 */}
             <Route path="*" element={<NotFoundPage />} />
         </Routes>
     );
