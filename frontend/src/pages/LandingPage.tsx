@@ -1,7 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowUpFromDotIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import Footer from "../components/Footer";
 import FeaturesGrid from "../components/landing/FeatureGrid";
 import { LandingHelmet } from "../components/landing/HelmetLanding";
@@ -15,7 +14,6 @@ import { Header } from "../shared/ui/widgets/Header";
 import { LandingContentService } from "./landing/landingContent";
 
 export default function LandingPage() {
-    const navigate = useNavigate();
     const { logout } = useAuth();
     const features = useMemo(() => LandingContentService.getFeatures(), []);
     const gamificationFeatures = useMemo(
