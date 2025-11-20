@@ -15,8 +15,8 @@ public interface ITokenService
     /// <summary>
     /// Генерирует JWT Access Token из User entity (convenience метод)
     /// </summary>
-    string GenerateAccessToken(User user);
-
+    Task<string> GenerateAccessToken(User user);
+    
     /// <summary>
     /// Генерирует случайную строку для Refresh Token
     /// </summary>

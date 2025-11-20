@@ -27,24 +27,30 @@ public class TokenService : ITokenService
         _userManager = userManager;
     }
 
+    // Базовый метод создания токена (чистая генерация)
     public string GenerateAccessToken(Guid userId, string email, IEnumerable<string>? roles = null)
     {
         var claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, userId.ToString()),
-            new(ClaimTypes.Email, email),
+            new(ClaimTypes.Name, email), 
+            new(JwtRegisteredClaimNames.Email, email),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
         if (roles != null)
         {
-            claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+            foreach (var role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
         }
 
         var key = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(_configuration["Jwt:Key"] ?? 
                 throw new InvalidOperationException("JWT Key not configured"))
         );
+        
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var token = new JwtSecurityToken(
@@ -59,12 +65,14 @@ public class TokenService : ITokenService
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
-
-    // Convenience метод для совместимости с контроллером
-    public string GenerateAccessToken(User user)
+    
+    public async Task<string> GenerateAccessToken(User user)
     {
-        var roles = _userManager.GetRolesAsync(user).Result; 
-        return GenerateAccessToken(user.Id, user.Email ?? string.Empty, roles);
+        // Явно запрашиваем роли у UserManager
+        var roles = await _userManager.GetRolesAsync(user);
+        
+        // Передаем их в базовый метод
+        return GenerateAccessToken(user.Id, user.Login ?? user.Email ?? "", roles);
     }
 
     public string GenerateRefreshTokenString()
@@ -75,7 +83,6 @@ public class TokenService : ITokenService
         return Convert.ToBase64String(randomBytes);
     }
 
-    // Метод для совместимости с контроллером - сохраняет в БД
     public async Task<RefreshToken> GenerateRefreshToken(Guid userId, string? ipAddress, string? userAgent)
     {
         var tokenString = GenerateRefreshTokenString();

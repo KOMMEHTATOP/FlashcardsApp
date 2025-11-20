@@ -11,6 +11,7 @@ public class UserDashboardDto
     public string? Login { get; set; }
     public string? Email { get; set; }
     public int TotalSubscribers { get; set; }
+    public string Role { get; set; } = string.Empty;
     public List<SubscribedGroupDto> MySubscriptions { get; set; }
 
     public UserStatsDto? Statistics { get; set; }

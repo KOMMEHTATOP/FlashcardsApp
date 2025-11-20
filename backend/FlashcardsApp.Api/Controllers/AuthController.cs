@@ -56,13 +56,12 @@ namespace FlashcardsApp.Api.Controllers
 
             var user = result.Data!;
     
-            // HTTP-логика: извлечение данных из запроса
-            var accessToken = _tokenService.GenerateAccessToken(user);
+            var accessToken = await _tokenService.GenerateAccessToken(user);
+            
             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
             var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
             var refreshToken = await _tokenService.GenerateRefreshToken(user.Id, ipAddress, userAgent);
 
-            // HTTP-логика: установка cookie
             SetRefreshTokenCookie(refreshToken.Token);
 
             return Ok(new LoginResponseDto
@@ -77,13 +76,11 @@ namespace FlashcardsApp.Api.Controllers
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh()
         {
-            // HTTP-логика: чтение cookie
             if (!Request.Cookies.TryGetValue("refreshToken", out var refreshTokenValue))
             {
                 return Unauthorized(new { errors = new[] { "Refresh токен не найден" } });
             }
 
-            // HTTP-логика: извлечение данных из запроса
             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
             var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
 
@@ -94,7 +91,6 @@ namespace FlashcardsApp.Api.Controllers
                 return Unauthorized(new { errors = result.Errors });
             }
 
-            // HTTP-логика: установка cookie
             SetRefreshTokenCookie(result.Data!.RefreshToken);
 
             return Ok(new { accessToken = result.Data.AccessToken });
@@ -119,13 +115,10 @@ namespace FlashcardsApp.Api.Controllers
             return Ok(new { message = "Выход выполнен успешно" });
         }
         
-        
-        //легкий эндпоинт для проверки токена (нужен фронту)
         [HttpGet("validate")]
         [Authorize]
         public IActionResult Validate()
         {
-            // Если дошли сюда - токен валиден (Authorize атрибут проверил)
             return Ok(new { valid = true });
         }
 

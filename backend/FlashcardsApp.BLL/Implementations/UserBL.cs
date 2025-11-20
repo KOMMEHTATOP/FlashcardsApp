@@ -68,6 +68,7 @@ public class UserBL : IUserBL
                 Id = user.Id,
                 Login = user.Login,
                 Email = user.Email,
+                Role = user.Role,
                 Statistics = statisticsResult.IsSuccess ? statisticsResult.Data : null,
                 Groups = groupsResult.IsSuccess
                     ? groupsResult.Data!.ToList()
