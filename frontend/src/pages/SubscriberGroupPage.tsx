@@ -10,7 +10,7 @@ import { availableIcons } from "../test/data";
 import { useGroupData } from "../hooks/useGroupData";
 import { GroupHeader } from "../components/GroupHeader";
 import { CardsList } from "../components/CardsList";
-import { useAuth } from "../context/AuthContext"; 
+import { useAuth } from "../context/AuthContext";
 
 export default function SubscriberGroupPage() {
     const {
@@ -23,12 +23,10 @@ export default function SubscriberGroupPage() {
     } = useGroupData();
 
     const { handleSelectLesson } = useData();
-    const { isAuthenticated } = useAuth(); 
+    const { isAuthenticated } = useAuth();
 
-    // State для процесса подписки
     const [submittingSubscription, setSubmittingSubscription] = useState(false);
 
-    // Вычисляемые значения
     const progress = useMemo(() => {
         if (cards.length === 0) return 0;
         const completedCards = cards.filter((card) => card.LastRating > 0).length;
@@ -79,69 +77,77 @@ export default function SubscriberGroupPage() {
         BookHeartIcon;
 
     return (
-        <div className="min-h-screen">
-            <Link
-                to="/"
-                className="text-white hover:bg-white/20 mb-6 flex items-center rounded px-4 py-2 duration-300 transition w-fit"
-            >
-                <ArrowLeft className="w-5 h-5 mr-2" />
-                Назад на главную
-            </Link>
+        // Добавил bg-base-300, чтобы фон совпадал с общим фоном приложения (если там темная тема)
+        <div className="min-h-screen bg-base-300 py-8">
 
-            <GroupHeader
-                group={group}
-                icon={Icon}
-                progress={progress}
-                isSubscriptionView={true}
-                isSubscribed={isSubscribed}
-                isPublishing={false}
-                submittingSubscription={submittingSubscription}
-                publishError={null}
-                canPublish={false}
-                onTogglePublish={async () => {}}
-                onToggleSubscription={handleToggleSubscription}
-            />
+            {/* КОНТЕЙНЕР-ОГРАНИЧИТЕЛЬ: max-w-7xl (как в AppLayout) */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-            <CardsList
-                cards={cards}
-                group={group}
-                isSubscriptionView={true}
-                isAuthenticated={isAuthenticated} // <--- 3. Передаем статус в компонент
-                onCardClick={handleSelectLesson}
+                {/* Навигация */}
+                <Link
+                    to="/"
+                    className="text-base-content/70 hover:bg-base-content/10 mb-6 flex items-center rounded px-4 py-2 duration-300 transition w-fit"
+                >
+                    <ArrowLeft className="w-5 h-5 mr-2" />
+                    Назад на главную
+                </Link>
 
-                // Заглушки
-                onDeleteCard={() => {}}
-                onEditCard={() => {}}
-                addCardFormProps={{
-                    isOpen: false,
-                    question: "",
-                    answer: "",
-                    loading: false,
-                    error: "",
-                    isUpdateCard: false,
-                    onAddCard: async () => false,
-                    onNewCard: () => {},
-                    onCloseModal: () => {},
-                    setQuestion: () => {},
-                    setAnswer: () => {},
-                }}
-            />
-
-            {cards.length > 5 && (
-                <MotivationCard
-                    animated="scale"
-                    animatedDelay={4}
-                    icon={Trophy}
-                    label="У тебя отлично получается!"
-                    description={`Пройдите еще ${
-                        cards.filter((item) => !item.completed).length
-                    } урока, чтобы получить итоговую оценку и заработать 500 бонусных очков опыта!`}
-                    textIcon={BowArrowIcon}
-                    gradient={group.GroupColor || ""}
-                    delay={0.6}
-                    className="mt-8"
+                {/* Заголовок */}
+                <GroupHeader
+                    group={group}
+                    icon={Icon}
+                    progress={progress}
+                    isSubscriptionView={true}
+                    isSubscribed={isSubscribed}
+                    isPublishing={false}
+                    submittingSubscription={submittingSubscription}
+                    publishError={null}
+                    canPublish={false}
+                    onTogglePublish={async () => {}}
+                    onToggleSubscription={handleToggleSubscription}
                 />
-            )}
+
+                {/* Список карточек */}
+                <CardsList
+                    cards={cards}
+                    group={group}
+                    isSubscriptionView={true}
+                    isAuthenticated={isAuthenticated}
+                    onCardClick={handleSelectLesson}
+                    onDeleteCard={() => {}}
+                    onEditCard={() => {}}
+                    addCardFormProps={{
+                        isOpen: false,
+                        question: "",
+                        answer: "",
+                        loading: false,
+                        error: "",
+                        isUpdateCard: false,
+                        onAddCard: async () => false,
+                        onNewCard: () => {},
+                        onCloseModal: () => {},
+                        setQuestion: () => {},
+                        setAnswer: () => {},
+                    }}
+                />
+
+                {/* Мотивация */}
+                {cards.length > 5 && (
+                    <MotivationCard
+                        animated="scale"
+                        animatedDelay={4}
+                        icon={Trophy}
+                        label="У тебя отлично получается!"
+                        description={`Пройдите еще ${
+                            cards.filter((item) => !item.completed).length
+                        } урока, чтобы получить итоговую оценку и заработать 500 бонусных очков опыта!`}
+                        textIcon={BowArrowIcon}
+                        gradient={group.GroupColor || ""}
+                        delay={0.6}
+                        className="mt-8"
+                    />
+                )}
+            </div>
         </div>
     );
 }
