@@ -15,7 +15,7 @@ import { DataProvider } from "./context/DataContext";
 
 const LandingPage = lazy(() => import("./pages/LandingPage"));
 const PublicStorePage = lazy(() => import("./pages/PublicStore"));
-
+const AdminPage = lazy(() => import("./pages/AdminPage"));
 const SubscriberGroupPage = lazy(() => import("./pages/SubscriberGroupPage")); // <--- ДОБАВЛЯЕМ НОВЫЙ (ПОДПИСЧИК)
 
 export const DEV = false;
@@ -79,6 +79,17 @@ function App() {
                         </PrivateRoute>
                     }
                 />
+
+                {/* Админка */}
+                <Route
+                    path="/admin"
+                    element={
+                        <PrivateRoute>
+                            <AdminPage />
+                        </PrivateRoute>
+                    }
+                />
+                
             </Route>
 
             <Route path="*" element={<NotFoundPage />} />

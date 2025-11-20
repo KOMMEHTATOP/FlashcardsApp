@@ -45,6 +45,7 @@ interface UserData {
   Id: string;
   Login?: string;
   Email: string;
+  Role?: string;
   TotalSubscribers?: number;
   MySubscriptions?: SubscribedGroupDto[];
   Statistics: UserState;
@@ -124,6 +125,19 @@ interface PublicGroupCardDto {
   Question: string;
   Answer: string;
   CreatedAt: string;
+}
+
+// Интерфейс админа
+export interface AdminUserDto {
+  Id: string;
+  Login: string;
+  Email: string;
+  Role: string;
+  TotalRating: number;
+  CreatedAt: string; // ISO date string
+  LastLogin: string; // ISO date string
+  GroupsCount: number;
+  CardsCount: number;
 }
 
 // ==================== STUDY ====================
