@@ -49,7 +49,7 @@ export function CardQuestion({
                 ${(onClick || showOverviewButton) ? "cursor-pointer hover:bg-base-200/50" : "cursor-default"}`}
                 onClick={handleClick}
             >
-                <div className="flex items-start overflow-hidden">
+                <div className="flex items-start overflow-hidden text-left">
                     {/* ЛЕВАЯ ИКОНКА */}
                     <div
                         className={`shrink-0 w-12 h-12 rounded-full flex items-center justify-center transition-all mt-1
@@ -70,12 +70,13 @@ export function CardQuestion({
                     </div>
 
                     {/* ЦЕНТР: Контент */}
-                    <div className="flex-1 ml-4">
+                    <div className="flex-1 ml-4 min-w-0">
                         {/* Вопрос */}
                         <div
-                            className={`mb-2 text-base font-medium prose prose-sm max-w-none ${
-                                isCompleted ? "text-base-content" : "text-gray-500"
-                            }`}
+                            className={`mb-2 text-base font-medium prose prose-sm max-w-none 
+                            [&>p]:m-0 
+                            [&_pre]:!text-left [&_pre]:!bg-gray-900 [&_pre]:!p-3 [&_pre]:!rounded-lg [&_code]:!bg-transparent
+                            ${isCompleted ? "text-base-content" : "text-gray-500"}`}
                             dangerouslySetInnerHTML={{ __html: item.Question }}
                         />
 
@@ -105,7 +106,8 @@ export function CardQuestion({
                                     <div className="pt-4 mt-2 border-t border-base-200 text-base-content">
                                         <span className="text-xs font-bold text-base-content/50 uppercase block mb-1">Ответ:</span>
                                         <div
-                                            className="prose prose-sm max-w-none"
+                                            className="prose prose-sm max-w-none 
+                                            [&_pre]:!text-left [&_pre]:!bg-gray-900 [&_pre]:!p-3 [&_pre]:!rounded-lg [&_code]:!bg-transparent"
                                             dangerouslySetInnerHTML={{ __html: item.Answer }}
                                         />
                                     </div>
@@ -115,8 +117,6 @@ export function CardQuestion({
                     </div>
 
                     {/* ПРАВАЯ ЧАСТЬ */}
-
-                    {/* Удаление (только владелец) */}
                     {onDelete && (
                         <div className="md:opacity-0 group-hover:opacity-100 transition-all duration-600 flex mx-2 self-center">
                             <ButtonCircle
@@ -130,7 +130,6 @@ export function CardQuestion({
                         </div>
                     )}
 
-                    {/* Кнопка ОБЗОР (Владелец ИЛИ Авторизованный) */}
                     <div className="ml-2 self-center">
                         {(isOwnerMode || showOverviewButton) ? (
                             <button

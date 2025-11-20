@@ -9,7 +9,7 @@ import Celebration from "../components/lessons/Celebration";
 import StateLessens from "../components/lessons/StateLessens";
 import {HeaderLessons} from "../shared/ui/widgets/HeaderLessons";
 import NavigationLessons from "../components/lessons/NavigationLessons";
-import MainCardLessens from "../components/lessons/MainCard";
+import MainCardLessens from "../components/lessons/StudyFlashcard";
 import { useData } from "../context/DataContext";
 
 interface LessonPlayerProps {

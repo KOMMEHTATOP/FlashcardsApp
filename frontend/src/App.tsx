@@ -3,26 +3,26 @@ import { Routes, Route } from "react-router-dom";
 import AppLayout from "./layout/AppLayout";
 import { HomePage } from "./pages/Home";
 import { ProfilePage } from "./pages/Profile";
-import StudyPage from "./pages/Study";
+import OwnerGroupPage from "./pages/OwnerGroupPage"; 
+
 import LoginPage from "./pages/Login";
 import { NotFoundPage } from "./pages/NotFound";
 import { PrivateRoute } from "./layout/PrivateRoute";
 import { GuestRoute } from "./layout/GuestRoute";
 import { lazy } from "react";
 import ScrollToTop from "./utils/scrollToTop";
-import { DataProvider } from "./context/DataContext"; // <--- Не забудь этот импорт!
+import { DataProvider } from "./context/DataContext";
 
 const LandingPage = lazy(() => import("./pages/LandingPage"));
 const PublicStorePage = lazy(() => import("./pages/PublicStore"));
-const PublicGroupView = lazy(() => import("./pages/PublicGroupView")); // <--- Импорт новой страницы
+
+const SubscriberGroupPage = lazy(() => import("./pages/SubscriberGroupPage")); // <--- ДОБАВЛЯЕМ НОВЫЙ (ПОДПИСЧИК)
 
 export const DEV = false;
 
 function App() {
     return (
         <Routes>
-            {/* --- ПУБЛИЧНЫЕ СТРАНИЦЫ --- */}
-
             <Route path="/about" element={
                 <>
                     <ScrollToTop />
@@ -36,24 +36,20 @@ function App() {
                     <PublicStorePage />
                 </>
             } />
-
-            {/* Страница просмотра группы (доступна всем, поэтому оборачиваем в DataProvider вручную) */}
+            
             <Route path="/subscription/:id" element={
                 <DataProvider>
                     <ScrollToTop />
-                    <PublicGroupView />
+                    <SubscriberGroupPage />
                 </DataProvider>
             } />
-
-            {/* --------------------------- */}
-
+            
             <Route path="/login" element={
                 <GuestRoute>
                     <LoginPage />
                 </GuestRoute>
             } />
 
-            {/* --- ЗАЩИЩЕННЫЕ СТРАНИЦЫ (Только для авторизованных) --- */}
             <Route element={<AppLayout />}>
                 <Route
                     path="/"
@@ -72,18 +68,13 @@ function App() {
                     }
                 />
 
-                {/* Обрати внимание: Маршрут /subscription/:id отсюда УБРАН. 
-                    Теперь он публичный и обрабатывается выше.
-                    
-                    Маршрут /study/:id остался для режима обучения.
-                */}
                 <Route
                     path="/study/:id"
                     element={
                         <PrivateRoute>
                             <>
                                 <ScrollToTop />
-                                <StudyPage />
+                                <OwnerGroupPage />
                             </>
                         </PrivateRoute>
                     }
