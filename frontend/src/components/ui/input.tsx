@@ -11,7 +11,7 @@ type InputProps = {
   value?: string;
 };
 
-export default function Input({
+export function Input({
   type,
   name,
   icon: Icon,

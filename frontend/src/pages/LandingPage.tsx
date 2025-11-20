@@ -1,47 +1,18 @@
-import { motion, AnimatePresence } from "framer-motion";
-import {
-    Brain,
-    Trophy,
-    CheckCircle2,
-    ArrowRight,
-    ArrowUpFromDotIcon,
-    Library,
-    UserPlus,
-    Search // Добавлена иконка поиска
-} from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { ArrowUpFromDotIcon } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LandingContentService } from "./landing/landingContent";
-import FeatureCard from "../components/landing/FeatureCard";
-import StatCard from "../components/landing/StatCard";
-import BenefitItem from "../components/landing/BenefitItem";
-import { Header } from "../shared/ui/widgets/Header";
-import { Button } from "../shared/ui/Button";
-import CardSwap from "../components/CardSwap";
-import { forwardRef, useEffect, useMemo, useState } from "react";
-import { questions } from "../test/testData";
-import GridMotion from "../components/GridMotion";
-import FeaturesGrid from "../components/landing/FeatureGrid";
-import ScrollStack, { ScrollStackItem } from "../components/ScrollStack";
-import RotatingText from "../components/RotatingText";
-import { LandingHelmet } from "../components/landing/HelmetLanding";
-import { useAuth } from "../context/AuthContext";
 import Footer from "../components/Footer";
-
-export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
-    customClass?: string;
-}
-
-export const Card = forwardRef<HTMLDivElement, CardProps>(
-    ({ customClass, ...rest }, ref) => (
-        <div
-            ref={ref}
-            {...rest}
-            className={`absolute top-1/2 left-1/2 rounded-xl [transform-style:preserve-3d] [will-change:transform] [backface-visibility:hidden] ${
-                customClass ?? ""
-            } ${rest.className ?? ""}`.trim()}
-        />
-    )
-);
+import FeaturesGrid from "../components/landing/FeatureGrid";
+import { LandingHelmet } from "../components/landing/HelmetLanding";
+import { LandingBenefits } from "../components/landing/sections/LandingBenefits";
+import { LandingCTA } from "../components/landing/sections/LandingCTA";
+import { LandingGamification } from "../components/landing/sections/LandingGamification";
+import { LandingHero } from "../components/landing/sections/LandingHero";
+import { LandingHowItWorks } from "../components/landing/sections/LandingHowItWorks";
+import { useAuth } from "../context/AuthContext";
+import { Header } from "../shared/ui/widgets/Header";
+import { LandingContentService } from "./landing/landingContent";
 
 export default function LandingPage() {
     const navigate = useNavigate();
@@ -120,102 +91,9 @@ export default function LandingPage() {
             </AnimatePresence>
 
             {/* --- HERO SECTION --- */}
-            <section className="relative overflow-hidden pt-30 md:py-28 px-4 pb-4">
-                <div className="absolute inset-0 z-0">
-                    <GridMotion
-                        items={questions}
-                        gradientColor="black"
-                        isMobile={isMobile}
-                    />
-                </div>
-                <div className="absolute inset-0 z-10 bg-gradient-to-br backdrop-filter backdrop-brightness-20 backdrop-blur-[1px]" />
-                <div className="max-w-6xl mx-auto relative z-20" id="top">
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6 }}
-                        className="text-center space-y-8"
-                    >
-                        <motion.div
-                            animate={{ rotate: [0, 5, -5, 0] }}
-                            transition={{ duration: 3, repeat: Infinity }}
-                            className="inline-block"
-                        >
-                            <div className="w-28 h-28 mx-auto rounded-3xl bg-gradient-to-br from-purple-400 via-pink-500 to-orange-500 flex items-center justify-center shadow-2xl">
-                                <Brain className="w-13 h-13 text-white" />
-                            </div>
-                        </motion.div>
-                        <div className="items-center justify-center flex text-5xl text-white">
-                            <RotatingText
-                                texts={["Быстро", "Легко", "Бесплатно"]}
-                                mainClassName="px-2 sm:px-2 md:px-3 bg-gradient-to-r from-purple-600 to-pink-600 overflow-hidden py-0.5 sm:py-1 md:py-2 justify-center 
-                rounded-lg transition-all duration-300 ease-in-out"
-                                staggerFrom={"last"}
-                                initial={{ y: 100 }}
-                                animate={{ y: 0 }}
-                                exit={{ y: 120 }}
-                                staggerDuration={0.025}
-                                splitLevelClassName="overflow-hidden pb-0.5 sm:pb-1 md:pb-1"
-                                transition={{ type: "spring", damping: 30, stiffness: 400 }}
-                                rotationInterval={4000}
-                            />
-                        </div>
-                        <h1 className="text-5xl md:text-7xl font-bold text-base-content">
-              <span className="block mt-4 bg-gradient-to-r from-purple-400 via-pink-500 to-orange-500 bg-clip-text text-transparent">
-                FlashcardsLoop
-              </span>
-                        </h1>
+            <LandingHero isMobile={isMobile} stats={stats} />
 
-                        {/* ТЕКСТ С КЛЮЧЕВЫМИ СЛОВАМИ ДЛЯ SEO */}
-                        <p className="text-xl md:text-2xl text-base-content/70 max-w-3xl mx-auto">
-                            Простой способ запомнить всё: от английских слов до кода.
-                            Используйте <b>интервальные повторения</b>, создавайте свои колоды
-                            или изучайте тысячи готовых карточек в библиотеке.
-                        </p>
-
-                        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                            {/* Кнопка 1: Начать */}
-                            <Button
-                                className="flex hover:scale-105 transition-all duration-300 shadow-2xl hover:shadow-pink-500/50 group text-xl w-full md:w-fit"
-                                onClick={() => navigate("/login")}
-                                size="lg"
-                                variant="secondary"
-                            >
-                                Начать бесплатно
-                                <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform duration-300" />
-                            </Button>
-
-                            {/* Кнопка 2: Библиотека */}
-                            <Button
-                                size="lg"
-                                variant="ghost"
-                                onClick={() => navigate("/store")}
-                                className="hover:scale-105 transition-transform text-xl w-full md:w-fit border border-white/20 hover:bg-white/10"
-                            >
-                                <Search className="w-5 h-5 mr-2" />
-                                Найти карточки
-                            </Button>
-                        </div>
-
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto ">
-                            {stats.map((stat, index) => (
-                                <StatCard
-                                    key={index}
-                                    icon={stat.icon}
-                                    value={stat.value}
-                                    valuePrefix={stat.valuePrefix}
-                                    label={stat.label}
-                                    gradient={stat.gradient}
-                                    delay={index * 0.1}
-                                />
-                            ))}
-                        </div>
-                    </motion.div>
-                </div>
-            </section>
-
-            {/* Секции Features, Gamification остаются без изменений ... */}
-
+            {/* --- FEATURES SECTION --- */}
             <section id="features" className="py-24 px-4 bg-base-200">
                 <div className="max-w-6xl mx-auto">
                     <motion.div
@@ -235,221 +113,17 @@ export default function LandingPage() {
                 </div>
             </section>
 
-            <section className="py-32 px-4 bg-base-300 overflow-hidden">
-                <div className="max-w-6xl mx-auto flex-row md:flex relative pb-16 md:pb-0">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        className="text-center mb-30 md:mb-16"
-                    >
-                        <div className="inline-block mb-4">
-                            <motion.div
-                                animate={{ rotate: [0, 5, -5, 0] }}
-                                transition={{ duration: 3, repeat: Infinity }}
-                                className="w-30 h-30 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center"
-                            >
-                                <Trophy className="w-14 h-14 text-white" />
-                            </motion.div>
-                        </div>
-                        <h2 className="text-4xl md:text-5xl font-bold text-base-content mb-4">
-                            Геймификация
-                        </h2>
-                        <p className="text-xl text-base-content/70">
-                            Превратите обучение в увлекательную игру
-                        </p>
-                    </motion.div>
-                    <div className="absolute inset-0 items-center -bottom-10 md:bottom-0 right-25">
-                        <CardSwap
-                            cardDistance={70}
-                            verticalDistance={60}
-                            delay={3000}
-                            pauseOnHover={false}
-                            skewAmount={isMobile ? 0 : 3}
-                            easing="elastic"
-                        >
-                            {gamificationFeatures.slice(0, 6).map((feature, index) => (
-                                <Card
-                                    key={index}
-                                    className={`bg-gradient-to-r items-center justify-center flex`}
-                                >
-                                    <FeatureCard
-                                        key={index}
-                                        icon={feature.icon}
-                                        title={feature.title}
-                                        description={feature.description}
-                                        gradient={feature.gradient}
-                                        delay={index * 0.1}
-                                        className="w-300 h-60 scale-140 md:scale-100 shadow-xl hover:shadow-white/10 hover:scale-105 transition-all duration-300"
-                                    />
-                                </Card>
-                            ))}
-                        </CardSwap>
-                    </div>
-                </div>
-            </section>
+            {/* --- GAMIFICATION SECTION --- */}
+            <LandingGamification features={gamificationFeatures} isMobile={isMobile} />
 
-            {/* --- СЕКЦИЯ КАК НАЧАТЬ --- */}
-            <section className="py-24 px-4 bg-base-200">
-                <div className="max-w-6xl mx-auto">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        className="text-center mb-12"
-                    >
-                        <h2 className="text-4xl md:text-5xl font-bold text-base-content mb-4">
-                            Как начать?
-                        </h2>
-                        <p className="text-xl text-base-content/70">
-                            Всего 4 простых шага до первого урока
-                        </p>
-                    </motion.div>
+            {/* --- HOW IT WORKS SECTION --- */}
+            <LandingHowItWorks steps={steps} />
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-                        <div className="h-[500px] w-full relative">
-                            <ScrollStack
-                                className="h-full w-full scroll-bar-none"
-                                baseScale={0.9}
-                                itemDistance={40}
-                                blurAmount={1}
-                                stackPosition="0%"
-                                itemStackDistance={20}
-                            >
-                                {steps.map((step, index) => (
-                                    <ScrollStackItem key={index}>
-                                        <div
-                                            className={`bg-gradient-to-br ${step.gradient} rounded-2xl p-8 shadow-lg h-full overflow-hidden flex flex-col justify-center`}
-                                        >
-                                            <div className="text-6xl font-bold text-white/40 mb-4">
-                                                {step.number}
-                                            </div>
-                                            <h3 className="text-3xl font-bold text-white mb-3">
-                                                {step.title}
-                                            </h3>
-                                            <p className="text-xl text-white/90">{step.description}</p>
-                                        </div>
-                                    </ScrollStackItem>
-                                ))}
-                            </ScrollStack>
-                        </div>
+            {/* --- BENEFITS SECTION --- */}
+            <LandingBenefits benefits={benefits} />
 
-                        <motion.div
-                            initial={{ opacity: 0, x: 20 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.6 }}
-                            className="text-left space-y-6 px-4 lg:px-10"
-                        >
-                            <h3 className="text-3xl md:text-4xl font-bold text-base-content">
-                                Готовы к быстрому старту?
-                            </h3>
-                            <p className="text-lg text-base-content/70">
-                                Вам не нужно ничего устанавливать. Регистрация займет всего пару кликов,
-                                и вы сразу сможете создать свою первую колоду или найти готовые карточки в библиотеке.
-                            </p>
-
-                            <div className="pt-4">
-                                <Button
-                                    size="lg"
-                                    variant="confirm"
-                                    onClick={() => navigate("/login")}
-                                    className="w-full sm:w-auto text-lg py-6"
-                                >
-                                    <UserPlus className="w-5 h-5 mr-2" />
-                                    Создать аккаунт
-                                </Button>
-                                <p className="text-sm text-base-content/50 mt-4">
-                                    * Это бесплатно и не требует привязки карты
-                                </p>
-                            </div>
-                        </motion.div>
-                    </div>
-                </div>
-            </section>
-
-            <section className="py-20 px-4 bg-base-300">
-                <div className="max-w-4xl mx-auto">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        className="text-center mb-16"
-                    >
-                        <h2 className="text-4xl md:text-5xl font-bold text-base-content mb-4">
-                            Советы для эффективного обучения
-                        </h2>
-                    </motion.div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {benefits.map((b, i) => (
-                            <BenefitItem key={i} text={b} delay={i * 0.1} />
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* --- КОМПАКТНАЯ ФИНАЛЬНАЯ СЕКЦИЯ --- */}
-            <section className="py-10 px-4 bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    className="max-w-4xl mx-auto text-center space-y-5"
-                >
-                    <motion.div
-                        animate={{ scale: [1, 1.05, 1] }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                    >
-                        <Trophy className="w-14 h-14 text-white mx-auto" />
-                    </motion.div>
-
-                    <h2 className="text-3xl md:text-5xl font-bold text-white leading-tight">
-                        Готовы начать обучение?
-                    </h2>
-
-                    <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto">
-                        Присоединяйтесь к тысячам пользователей, которые уже прокачивают свои навыки
-                        с FlashcardsLoop
-                    </p>
-
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-2">
-                        <Button
-                            className="flex hover:scale-105 transition-all duration-300 group shadow-lg shadow-purple-900/20"
-                            onClick={() => navigate("/login")}
-                            size="lg"
-                            variant="accent"
-                        >
-                            Начать бесплатно
-                            <ArrowRight className="w-5 h-5 group-hover:translate-x-5 transition-transform duration-500" />
-                        </Button>
-                        <Button
-                            size="lg"
-                            variant="ghost"
-                            onClick={() => navigate("/store")}
-                            className="flex hover:scale-105 transition-all duration-300 border border-white/30 hover:bg-white/20 text-white"
-                        >
-                            <Library className="w-5 h-5 mr-2" />
-                            Библиотека
-                        </Button>
-                    </div>
-
-                    <div className="pt-4 flex flex-wrap justify-center gap-x-8 gap-y-2 text-white/80 text-sm md:text-base">
-                        <div className="flex items-center gap-2">
-                            <CheckCircle2 className="w-4 h-4" />
-                            <span>Бесплатно</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <CheckCircle2 className="w-4 h-4" />
-                            <span>Без рекламы</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <CheckCircle2 className="w-4 h-4" />
-                            <span>Без ограничений</span>
-                        </div>
-                    </div>
-                </motion.div>
-            </section>
+            {/* --- CTA SECTION --- */}
+            <LandingCTA />
 
             <Footer />
         </div>

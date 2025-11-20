@@ -1,3 +1,5 @@
+import React from 'react';
+
 // ==================== CORE TYPES ====================
 
 type AppContextType = {
@@ -16,9 +18,9 @@ type AppContextType = {
   putGroups: (group: GroupType) => void;
 
   handleSelectLesson: (
-      subject: GroupCardType[],
-      group: GroupType,
-      index?: number
+    subject: GroupCardType[],
+    group: GroupType,
+    index?: number
   ) => void;
 
   currentLesson: CurrentLessonState | undefined;

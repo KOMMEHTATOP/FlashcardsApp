@@ -11,9 +11,9 @@ import {
     Zap,
 } from "lucide-react";
 import { useState } from "react";
-import { Helmet } from "react-helmet-async"; 
+import { Helmet } from "react-helmet-async";
 
-import Input from "../components/ui/input";
+import { Input } from "../components/ui/input";
 import { Button } from "../shared/ui/Button";
 import { Card } from "../shared/ui/Card";
 import { floatingIcons, TITLE_APP } from "../test/data";
@@ -182,9 +182,8 @@ export default function LoginPage() {
                 >
                     <motion.div
                         transition={{ duration: 0.4, ease: "easeInOut" }}
-                        className={`p-8 backdrop-blur-xl bg-white/80 border-2 border-purple-300 shadow-2xl rounded-xl overflow-hidden transition-all duration-300 ${
-                            selectedBlock === "login" ? "h-100" : hasError ? "h-130" : "h-120"
-                        }`}
+                        className={`p-8 backdrop-blur-xl bg-white/80 border-2 border-purple-300 shadow-2xl rounded-xl overflow-hidden transition-all duration-300 ${selectedBlock === "login" ? "h-100" : hasError ? "h-130" : "h-120"
+                            }`}
                     >
                         <div className="space-y-4">
                             {/* Переключатель Вход / Регистрация */}
@@ -198,19 +197,17 @@ export default function LoginPage() {
                                     />
                                 </div>
                                 <div
-                                    className={`transition-all items-center justify-center flex p-1 z-10 cursor-pointer hover:bg-white/10 rounded-2xl font-medium ${
-                                        selectedBlock === "login" ? "text-white" : "text-gray-900"
-                                    }`}
+                                    className={`transition-all items-center justify-center flex p-1 z-10 cursor-pointer hover:bg-white/10 rounded-2xl font-medium ${selectedBlock === "login" ? "text-white" : "text-gray-900"
+                                        }`}
                                     onClick={() => handleSelect("login")}
                                 >
                                     Вход
                                 </div>
                                 <div
-                                    className={`transition-all items-center justify-center flex p-1 z-10 cursor-pointer hover:bg-white/10 rounded-2xl font-medium ${
-                                        selectedBlock === "register"
+                                    className={`transition-all items-center justify-center flex p-1 z-10 cursor-pointer hover:bg-white/10 rounded-2xl font-medium ${selectedBlock === "register"
                                             ? "text-white"
                                             : "text-gray-900"
-                                    }`}
+                                        }`}
                                     onClick={() => handleSelect("register")}
                                 >
                                     Регистрация

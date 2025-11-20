@@ -3,7 +3,7 @@ interface SwitchProps extends React.HTMLProps<HTMLInputElement> {
   onCheckedChange: (checked: boolean) => void;
 }
 
-export default function Switch({
+export function Switch({
   checked,
   onCheckedChange,
   ...props

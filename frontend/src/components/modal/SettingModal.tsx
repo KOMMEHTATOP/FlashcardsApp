@@ -2,16 +2,16 @@ import { motion } from "framer-motion";
 import { SettingsIcon, Star, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ButtonCircle, Button } from "../../shared/ui/Button";
-import Slider from "../ui/slider";
-import Switch from "../ui/switch";
+import { Slider } from "../ui/slider";
+import { Switch } from "../ui/switch";
 import { useData } from "../../context/DataContext";
 import type { SettingType } from "../../types/types";
 import apiFetch from "../../utils/apiFetch";
 
 export default function SettingModal({
-                                         handleCancel,
-                                         handleSave,
-                                     }: {
+    handleCancel,
+    handleSave,
+}: {
     handleCancel: () => void;
     handleSave: () => void;
 }) {
@@ -38,13 +38,12 @@ export default function SettingModal({
                 {Array.from({ length: 5 }).map((_, index) => (
                     <Star
                         key={index}
-                        className={`w-4 h-4 ${
-                            index < count
-                                ? filled
-                                    ? "fill-yellow-400 text-yellow-400"
-                                    : "text-yellow-400"
-                                : "text-gray-300 dark:text-gray-600"
-                        }`}
+                        className={`w-4 h-4 ${index < count
+                            ? filled
+                                ? "fill-yellow-400 text-yellow-400"
+                                : "text-yellow-400"
+                            : "text-gray-300 dark:text-gray-600"
+                            }`}
                     />
                 ))}
             </div>
@@ -87,10 +86,10 @@ export default function SettingModal({
                 {/* {Заголовок} */}
                 <div>
                     <div className="flex justify-between">
-            <span className="text-2xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent flex items-center gap-1">
-              <SettingsIcon className="w-6 h-6 text-purple-500" />
-              Настройки
-            </span>
+                        <span className="text-2xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent flex items-center gap-1">
+                            <SettingsIcon className="w-6 h-6 text-purple-500" />
+                            Настройки
+                        </span>
                         <ButtonCircle onClick={handleCancel} className="hover:bg-gray-300">
                             <X className="w-6 h-6 text-gray-600" />
                         </ButtonCircle>
@@ -193,9 +192,9 @@ export default function SettingModal({
                                 animate={{ scale: 1 }}
                                 className="bg-white px-4 py-2 rounded-lg border-2 border-green-500 min-w-[60px] text-center"
                             >
-                <span className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                  {compliteThreshold}
-                </span>
+                                <span className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                                    {compliteThreshold}
+                                </span>
                             </motion.div>
                         </div>
                     </div>

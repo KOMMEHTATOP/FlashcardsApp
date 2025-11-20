@@ -7,7 +7,7 @@ interface SliderProps {
   onValueChange: (value: number) => void;
 }
 
-export default function Slider({
+export function Slider({
   value,
   min,
   max,
