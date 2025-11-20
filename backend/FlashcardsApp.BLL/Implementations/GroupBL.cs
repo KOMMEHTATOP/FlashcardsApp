@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using FlashcardsApp.BLL.Interfaces;
 using FlashcardsApp.BLL.Mapping;
 using FlashcardsApp.DAL;
@@ -7,6 +8,7 @@ using FlashcardsApp.Models.DTOs.Groups.Responses;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Npgsql;
+using Group = FlashcardsApp.DAL.Models.Group;
 
 namespace FlashcardsApp.BLL.Implementations;
 
@@ -51,7 +53,7 @@ public class GroupBL : IGroupBL
             .Where(g => g.UserId == userId)
             .OrderBy(g => g.Order)
             .ThenBy(g => g.CreatedAt)
-            .Select(GroupMapper.ToDtoExpression())  // Expression mapper для оптимизации
+            .Select(GroupMapper.ToDtoExpression())
             .AsNoTracking()
             .ToListAsync();
 
@@ -64,6 +66,9 @@ public class GroupBL : IGroupBL
     {
         _logger.LogInformation("Creating new group '{GroupName}' for user {UserId}", model.Name, userId);
 
+        // 1. Обрабатываем теги
+        var tags = await ProcessTagsAsync(model.Tags);
+
         var group = new Group
         {
             Id = Guid.NewGuid(),
@@ -73,7 +78,8 @@ public class GroupBL : IGroupBL
             IsPublished = model.IsPublished,
             GroupColor = model.Color,
             CreatedAt = DateTime.UtcNow,
-            Order = 0
+            Order = 0,
+            Tags = tags 
         };
 
         _context.Groups.Add(group);
@@ -111,6 +117,19 @@ public class GroupBL : IGroupBL
         group.GroupColor = model.Color;
         group.GroupIcon = model.GroupIcon;
         group.IsPublished = model.IsPublished;
+
+        // ОБНОВЛЕНИЕ ТЕГОВ
+        // 1. Очищаем текущий список
+        group.Tags.Clear();
+        
+        // 2. Получаем новые теги (находим или создаем)
+        var newTags = await ProcessTagsAsync(model.Tags);
+        
+        // 3. Добавляем новые
+        foreach (var tag in newTags)
+        {
+            group.Tags.Add(tag);
+        }
 
         try
         {
@@ -264,21 +283,72 @@ public class GroupBL : IGroupBL
         }
     }
     
+    // --- PRIVATE HELPER METHODS ---
+
     private async Task<Group?> GetUserGroupAsync(Guid groupId, Guid userId)
     {
-        var group = await _context.Groups
+        // Include(Tags) нужен, чтобы при обновлении группы мы могли корректно обновить список тегов
+        return await _context.Groups
+            .Include(g => g.Tags)
             .FirstOrDefaultAsync(g => g.Id == groupId && g.UserId == userId);
-
-        if (group == null)
-        {
-            _logger.LogWarning("Group {GroupId} not found for user {UserId}", groupId, userId);
-        }
-
-        return group;
     }
 
     private bool IsUniqueConstraintViolation(DbUpdateException exception)
     {
         return exception.InnerException is PostgresException { SqlState: "23505" };
+    }
+
+    // Логика обработки тегов (Найти или Создать)
+    private async Task<List<Tag>> ProcessTagsAsync(List<string> tagNames)
+    {
+        if (tagNames == null || !tagNames.Any()) return new List<Tag>();
+
+        var uniqueNames = tagNames.Distinct().ToList();
+        var resultTags = new List<Tag>();
+
+        foreach (var tagName in uniqueNames)
+        {
+            if (string.IsNullOrWhiteSpace(tagName)) continue;
+
+            var slug = GenerateSlug(tagName);
+
+            // Ищем существующий тег
+            var existingTag = await _context.Tags.FirstOrDefaultAsync(t => t.Slug == slug);
+
+            if (existingTag != null)
+            {
+                resultTags.Add(existingTag);
+            }
+            else
+            {
+                // Создаем новый
+                var newTag = new Tag
+                {
+                    Id = Guid.NewGuid(),
+                    Name = tagName.Trim(),
+                    Slug = slug,
+                    Color = GetRandomTagColor()
+                };
+                
+                _context.Tags.Add(newTag);
+                resultTags.Add(newTag);
+            }
+        }
+
+        return resultTags;
+    }
+
+    private string GenerateSlug(string phrase)
+    {
+        string str = phrase.ToLower();
+        str = Regex.Replace(str, @"\s+", "-");
+        str = Regex.Replace(str, @"[^\w\-а-яё]", "");
+        return str;
+    }
+    
+    private string GetRandomTagColor()
+    {
+        var colors = new[] { "blue", "green", "red", "yellow", "purple", "pink", "indigo", "teal", "orange" };
+        return colors[new Random().Next(colors.Length)];
     }
 }

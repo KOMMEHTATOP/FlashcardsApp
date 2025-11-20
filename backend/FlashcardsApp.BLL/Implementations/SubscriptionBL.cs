@@ -1,6 +1,7 @@
 using FlashcardsApp.BLL.Interfaces;
 using FlashcardsApp.DAL;
 using FlashcardsApp.DAL.Models;
+using FlashcardsApp.Models.DTOs;
 using FlashcardsApp.Models.DTOs.Subscriptions.Responses;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -27,7 +28,7 @@ public class SubscriptionBL : ISubscriptionBL
         {
             var groupDetails = await _context.Groups
                 // Проверяем существование и статус публикации
-                .Where(g => g.Id == groupId && g.IsPublished) 
+                .Where(g => g.Id == groupId && g.IsPublished)
                 .Select(g => new PublicGroupDto
                 {
                     Id = g.Id,
@@ -64,7 +65,8 @@ public class SubscriptionBL : ISubscriptionBL
         string? search = null,
         string sortBy = "date",
         int page = 1,
-        int pageSize = 20)
+        int pageSize = 20,
+        Guid? tagId = null)
     {
         try
         {
@@ -72,21 +74,31 @@ public class SubscriptionBL : ISubscriptionBL
             if (pageSize < 1 || pageSize > 100) pageSize = 20;
 
             var query = _context.Groups
+                .Include(g => g.Tags)
                 .Where(g => g.IsPublished && g.UserId != currentUserId)
                 .AsNoTracking();
+
+            // --- ФИЛЬТР ПО ТЕГУ ---
+            if (tagId.HasValue)
+            {
+                query = query.Where(g => g.Tags.Any(t => t.Id == tagId));
+            }
 
             if (!string.IsNullOrWhiteSpace(search))
             {
                 var searchLower = search.ToLower();
-                query = query.Where(g => g.GroupName.ToLower().Contains(searchLower));
+                query = query.Where(g =>
+                    g.GroupName.ToLower().Contains(searchLower) ||
+                    g.Tags.Any(t => t.Name.ToLower().Contains(searchLower))
+                );
             }
 
             query = sortBy.ToLower() switch
             {
                 "popular" => query.OrderByDescending(g => g.SubscriberCount)
-                                  .ThenByDescending(g => g.CreatedAt),
+                    .ThenByDescending(g => g.CreatedAt),
                 "name" => query.OrderBy(g => g.GroupName)
-                               .ThenByDescending(g => g.CreatedAt),
+                    .ThenByDescending(g => g.CreatedAt),
                 _ => query.OrderByDescending(g => g.CreatedAt)
             };
 
@@ -169,9 +181,7 @@ public class SubscriptionBL : ISubscriptionBL
 
             var subscription = new UserGroupSubscription
             {
-                SubscriberUserId = subscriberUserId,
-                GroupId = groupId,
-                SubscribedAt = DateTime.UtcNow
+                SubscriberUserId = subscriberUserId, GroupId = groupId, SubscribedAt = DateTime.UtcNow
             };
 
             _context.UserGroupSubscriptions.Add(subscription);
@@ -239,7 +249,7 @@ public class SubscriptionBL : ISubscriptionBL
             return ServiceResult<bool>.Failure("Ошибка при отписке от группы");
         }
     }
-    
+
     public async Task<ServiceResult<int>> GetAuthorRatingAsync(Guid authorUserId)
     {
         try
@@ -278,7 +288,7 @@ public class SubscriptionBL : ISubscriptionBL
             return ServiceResult<bool>.Failure("Ошибка при проверке подписки");
         }
     }
-    
+
     public async Task<ServiceResult<IEnumerable<object>>> GetPublicGroupCardsAsync(Guid groupId)
     {
         try
@@ -300,22 +310,44 @@ public class SubscriptionBL : ISubscriptionBL
                 .OrderBy(c => c.CreatedAt)
                 .Select(c => new
                 {
-                    c.CardId,
-                    c.Question,
-                    c.Answer,
-                    c.CreatedAt
+                    c.CardId, c.Question, c.Answer, c.CreatedAt
                 })
                 .AsNoTracking()
                 .ToListAsync();
 
             _logger.LogInformation("Получено {Count} карточек для публичной группы {GroupId}", cards.Count, groupId);
-            
+
             return ServiceResult<IEnumerable<object>>.Success(cards);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Ошибка при получении карточек публичной группы {GroupId}", groupId);
             return ServiceResult<IEnumerable<object>>.Failure("Ошибка при загрузке карточек");
+        }
+    }
+
+    public async Task<ServiceResult<IEnumerable<TagDto>>> GetTagsAsync()
+    {
+        try
+        {
+            // Берем только те теги, которые используются в ПУБЛИЧНЫХ группах (чтобы не показывать пустые)
+            var tags = await _context.Tags
+                .Where(t => t.Groups.Any(g => g.IsPublished))
+                .Select(t => new TagDto
+                {
+                    Id = t.Id, Name = t.Name, Color = t.Color
+                })
+                .Distinct()
+                .OrderBy(t => t.Name)
+                .AsNoTracking()
+                .ToListAsync();
+
+            return ServiceResult<IEnumerable<TagDto>>.Success(tags);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ошибка загрузки тегов");
+            return ServiceResult<IEnumerable<TagDto>>.Failure("Ошибка загрузки тегов");
         }
     }
 }

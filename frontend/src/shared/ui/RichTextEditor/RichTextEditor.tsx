@@ -20,7 +20,8 @@ import {
     Subscript as SubscriptIcon,
     Superscript as SuperscriptIcon,
     Undo,
-    Redo
+    Redo,
+    Code
 } from 'lucide-react';
 import { useEffect } from 'react';
 
@@ -44,7 +45,11 @@ export default function RichTextEditor({
                 placeholder,
             }),
             Underline,
-            Highlight,
+            Highlight.configure({
+                HTMLAttributes: {
+                    class: 'custom-highlight',
+                },
+            }),
             TextAlign.configure({
                 types: ['heading', 'paragraph'],
             }),
@@ -115,6 +120,18 @@ export default function RichTextEditor({
                     }`}
                 >
                     <Highlighter className="w-4 h-4" />
+                </button>
+
+                <div className="w-px bg-purple-200 mx-1" />
+
+                <button
+                    type="button"
+                    onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+                    className={`p-2 rounded hover:bg-purple-100 text-gray-700 ${
+                        editor.isActive('codeBlock') ? 'bg-purple-200' : ''
+                    }`}
+                >
+                    <Code className="w-4 h-4" />
                 </button>
 
                 <div className="w-px bg-purple-200 mx-1" />

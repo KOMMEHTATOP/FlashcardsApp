@@ -1,14 +1,17 @@
 import { motion } from "framer-motion";
-import { Card } from "../../shared/ui/Card";
-import { Check, PlusCircle, X } from "lucide-react";
+import { PlusCircle, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import Input from "../ui/input";
+import { Input } from "../ui/input";
 import { availableColors, availableIcons } from "../../test/data";
 import { Button, ButtonCircle } from "../../shared/ui/Button";
 import apiFetch from "../../utils/apiFetch";
 import { useData } from "../../context/DataContext";
-import type { GroupType } from "../../types/types";
+import type { GroupType, TagDto } from "../../types/types";
 import { errorFormater } from "../../utils/errorFormater";
+import { GroupTagInput } from "./group-form/GroupTagInput";
+import { GroupIconSelector } from "./group-form/GroupIconSelector";
+import { GroupColorSelector } from "./group-form/GroupColorSelector";
+import { GroupPreview } from "./group-form/GroupPreview";
 
 interface GroupFromProps {
     targetGroup?: GroupType;
@@ -17,37 +20,52 @@ interface GroupFromProps {
 }
 
 export default function GroupForm({
-                                      targetGroup,
-                                      isOpen,
-                                      handleCancle,
-                                  }: GroupFromProps) {
+    targetGroup,
+    isOpen,
+    handleCancle,
+}: GroupFromProps) {
     const { setNewGroups, putGroups } = useData();
+
     const [name, setName] = useState<string>("");
-    const [selectColor, setSelectColor] = useState<string>(
-        availableColors[0].gradient
-    );
+    const [selectColor, setSelectColor] = useState<string>(availableColors[0].gradient);
     const [selectIcon, setSelectIcon] = useState<number>(0);
+    const [selectedTags, setSelectedTags] = useState<string[]>([]);
+    const [availableTags, setAvailableTags] = useState<TagDto[]>([]);
+
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string>("");
+
+    useEffect(() => {
+        if (isOpen) {
+            apiFetch.get("/Subscriptions/tags")
+                .then(res => setAvailableTags(res.data))
+                .catch(console.error);
+        }
+    }, [isOpen]);
 
     useEffect(() => {
         if (targetGroup) {
             setName(targetGroup.GroupName);
             setSelectColor(
-                availableColors.find((c) => c.gradient === targetGroup.GroupColor)
-                    ?.gradient || availableColors[0].gradient
+                availableColors.find((c) => c.gradient === targetGroup.GroupColor)?.gradient || availableColors[0].gradient
             );
             setSelectIcon(
                 targetGroup.GroupIcon
                     ? availableIcons.findIndex((i) => i.name === targetGroup.GroupIcon)
                     : 0
             );
+            if (targetGroup.Tags) {
+                setSelectedTags(targetGroup.Tags.map(t => t.Name));
+            } else {
+                setSelectedTags([]);
+            }
         } else {
             setName("");
             setSelectColor(availableColors[0].gradient);
             setSelectIcon(0);
+            setSelectedTags([]);
         }
-    }, [targetGroup]);
+    }, [targetGroup, isOpen]);
 
     const handleSubmit = async () => {
         setError("");
@@ -69,6 +87,7 @@ export default function GroupForm({
             Color: selectColor,
             Order: 0,
             GroupIcon: availableIcons[selectIcon].name,
+            Tags: selectedTags
         };
 
         try {
@@ -83,9 +102,9 @@ export default function GroupForm({
                 setName("");
                 setSelectColor(availableColors[0].gradient);
                 setSelectIcon(0);
+                setSelectedTags([]);
             }
-
-            handleCancle(); // только при успехе
+            handleCancle();
         } catch (err: any) {
             setError(errorFormater(err) || "Произошла ошибка");
         } finally {
@@ -99,161 +118,76 @@ export default function GroupForm({
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    transition={{ duration: 0.3 }}
                     className="fixed top-0 left-0 w-full h-full bg-black/50 flex items-center justify-center z-50"
+                    onMouseDown={(e) => e.target === e.currentTarget && handleCancle()}
                 >
-                    <div className="w-[90dvw] md:w-[80dvw] lg:w-[35dvw] max-h-[90dvh] overflow-y-auto bg-white p-6 rounded-2xl">
+                    <div className="w-[95dvw] md:w-[80dvw] lg:w-[40dvw] max-h-[90dvh] overflow-y-auto bg-white p-6 rounded-2xl scrollbar-hide relative">
                         <div>
-                            <div className="flex justify-between">
-                <span className="text-2xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                  {targetGroup
-                      ? "Редактировать группу"
-                      : "Создать новую группу"}
-                </span>
-                                <ButtonCircle
-                                    onClick={handleCancle}
-                                    className="hover:bg-gray-300"
-                                >
-                                    <X className="w-6 h-6 text-gray-600" />
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                                        {targetGroup ? "Редактировать колоду" : "Создать новую колоду"}
+                                    </span>
+                                    <p className="text-gray-500 text-sm mt-1">
+                                        {targetGroup ? "Измените параметры" : "Заполните данные для создания"}
+                                    </p>
+                                </div>
+                                <ButtonCircle onClick={handleCancle} className="hover:bg-gray-100">
+                                    <X className="w-6 h-6 text-gray-500" />
                                 </ButtonCircle>
                             </div>
-                            <p className="text-gray-700">
-                                {targetGroup
-                                    ? "Редактировать учебную группу"
-                                    : "Создать учебную группу"}
-                            </p>
                         </div>
 
-                        <div className="space-y-6 mt-4">
+                        <div className="space-y-6 mt-6">
                             <div className="space-y-2">
                                 <Input
                                     name="Название"
-                                    placeholder="например, математика, история..."
+                                    placeholder="Например: Основы React, English A1..."
                                     required={true}
                                     onChange={(e) => setName(e.target.value)}
                                     value={name}
                                     type="text"
-                                    className="bg-white/50 border-purple-200 focus:border-purple-500"
+                                    className="bg-gray-50 border-gray-200 focus:border-purple-500 focus:ring-purple-200"
                                     icon={PlusCircle}
                                 />
                             </div>
 
-                            <div className="space-y-2">
-                                <label className="text-gray-600">Иконка</label>
-                                <div className="grid grid-cols-3 gap-3">
-                                    {availableIcons.map((item, index) => (
-                                        <motion.button
-                                            key={item.name}
-                                            type="button"
-                                            onClick={() => setSelectIcon(index)}
-                                            whileHover={{ scale: 1.05 }}
-                                            whileTap={{ scale: 0.95 }}
-                                            className={`p-4 rounded-xl border-2 transition-all ${
-                                                selectIcon === index
-                                                    ? "border-purple-500 bg-purple-50"
-                                                    : "border-gray-200 hover:border-pink-300"
-                                            }`}
-                                        >
-                                            <item.icon
-                                                className={`w-6 h-6 mx-auto ${
-                                                    selectIcon === index
-                                                        ? "text-purple-600"
-                                                        : "text-gray-600"
-                                                }`}
-                                            />
-                                            <p className="text-xs text-gray-600">{item.name}</p>
-                                        </motion.button>
-                                    ))}
-                                </div>
-                            </div>
+                            <GroupTagInput
+                                selectedTags={selectedTags}
+                                onTagsChange={setSelectedTags}
+                                availableTags={availableTags}
+                            />
 
-                            <div className="space-y-2">
-                                <label className="text-gray-700">Выберите цветовую тему</label>
-                                <div className="grid grid-cols-3 gap-3 mt-2">
-                                    {availableColors.map((item, _) => (
-                                        <motion.button
-                                            key={item.id}
-                                            type="button"
-                                            onClick={() => setSelectColor(item.gradient)}
-                                            whileHover={{ scale: 1.05 }}
-                                            whileTap={{ scale: 0.95 }}
-                                            className="relative"
-                                        >
-                                            <div
-                                                className={`h-20 rounded-xl bg-gradient-to-br ${
-                                                    item.gradient
-                                                } shadow transition-all ${
-                                                    selectColor === item.gradient
-                                                        ? "ring-4 ring-purple-500 ring-offset-2"
-                                                        : ""
-                                                }`}
-                                            >
-                                                {selectColor === item.gradient && (
-                                                    <motion.div
-                                                        initial={{ scale: 0 }}
-                                                        animate={{ scale: 1 }}
-                                                        className="absolute inset-0 flex items-center justify-center"
-                                                    >
-                                                        <div className="bg-white rounded-full p-1">
-                                                            <Check className="w-5 h-5 text-purple-600" />
-                                                        </div>
-                                                    </motion.div>
-                                                )}
-                                            </div>
-                                            <p className="text-xs text-gray-600 mt-2 text-center line-clamp-2 text-ellipsis">
-                                                {item.name}
-                                            </p>
-                                        </motion.button>
-                                    ))}
-                                </div>
-                            </div>
+                            <GroupIconSelector
+                                selectedIconIndex={selectIcon}
+                                onIconSelect={setSelectIcon}
+                            />
 
-                            <div className="space-y-2">
-                                <label className="text-gray-600">
-                                    Предварительный просмотр
-                                </label>
-                                <Card
-                                    className={`p-6 bg-gradient-to-br ${selectColor} border-none shadow-xl relative overflow-hidden`}
-                                >
-                                    <div
-                                        className="absolute inset-0 bg-white/10"
-                                        style={{
-                                            backgroundImage:
-                                                "radial-gradient(circle at 4px 4px, rgba(255,255,255,0.15) 1px, transparent 0)",
-                                            backgroundSize: "40px 40px",
-                                        }}
-                                    />
-                                    <div className="relative z-10 flex items-center justify-between">
-                                        <div className="flex items-center gap-4">
-                                            <div className="bg-white/20 backdrop-blur-sm p-3 rounded-2xl">
-                                                {(() => {
-                                                    const IconComponent = availableIcons[selectIcon].icon;
-                                                    return (
-                                                        <IconComponent className="w-8 h-8 text-white" />
-                                                    );
-                                                })()}
-                                            </div>
-                                            <div>
-                                                <h3 className="text-white text-xl">
-                                                    {name || "Название группы"}
-                                                </h3>
-                                                <p className="text-white/80 text-sm">0% пройдено</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </Card>
-                            </div>
+                            <GroupColorSelector
+                                selectedColor={selectColor}
+                                onColorSelect={setSelectColor}
+                            />
+
+                            <GroupPreview
+                                name={name}
+                                color={selectColor}
+                                iconIndex={selectIcon}
+                                tags={selectedTags}
+                            />
+
                             {error && (
-                                <p className="text-red-500 text-center font-semibold">
+                                <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm text-center">
                                     {error}
-                                </p>
+                                </div>
                             )}
-                            <div className="flex gap-3">
+
+                            <div className="flex gap-3 pt-2">
                                 <Button
                                     type="button"
-                                    variant="outline"
+                                    variant="ghost"
                                     onClick={handleCancle}
-                                    className="flex-1 text-gray-600 shadow-lg rounded-xl"
+                                    className="flex-1 text-gray-500 hover:bg-gray-100"
                                 >
                                     Отменить
                                 </Button>
@@ -261,13 +195,13 @@ export default function GroupForm({
                                     loading={loading}
                                     type="submit"
                                     onClick={handleSubmit}
-                                    className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0 shadow-lg rounded-xl"
+                                    className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg shadow-purple-500/30 border-0"
                                 >
                                     {loading
                                         ? "Сохранение..."
                                         : targetGroup
-                                            ? "Сохранить"
-                                            : "Создать"}
+                                            ? "Сохранить изменения"
+                                            : "Создать колоду"}
                                 </Button>
                             </div>
                         </div>

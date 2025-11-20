@@ -13,16 +13,15 @@ import { useGroupData } from "../hooks/useGroupData";
 import { GroupHeader } from "../components/GroupHeader";
 import { CardsList } from "../components/CardsList";
 
-export default function StudyPage() {
+export default function OwnerGroupPage() {
+    // Используем хук данных. 
+    // Так как маршрут будет /study/:id, хук сам поймет, что isSubscriptionView = false
     const {
         group,
         setGroup,
         cards,
         setCards,
         loading,
-        isSubscriptionView,
-        isSubscribed,
-        setIsSubscribed,
         groupId,
     } = useGroupData();
 
@@ -33,6 +32,8 @@ export default function StudyPage() {
         handleCloseConfrimModal,
         setGroups,
     } = useData();
+
+    // --- ЛОГИКА ВЛАДЕЛЬЦА (CRUD) ---
 
     // State для формы добавления карточки
     const [isOpenAddModal, setIsOpenAddModal] = useState(false);
@@ -46,9 +47,6 @@ export default function StudyPage() {
     const [isPublishing, setIsPublishing] = useState(false);
     const [publishError, setPublishError] = useState<string | null>(null);
 
-    // State для подписки
-    const [submittingSubscription, setSubmittingSubscription] = useState(false);
-
     // Вычисляемые значения
     const progress = useMemo(() => {
         if (cards.length === 0) return 0;
@@ -60,7 +58,7 @@ export default function StudyPage() {
 
     useTitle(group?.GroupName || "");
 
-    // Handlers
+    // Handlers для управления доступом
     const handleTogglePublish = async () => {
         if (!group) return;
 
@@ -79,6 +77,7 @@ export default function StudyPage() {
                 prev ? { ...prev, IsPublished: newPublishedState } : null
             );
 
+            // Обновляем глобальный список групп, чтобы изменения отразились в меню
             setGroups((prev) =>
                 prev.map((g) =>
                     g.Id === groupId ? { ...g, IsPublished: newPublishedState } : g
@@ -96,41 +95,7 @@ export default function StudyPage() {
         }
     };
 
-    const handleToggleSubscription = async () => {
-        if (!group) return;
-
-        setSubmittingSubscription(true);
-        try {
-            if (isSubscribed) {
-                await apiFetch.delete(`/Subscriptions/${group.Id}/subscribe`);
-                setGroup((prev) =>
-                    prev
-                        ? {
-                            ...prev,
-                            SubscriberCount: Math.max(0, (prev.SubscriberCount ?? 0) - 1),
-                        }
-                        : null
-                );
-            } else {
-                await apiFetch.post(`/Subscriptions/${group.Id}/subscribe`);
-                setGroup((prev) =>
-                    prev
-                        ? {
-                            ...prev,
-                            SubscriberCount: (prev.SubscriberCount ?? 0) + 1,
-                        }
-                        : null
-                );
-            }
-
-            setIsSubscribed((prev) => !prev);
-        } catch (err) {
-            console.error("Ошибка при подписке/отписке:", err);
-        } finally {
-            setSubmittingSubscription(false);
-        }
-    };
-
+    // Handlers для карточек (CRUD)
     const handleAddCard = async (
         question: string,
         answer: string
@@ -142,6 +107,7 @@ export default function StudyPage() {
             const data = { question, answer };
 
             if (targetCard) {
+                // Обновление
                 await apiFetch.put(`/Cards/${targetCard.CardId}`, data);
 
                 setCards((prev) =>
@@ -152,6 +118,7 @@ export default function StudyPage() {
                     )
                 );
             } else {
+                // Создание
                 const res = await apiFetch.post(`/groups/${groupId}/cards`, data);
 
                 setCards((prev) => [res.data, ...prev]);
@@ -202,7 +169,6 @@ export default function StudyPage() {
 
     const handleCloseModal = () => setIsOpenAddModal(false);
 
-    // Loading state
     if (!group || loading) return <SkeletonGroupDetail />;
 
     const Icon =
@@ -220,26 +186,26 @@ export default function StudyPage() {
                 Назад на главную
             </Link>
 
-            {/* Заголовок группы */}
+            {/* Заголовок (Режим владельца) */}
             <GroupHeader
                 group={group}
                 icon={Icon}
                 progress={progress}
-                isSubscriptionView={isSubscriptionView}
-                isSubscribed={isSubscribed}
+                isSubscriptionView={false} // Явно указываем false
+                isSubscribed={false}       // Не используется
                 isPublishing={isPublishing}
-                submittingSubscription={submittingSubscription}
+                submittingSubscription={false}
                 publishError={publishError}
                 canPublish={canPublish}
                 onTogglePublish={handleTogglePublish}
-                onToggleSubscription={handleToggleSubscription}
+                onToggleSubscription={async () => {}} // Заглушка
             />
 
-            {/* Список карточек */}
+            {/* Список карточек (Режим владельца - с редактированием) */}
             <CardsList
                 cards={cards}
                 group={group}
-                isSubscriptionView={isSubscriptionView}
+                isSubscriptionView={false} // Разрешает кнопки редактирования
                 onCardClick={handleSelectLesson}
                 onDeleteCard={handleDeleteCard}
                 onEditCard={handleEditCard}
@@ -258,7 +224,7 @@ export default function StudyPage() {
                 }}
             />
 
-            {/* Мотивационная карточка */}
+            {/* Общий элемент: Мотивация */}
             {cards.length > 5 && (
                 <MotivationCard
                     animated="scale"

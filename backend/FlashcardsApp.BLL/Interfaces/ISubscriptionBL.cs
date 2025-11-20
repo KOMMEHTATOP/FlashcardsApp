@@ -1,4 +1,5 @@
 using FlashcardsApp.BLL.Implementations;
+using FlashcardsApp.Models.DTOs;
 using FlashcardsApp.Models.DTOs.Subscriptions.Responses;
 
 namespace FlashcardsApp.BLL.Interfaces;
@@ -10,7 +11,8 @@ public interface ISubscriptionBL
         string? search = null,
         string sortBy = "date",
         int page = 1,
-        int pageSize = 20);
+        int pageSize = 20,
+        Guid? tagId = null);
     
     Task<ServiceResult<IEnumerable<SubscribedGroupDto>>> GetSubscribedGroupsAsync(Guid userId);
     
@@ -32,4 +34,6 @@ public interface ISubscriptionBL
     /// </summary>
     // Тип возвращаемого значения изменен на ваш PublicGroupDto:
     Task<ServiceResult<PublicGroupDto>> GetPublicGroupDetailsAsync(Guid groupId, Guid currentUserId);
+    Task<ServiceResult<IEnumerable<TagDto>>> GetTagsAsync();
+    
 }

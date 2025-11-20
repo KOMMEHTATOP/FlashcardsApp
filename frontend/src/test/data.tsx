@@ -1,13 +1,29 @@
 import {
+  Atom,
   Beaker,
   BookHeart,
   BookOpen,
   Brain,
+  Briefcase,
   Calculator,
+  Code,
+  Coffee,
+  Dna,
+  Dumbbell,
+  Gamepad2,
   Globe,
+  GraduationCap,
+  Heart,
+  Languages,
+  Lightbulb,
+  Microscope,
+  Music,
   Palette,
+  Rocket,
+  Smile,
   Sparkles,
   Star,
+  Terminal,
   Trophy,
   Zap,
 } from "lucide-react";
@@ -82,36 +98,50 @@ const colorRatingCard = {
   5: "bg-yellow-300",
 };
 
+// Расширенная палитра градиентов (совпадает с C# генератором)
 const availableColors = [
-  { id: 1, gradient: "from-blue-400 to-cyan-500", name: "Синий океан" },
-  { id: 2, gradient: "from-purple-400 to-pink-500", name: "Пурпурно-розовый" },
-  { id: 3, gradient: "from-yellow-400 to-orange-500", name: "Закат" },
-  { id: 4, gradient: "from-green-400 to-emerald-500", name: "Лесной зеленый" },
-  { id: 5, gradient: "from-red-400 to-pink-500", name: "Розово-красный" },
-  {
-    id: 6,
-    gradient: "from-indigo-400 to-purple-500",
-    name: "Темно-фиолетовый",
-  },
-  { id: 7, gradient: "from-cyan-400 to-blue-500", name: "Небесно-голубой" },
-  {
-    id: 8,
-    gradient: "from-amber-400 to-orange-500",
-    name: "Янтарное свечение",
-  },
-  { id: 9, gradient: "from-teal-400 to-green-500", name: "Бирюзовый сон" },
-  { id: 10, gradient: "from-pink-400 to-rose-500", name: "Розовая роза" },
-  { id: 11, gradient: "from-violet-400 to-purple-500", name: "Фиолетовый" },
-  { id: 12, gradient: "from-lime-400 to-green-500", name: "Зеленый лайм" },
+  { id: 1, gradient: "from-blue-500 to-cyan-500", name: "Синий океан" },
+  { id: 2, gradient: "from-emerald-500 to-teal-500", name: "Изумрудный" },
+  { id: 3, gradient: "from-orange-500 to-yellow-500", name: "Солнечный" },
+  { id: 4, gradient: "from-pink-500 to-rose-500", name: "Розовый" },
+  { id: 5, gradient: "from-purple-600 to-blue-600", name: "Глубокий космос" },
+  { id: 6, gradient: "from-indigo-500 to-purple-500", name: "Индиго" },
+  { id: 7, gradient: "from-red-500 to-orange-500", name: "Огненный" },
+  { id: 8, gradient: "from-lime-500 to-green-500", name: "Лайм" },
+  { id: 9, gradient: "from-teal-400 to-blue-500", name: "Морская волна" },
+  { id: 10, gradient: "from-fuchsia-600 to-pink-600", name: "Фуксия" },
+  { id: 11, gradient: "from-rose-400 to-red-500", name: "Алая роза" },
+  { id: 12, gradient: "from-sky-500 to-indigo-500", name: "Небесный" },
+  { id: 13, gradient: "from-violet-600 to-indigo-600", name: "Ультрафиолет" },
+  { id: 14, gradient: "from-amber-500 to-orange-600", name: "Янтарь" },
+  { id: 15, gradient: "from-cyan-500 to-blue-500", name: "Лазурь" },
 ];
 
+// Расширенный список иконок (English keys для совпадения с БД)
 const availableIcons = [
-  { icon: BookOpen, name: "Книга" },
-  { icon: Brain, name: "Ум" },
-  { icon: Calculator, name: "Калькулятор" },
-  { icon: Beaker, name: "Химия" },
-  { icon: Globe, name: "Глобус" },
-  { icon: Palette, name: "Палитра" },
+  { icon: BookOpen, name: "BookOpen" }, // Книга
+  { icon: Code, name: "Code" }, // Код
+  { icon: Globe, name: "Globe" }, // Глобус
+  { icon: Languages, name: "Languages" }, // Языки
+  { icon: Brain, name: "Brain" }, // Мозг
+  { icon: Calculator, name: "Calculator" }, // Калькулятор
+  { icon: Dna, name: "Dna" }, // ДНК
+  { icon: Atom, name: "Atom" }, // Атом
+  { icon: Music, name: "Music" }, // Музыка
+  { icon: Palette, name: "Palette" }, // Палитра
+  { icon: Briefcase, name: "Briefcase" }, // Бизнес
+  { icon: Coffee, name: "Coffee" }, // Отдых/Кофе
+  { icon: Dumbbell, name: "Dumbbell" }, // Спорт
+  { icon: Gamepad2, name: "Gamepad2" }, // Игры
+  { icon: GraduationCap, name: "GraduationCap" }, // Образование
+  { icon: Heart, name: "Heart" }, // Здоровье
+  { icon: Lightbulb, name: "Lightbulb" }, // Идеи
+  { icon: Microscope, name: "Microscope" }, // Наука
+  { icon: Rocket, name: "Rocket" }, // Стартап
+  { icon: Smile, name: "Smile" }, // Развлечения
+  { icon: Terminal, name: "Terminal" }, // Терминал
+  { icon: Beaker, name: "Beaker" }, // Химия
+  { icon: Zap, name: "Zap" }, // Энергия
 ];
 
 export {

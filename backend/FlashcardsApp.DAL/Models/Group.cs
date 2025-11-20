@@ -18,4 +18,5 @@ public class Group
     public User? User { get; set; }
     public List<Card>? Cards { get; set; } = [];
     public List<UserGroupSubscription>? Subscriptions { get; set; } = []; 
+    public List<Tag> Tags { get; set; } = new();
 }

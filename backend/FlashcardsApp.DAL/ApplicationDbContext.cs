@@ -14,11 +14,13 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
     public DbSet<RefreshToken> RefreshTokens { get; set; }
     public DbSet<Card> Cards { get; set; }
     public DbSet<Group> Groups { get; set; }
+    public DbSet<Tag> Tags { get; set; }
     public DbSet<StudySettings> StudySettings { get; set; }
     public DbSet<Achievement> Achievements { get; set; }
     public DbSet<UserAchievement> UserAchievements { get; set; }
     public DbSet<UserStatistics> UserStatistics { get; set; }
     public DbSet<StudyHistory> StudyHistory { get; set; }
+    
     
     public DbSet<UserGroupSubscription> UserGroupSubscriptions { get; set; }
 

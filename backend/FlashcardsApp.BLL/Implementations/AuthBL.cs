@@ -82,9 +82,12 @@ public class AuthBL : IAuthBL
             _logger.LogInformation("Пользователь {Email} с логином {Login} успешно зарегистрирован",
                 model.Email, model.Login);
 
-            return ServiceResult<RegisterUserDto>.Success(new RegisterUserDto
+            return ServiceResult<RegisterUserDto>.Success(
+                new RegisterUserDto
             {
-                IsSuccess = true, Message = "Пользователь успешно зарегистрирован."
+                IsSuccess = true,
+                CreatedAt = DateTime.UtcNow,
+                Message = "Пользователь успешно зарегистрирован."
             });
         }
         catch (Exception ex)
@@ -110,6 +113,8 @@ public class AuthBL : IAuthBL
             return ServiceResult<User>.Failure("Неверный логин или пароль");
         }
 
+        user.LastLogin = model.LastLogin;
+        _context.Users.Update(user);
         _logger.LogInformation("User {UserId} successfully logged in", user.Id);
 
         return ServiceResult<User>.Success(user);

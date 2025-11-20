@@ -1,3 +1,5 @@
+import React from 'react';
+
 // ==================== CORE TYPES ====================
 
 type AppContextType = {
@@ -16,9 +18,9 @@ type AppContextType = {
   putGroups: (group: GroupType) => void;
 
   handleSelectLesson: (
-      subject: GroupCardType[],
-      group: GroupType,
-      index?: number
+    subject: GroupCardType[],
+    group: GroupType,
+    index?: number
   ) => void;
 
   currentLesson: CurrentLessonState | undefined;
@@ -76,6 +78,7 @@ interface GroupType {
   CardCount: number;
   IsPublished?: boolean;
   SubscriberCount?: number;
+  Tags?: TagDto[];
 }
 
 // Публичная группа в магазине
@@ -88,6 +91,7 @@ interface PublicGroupDto {
   CardCount: number;
   SubscriberCount: number;
   CreatedAt: string;
+  IsSubscribed: boolean;
 }
 
 // Подписка на чужую группу
@@ -183,6 +187,13 @@ type MotivationType = {
   Type: string;
 };
 
+interface TagDto {
+  Id: string;
+  Name: string;
+  Slug: string;
+  Color?: string;
+}
+
 // ==================== EXPORTS ====================
 
 export type {
@@ -216,4 +227,5 @@ export type {
   // UI
   ConfrimModalState,
   MotivationType,
+  TagDto
 };

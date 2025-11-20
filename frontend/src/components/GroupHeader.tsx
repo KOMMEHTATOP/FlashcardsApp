@@ -38,9 +38,6 @@ export function GroupHeader({
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            // ИЗМЕНЕНИЕ: Убраны 'max-w-7xl mx-auto'. Добавлен 'w-full'.
-            // Отступы 'px-4 sm:px-6 lg:px-8' выравнивают контент с кнопкой 'Назад'.
-            // Высота 'pt-8 pb-6' оставлена уменьшенной.
             className={`relative bg-gradient-to-br ${
                 group.GroupColor || "from-blue-500 to-blue-700"
             } w-full px-4 sm:px-6 lg:px-8 pt-8 pb-6 overflow-hidden rounded-2xl shadow-xl flex flex-col items-center`}
@@ -57,6 +54,7 @@ export function GroupHeader({
 
             <div className="relative z-10 w-full">
                 <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-6 mb-0 w-full">
+
                     {/* Иконка группы */}
                     <motion.div
                         initial={{ scale: 0 }}
@@ -68,6 +66,7 @@ export function GroupHeader({
                     </motion.div>
 
                     <div className="flex-1 text-center sm:text-left">
+
                         {/* Заголовок и бейджи */}
                         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 mb-2 w-full flex-wrap">
                             <h1 className="text-3xl text-white">{group.GroupName}</h1>
@@ -98,12 +97,13 @@ export function GroupHeader({
                                 </div>
                             )}
 
-                            {/* Spacer */}
+                            {/* Распорка */}
                             <div className="flex-1" />
 
-                            {/* Checkbox публикации / подписки */}
+                            {/* Переключатель: Публикация или Подписка */}
                             <div className="flex flex-col items-end">
                                 {isSubscriptionView ? (
+                                    // Режим подписчика
                                     <label className={`
                                         flex items-center gap-2 cursor-pointer
                                         ${submittingSubscription ? 'opacity-50 cursor-wait' : ''}
@@ -123,6 +123,7 @@ export function GroupHeader({
                                         )}
                                     </label>
                                 ) : (
+                                    // Режим владельца
                                     <>
                                         <label className={`
                                             flex items-center gap-2 cursor-pointer
@@ -154,7 +155,7 @@ export function GroupHeader({
                             </div>
                         </div>
 
-                        {/* Ошибка публикации */}
+                        {/* Блок ошибки */}
                         {publishError && !isSubscriptionView && (
                             <div className="bg-red-500/20 text-white px-3 py-2 rounded-lg text-sm mb-2">
                                 {publishError}
@@ -168,7 +169,7 @@ export function GroupHeader({
                         {/* Прогресс-бар */}
                         <div className="space-y-2 w-full">
                             <div className="flex justify-between text-white/80 text-sm">
-                                <span className="text-base-content/80">Общий прогресс</span>
+                                <span className="text-white/80">Общий прогресс</span>
                                 <span className="font-mono">
                                     {progress ? Number(progress).toFixed(0) : 0}%
                                 </span>

@@ -263,6 +263,37 @@ namespace FlashcardsApp.DAL.Migrations
                     b.ToTable("StudySettings");
                 });
 
+            modelBuilder.Entity("FlashcardsApp.DAL.Models.Tag", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Color")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.HasIndex("Slug")
+                        .IsUnique();
+
+                    b.ToTable("Tags");
+                });
+
             modelBuilder.Entity("FlashcardsApp.DAL.Models.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -276,12 +307,18 @@ namespace FlashcardsApp.DAL.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("text");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Email")
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("boolean");
+
+                    b.Property<DateTime>("LastLogin")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean");
@@ -427,6 +464,21 @@ namespace FlashcardsApp.DAL.Migrations
                     b.HasKey("UserId");
 
                     b.ToTable("UserStatistics");
+                });
+
+            modelBuilder.Entity("GroupTag", b =>
+                {
+                    b.Property<Guid>("GroupsId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TagsId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("GroupsId", "TagsId");
+
+                    b.HasIndex("TagsId");
+
+                    b.ToTable("GroupTags", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", b =>
@@ -669,6 +721,21 @@ namespace FlashcardsApp.DAL.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("GroupTag", b =>
+                {
+                    b.HasOne("FlashcardsApp.DAL.Models.Group", null)
+                        .WithMany()
+                        .HasForeignKey("GroupsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("FlashcardsApp.DAL.Models.Tag", null)
+                        .WithMany()
+                        .HasForeignKey("TagsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>

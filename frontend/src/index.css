@@ -81,6 +81,13 @@
   height: 0;
 }
 
+/* Базовые стили для параграфов */
+.tiptap p {
+  line-height: 1.6;
+  margin: 0.25rem 0;
+}
+
+/* Стили для списков */
 .tiptap ul {
   list-style-type: disc;
   padding-left: 1.5rem;
@@ -95,10 +102,119 @@
 
 .tiptap li {
   margin: 0.25rem 0;
+  line-height: 1.6;
 }
 
 .tiptap li p {
   margin: 0;
+}
+
+/* Стили для highlight (выделение цветом) */
+.tiptap mark,
+.tiptap .custom-highlight {
+  background-color: #fef08a;
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  line-height: 1;
+  display: inline;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/* Code Block стили */
+.tiptap pre {
+  background: #1e1e1e;
+  color: #d4d4d4;
+  font-family: 'Courier New', Courier, monospace;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  overflow-x: auto;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  margin: 0.5rem 0;
+  white-space: pre;
+}
+
+.tiptap pre code {
+  color: inherit;
+  padding: 0;
+  background: none;
+  font-size: 0.8125rem;
+  display: block;
+}
+
+/* Inline code */
+.tiptap code {
+  background-color: #f3f4f6;
+  color: #1f2937;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-size: 0.85em;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+/* Для отображения на карточках (prose-invert) */
+.prose-invert pre {
+  background: #1e1e1e;
+  color: #d4d4d4;
+  font-family: 'Courier New', Courier, monospace;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  overflow-x: auto;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  margin: 0.5rem 0;
+}
+
+.prose-invert pre code {
+  color: #d4d4d4;
+  font-size: 0.8125rem;
+}
+
+.prose-invert code {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #d4d4d4;
+}
+
+/* Глобальные стили для prose (для всех мест отображения) */
+.prose pre {
+  background: #1e1e1e;
+  color: #d4d4d4;
+  font-family: 'Courier New', Courier, monospace;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  overflow-x: auto;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  margin: 0.5rem 0;
+  white-space: pre;
+}
+
+.prose pre code {
+  color: inherit;
+  padding: 0;
+  background: none;
+  font-size: 0.8125rem;
+  display: block;
+}
+
+.prose code {
+  background-color: #f3f4f6;
+  color: #1f2937;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-size: 0.85em;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+/* Inline code */
+.tiptap code {
+  background-color: #f3f4f6;
+  color: #1f2937;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
 }
 
 /* Prose invert for white text on colored backgrounds */
@@ -114,6 +230,11 @@
 
 .prose-invert li {
   color: white;
+  line-height: 1.6;
+}
+
+.prose-invert p {
+  line-height: 1.6;
 }
 
 /* ========================================
@@ -286,3 +407,5 @@
   50% { background-position: 60% 50%; }
   100% { background-position: 0% 50%; }
 }
+
+

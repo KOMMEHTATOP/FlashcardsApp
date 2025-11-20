@@ -3,15 +3,20 @@ import { Routes, Route } from "react-router-dom";
 import AppLayout from "./layout/AppLayout";
 import { HomePage } from "./pages/Home";
 import { ProfilePage } from "./pages/Profile";
-import StudyPage from "./pages/Study";
+import OwnerGroupPage from "./pages/OwnerGroupPage"; 
+
 import LoginPage from "./pages/Login";
 import { NotFoundPage } from "./pages/NotFound";
 import { PrivateRoute } from "./layout/PrivateRoute";
 import { GuestRoute } from "./layout/GuestRoute";
 import { lazy } from "react";
 import ScrollToTop from "./utils/scrollToTop";
+import { DataProvider } from "./context/DataContext";
 
 const LandingPage = lazy(() => import("./pages/LandingPage"));
+const PublicStorePage = lazy(() => import("./pages/PublicStore"));
+
+const SubscriberGroupPage = lazy(() => import("./pages/SubscriberGroupPage")); // <--- ДОБАВЛЯЕМ НОВЫЙ (ПОДПИСЧИК)
 
 export const DEV = false;
 
@@ -25,6 +30,20 @@ function App() {
                 </>
             } />
 
+            <Route path="/store" element={
+                <>
+                    <ScrollToTop />
+                    <PublicStorePage />
+                </>
+            } />
+            
+            <Route path="/subscription/:id" element={
+                <DataProvider>
+                    <ScrollToTop />
+                    <SubscriberGroupPage />
+                </DataProvider>
+            } />
+            
             <Route path="/login" element={
                 <GuestRoute>
                     <LoginPage />
@@ -55,19 +74,7 @@ function App() {
                         <PrivateRoute>
                             <>
                                 <ScrollToTop />
-                                <StudyPage />
-                            </>
-                        </PrivateRoute>
-                    }
-                />
-
-                <Route
-                    path="/subscription/:id"
-                    element={
-                        <PrivateRoute>
-                            <>
-                                <ScrollToTop />
-                                <StudyPage />
+                                <OwnerGroupPage />
                             </>
                         </PrivateRoute>
                     }
