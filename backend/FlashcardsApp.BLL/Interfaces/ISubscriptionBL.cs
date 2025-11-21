@@ -15,25 +15,11 @@ public interface ISubscriptionBL
         Guid? tagId = null);
     
     Task<ServiceResult<IEnumerable<SubscribedGroupDto>>> GetSubscribedGroupsAsync(Guid userId);
-    
     Task<ServiceResult<bool>> SubscribeToGroupAsync(Guid groupId, Guid subscriberUserId);
-    
     Task<ServiceResult<bool>> UnsubscribeFromGroupAsync(Guid groupId, Guid subscriberUserId);
-    
     Task<ServiceResult<int>> GetAuthorRatingAsync(Guid authorUserId);
-    
     Task<ServiceResult<bool>> IsSubscribedAsync(Guid groupId, Guid userId);
-    
-    /// <summary>
-    /// Получить карточки публичной группы для предпросмотра перед подпиской
-    /// </summary>
     Task<ServiceResult<IEnumerable<object>>> GetPublicGroupCardsAsync(Guid groupId);
-    
-    /// <summary>
-    /// Получить детали публичной группы по ID, включая статус подписки текущего пользователя.
-    /// </summary>
-    // Тип возвращаемого значения изменен на ваш PublicGroupDto:
     Task<ServiceResult<PublicGroupDto>> GetPublicGroupDetailsAsync(Guid groupId, Guid currentUserId);
     Task<ServiceResult<IEnumerable<TagDto>>> GetTagsAsync();
-    
 }

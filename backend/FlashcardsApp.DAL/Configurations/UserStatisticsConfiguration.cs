@@ -8,10 +8,8 @@ public class UserStatisticsConfiguration : IEntityTypeConfiguration<UserStatisti
 {
     public void Configure(EntityTypeBuilder<UserStatistics> builder)
     {
-        // Первичный ключ
         builder.HasKey(us => us.UserId);
 
-        // Связь One-to-One с User
         builder.HasOne(us => us.User)
             .WithOne(u => u.Statistics)
             .HasForeignKey<UserStatistics>(us => us.UserId)

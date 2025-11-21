@@ -30,9 +30,6 @@ public class AchievementBL : IAchievementBL
         _notificationService = notificationService;
     }
 
-    /// <summary>
-    /// Получить список всех доступных достижений в системе
-    /// </summary>
     public async Task<ServiceResult<IEnumerable<AchievementDto>>> GetAllAchievementsAsync()
     {
         try
@@ -63,9 +60,6 @@ public class AchievementBL : IAchievementBL
         }
     }
 
-    /// <summary>
-    /// Получить список разблокированных достижений пользователя
-    /// </summary>
     public async Task<ServiceResult<IEnumerable<UnlockedAchievementDto>>> GetUserAchievementsAsync(Guid userId)
     {
         try
@@ -96,9 +90,6 @@ public class AchievementBL : IAchievementBL
         }
     }
 
-    /// <summary>
-    /// Получить все достижения со статусом разблокировки для конкретного пользователя
-    /// </summary>
     public async Task<ServiceResult<IEnumerable<AchievementWithStatusDto>>> GetAllAchievementsWithStatusAsync(Guid userId)
     {
         try
@@ -136,15 +127,11 @@ public class AchievementBL : IAchievementBL
             return ServiceResult<IEnumerable<AchievementWithStatusDto>>.Failure("Failed to fetch achievements with status");
         }
     }
-
-    /// <summary>
-    /// Разблокировать конкретное достижение для пользователя вручную
-    /// </summary>
+    
     public async Task<ServiceResult<UserAchievementDto>> UnlockAchievementAsync(Guid userId, Guid achievementId)
     {
         try
         {
-            // Проверяем что достижение существует
             var achievement = await _context.Achievements
                 .AsNoTracking()
                 .FirstOrDefaultAsync(a => a.Id == achievementId && a.IsActive);
@@ -154,7 +141,6 @@ public class AchievementBL : IAchievementBL
                 return ServiceResult<UserAchievementDto>.Failure("Achievement not found or inactive");
             }
 
-            // Проверяем что уже не разблокировано
             var alreadyUnlocked = await _context.UserAchievements
                 .AnyAsync(ua => ua.UserId == userId && ua.AchievementId == achievementId);
 
@@ -163,7 +149,6 @@ public class AchievementBL : IAchievementBL
                 return ServiceResult<UserAchievementDto>.Failure("Achievement already unlocked");
             }
 
-            // Разблокируем достижение
             var unlockedAt = DateTime.UtcNow;
             var userAchievement = new UserAchievement
             {
@@ -175,11 +160,9 @@ public class AchievementBL : IAchievementBL
             _context.UserAchievements.Add(userAchievement);
             await _context.SaveChangesAsync();
 
-            // Начисляем награду за достижение
             var rewardResult = await _rewardBl.AwardBonusForAchievementAsync(userId, achievementId);
             var bonusXP = rewardResult.IsSuccess ? rewardResult.Data.XPAwarded : 0;
 
-            // ОТПРАВЛЯЕМ УВЕДОМЛЕНИЕ через SignalR
             await SendAchievementNotificationAsync(userId, achievement, unlockedAt, bonusXP);
 
             _logger.LogInformation(
@@ -202,15 +185,11 @@ public class AchievementBL : IAchievementBL
             return ServiceResult<UserAchievementDto>.Failure("Failed to unlock achievement");
         }
     }
-
-    /// <summary>
-    /// Автоматически проверить статистику пользователя и разблокировать достижения
-    /// </summary>
+    
     public async Task<ServiceResult<List<AchievementDto>>> CheckAndUnlockAchievementsAsync(Guid userId)
     {
         try
         {
-            // Получаем статистику пользователя
             var stats = await _context.UserStatistics
                 .AsNoTracking()
                 .FirstOrDefaultAsync(s => s.UserId == userId);
@@ -221,27 +200,23 @@ public class AchievementBL : IAchievementBL
                 return ServiceResult<List<AchievementDto>>.Success(new List<AchievementDto>());
             }
 
-            // Получаем все активные достижения
             var allAchievements = await _context.Achievements
                 .AsNoTracking()
                 .Where(a => a.IsActive)
                 .ToListAsync();
 
-            // Получаем уже разблокированные достижения
             var unlockedIds = await _context.UserAchievements
                 .AsNoTracking()
                 .Where(ua => ua.UserId == userId)
                 .Select(ua => ua.AchievementId)
                 .ToListAsync();
 
-            // Фильтруем достижения которые еще не разблокированы
             var lockedAchievements = allAchievements
                 .Where(a => !unlockedIds.Contains(a.Id))
                 .ToList();
 
-            // Проверяем условия для каждого достижения
             var newlyUnlocked = new List<AchievementDto>();
-            var unlockedAt = DateTime.UtcNow; // ← Единое время для всех
+            var unlockedAt = DateTime.UtcNow; 
 
             foreach (var achievement in lockedAchievements)
             {
@@ -249,7 +224,6 @@ public class AchievementBL : IAchievementBL
 
                 if (conditionMet)
                 {
-                    // Разблокируем достижение
                     var userAchievement = new UserAchievement
                     {
                         UserId = userId,
@@ -277,13 +251,9 @@ public class AchievementBL : IAchievementBL
                 }
             }
 
-            // Сохраняем все новые достижения
             if (newlyUnlocked.Any())
             {
                 await _context.SaveChangesAsync();
-
-                // ОТПРАВЛЯЕМ УВЕДОМЛЕНИЯ через SignalR
-                // Начисляем награды и собираем информацию о бонусах
                 var notifications = new List<AchievementUnlockedNotification>();
 
                 foreach (var achievementDto in newlyUnlocked)
@@ -306,7 +276,6 @@ public class AchievementBL : IAchievementBL
                     });
                 }
 
-                // Отправляем массовое уведомление
                 await _notificationService.SendMultipleAchievementsUnlockedAsync(userId, notifications);
 
                 _logger.LogInformation(
@@ -322,10 +291,7 @@ public class AchievementBL : IAchievementBL
             return ServiceResult<List<AchievementDto>>.Failure("Failed to check achievements");
         }
     }
-
-    /// <summary>
-    /// Проверяет выполнено ли условие достижения
-    /// </summary>
+    
     private bool CheckAchievementCondition(Achievement achievement, UserStatistics stats)
     {
         return achievement.ConditionType switch
@@ -358,10 +324,6 @@ public class AchievementBL : IAchievementBL
         };
     }
     
-    /// <summary>
-    /// МЕТОД для отправки уведомления
-    /// Инкапсулирует создание объекта уведомления
-    /// </summary>
     private async Task SendAchievementNotificationAsync(Guid userId, Achievement achievement, DateTime unlockedAt, int bonusXP)
     {
         try

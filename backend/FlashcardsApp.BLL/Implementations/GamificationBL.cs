@@ -19,35 +19,24 @@ public class GamificationBL : IGamificationBL
         _context = context;
         _settings = settingsOptions.Value;
     }
-
-    /// <summary>
-    /// Рассчитывает XP за изученную карточку
-    /// Формула: XP = BaseXP × Quality × Streak
-    /// </summary>
+    
     public async Task<int> CalculateXPForCardAsync(Guid userId, Guid cardId, int rating)
     {
-        // 1. Базовое XP из конфига
         var baseXP = _settings.Base.XPPerCard;
 
-        // 2. Рассчитываем множитель качества (оценка пользователя)
         var qualityMultiplier = CalculateQualityMultiplier(rating);
 
-        // 3. Получаем streak пользователя для бонуса
         var userStats = await _context.UserStatistics
             .AsNoTracking()
             .FirstOrDefaultAsync(us => us.UserId == userId);
         
         var streakBonus = CalculateStreakBonus(userStats?.CurrentStreak ?? 0);
 
-        // 4. Итоговый расчет: XP = BaseXP × Quality × Streak
         var xp = (int)Math.Round(baseXP * qualityMultiplier * streakBonus);
 
         return xp;
     }
-
-    /// <summary>
-    /// Множитель на основе оценки (1-5)
-    /// </summary>
+    
     private double CalculateQualityMultiplier(int rating)
     {
         return rating switch
@@ -57,30 +46,21 @@ public class GamificationBL : IGamificationBL
             3 => _settings.Multipliers.Quality.Rating3,
             2 => _settings.Multipliers.Quality.Rating2,
             1 => _settings.Multipliers.Quality.Rating1,
-            _ => _settings.Multipliers.Quality.Rating3 // По умолчанию средний
+            _ => _settings.Multipliers.Quality.Rating3 
         };
     }
-
-    /// <summary>
-    /// Бонус за streak (чем дольше streak, тем больше бонус)
-    /// </summary>
+    
     private double CalculateStreakBonus(int currentStreak)
     {
         return currentStreak switch
         {
-            >= 30 => _settings.Multipliers.StreakBonus.Days30Plus,  // Месяц подряд!
-            >= 14 => _settings.Multipliers.StreakBonus.Days14Plus,  // Две недели
-            >= 7 => _settings.Multipliers.StreakBonus.Days7Plus,    // Неделя
-            _ => _settings.Multipliers.StreakBonus.Default          // Нет бонуса
+            >= 30 => _settings.Multipliers.StreakBonus.Days30Plus,  
+            >= 14 => _settings.Multipliers.StreakBonus.Days14Plus,  
+            >= 7 => _settings.Multipliers.StreakBonus.Days7Plus,    
+            _ => _settings.Multipliers.StreakBonus.Default      
         };
     }
     
-    
-    
-    
-    /// <summary>
-    /// Генерирует мотивационное сообщение
-    /// </summary>
     public async Task<ServiceResult<MotivationalMessageDto>> GetMotivationalMessageAsync(Guid userId)
     {
         var userStats = await _context.UserStatistics
@@ -97,7 +77,6 @@ public class GamificationBL : IGamificationBL
 
         MotivationalMessageDto message;
 
-        // Близко к новому уровню (менее 200 XP)
         if (xpNeeded < 200)
         {
             var cardsNeeded = (int)Math.Ceiling(xpNeeded / (double)_settings.Base.XPPerCard);
@@ -108,7 +87,6 @@ public class GamificationBL : IGamificationBL
                 Type = "level"
             };
         }
-        // Активный streak (7+ дней)
         else if (userStats.CurrentStreak >= 7)
         {
             message = new MotivationalMessageDto
@@ -118,7 +96,6 @@ public class GamificationBL : IGamificationBL
                 Type = "streak"
             };
         }
-        // Обычная мотивация до уровня
         else
         {
             message = new MotivationalMessageDto
@@ -132,9 +109,6 @@ public class GamificationBL : IGamificationBL
         return ServiceResult<MotivationalMessageDto>.Success(message);
     }
     
-    /// <summary>
-    /// Добавляет XP пользователю и проверяет level up
-    /// </summary>
     public async Task<ServiceResult<(bool leveledUp, int newLevel)>> AddXPToUserAsync(Guid userId, int xp)
     {
         var userStats = await _context.UserStatistics.FirstOrDefaultAsync(us => us.UserId == userId);
@@ -147,7 +121,6 @@ public class GamificationBL : IGamificationBL
         var oldLevel = userStats.Level;
         userStats.TotalXP += xp;
 
-        // Проверяем повышение уровня
         var newLevel = CalculateLevelFromXP(userStats.TotalXP);
         var leveledUp = newLevel > oldLevel;
 
@@ -160,22 +133,15 @@ public class GamificationBL : IGamificationBL
 
         return ServiceResult<(bool leveledUp, int newLevel)>.Success((leveledUp, newLevel));
     }
-
-    /// <summary>
-    /// Рассчитывает сколько XP нужно для достижения уровня
-    /// Формула прогрессии: уровни становятся сложнее с ростом
-    /// </summary>
+    
     public int CalculateXPForLevel(int level)
     {
         if (level == 1) return 0;
-        if (level <= 10) return 100 * level;  // Быстрый рост в начале
+        if (level <= 10) return 100 * level;  
         if (level <= 25) return 100 * level + 50 * (level - 10);
         return 100 * level + 50 * 15 + 100 * (level - 25);
     }
-
-    /// <summary>
-    /// Рассчитывает уровень из общего количества XP
-    /// </summary>
+    
     private int CalculateLevelFromXP(int totalXP)
     {
         int level = 1;
@@ -185,10 +151,7 @@ public class GamificationBL : IGamificationBL
         }
         return level;
     }
-
-    /// <summary>
-    /// Обновляет streak пользователя
-    /// </summary>
+    
     public async Task<ServiceResult<bool>> UpdateStreakAsync(Guid userId)
     {
         var userStats = await _context.UserStatistics.FirstOrDefaultAsync(us => us.UserId == userId);
@@ -206,12 +169,10 @@ public class GamificationBL : IGamificationBL
 
         if (daysDifference == 0)
         {
-            // Уже занимался сегодня, streak не меняется
             streakIncreased = false;
         }
         else if (daysDifference == 1)
         {
-            // Занимался вчера, streak продолжается
             userStats.CurrentStreak++;
             streakIncreased = true;
             
@@ -220,7 +181,6 @@ public class GamificationBL : IGamificationBL
         }
         else
         {
-            // Пропуск более 1 дня - streak обнуляется
             userStats.CurrentStreak = 1;
             streakIncreased = false;
         }

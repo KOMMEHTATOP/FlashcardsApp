@@ -49,13 +49,11 @@ public class UserBL : IUserBL
                 return ServiceResult<UserDashboardDto>.Failure("Пользователь не найден");
             }
 
-            // Выполняем запросы ПОСЛЕДОВАТЕЛЬНО, не параллельно
             var statisticsResult = await _statisticsBl.GetUserStatsAsync(userId);
             var groupsResult = await _groupBl.GetGroupsAsync(userId);
             var achievementsResult = await _achievementBL.GetAllAchievementsWithStatusAsync(userId);
             var subscriptionsResult = await _subscriptionBL.GetSubscribedGroupsAsync(userId);
 
-            // Считаем общее количество подписчиков
             var totalSubscribers = 0;
 
             if (groupsResult.IsSuccess && groupsResult.Data != null)

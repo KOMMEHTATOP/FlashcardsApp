@@ -28,7 +28,6 @@ public class CardBL : ICardBL
 
     public async Task<ServiceResult<IEnumerable<ResultCardDto>>> GetAllCardsAsync(Guid userId, int? targetRating)
     {
-        // Получаем карточки через группы пользователя
         var query = _context.Groups
             .Where(g => g.UserId == userId)
             .SelectMany(g => g.Cards)
@@ -36,7 +35,6 @@ public class CardBL : ICardBL
 
         if (targetRating.HasValue)
         {
-            // Получаем последние оценки из StudyHistory
             var cardsWithRating = await query
                 .Select(c => new
                 {
@@ -49,7 +47,6 @@ public class CardBL : ICardBL
                 })
                 .ToListAsync();
 
-            // Фильтруем: карточки без оценок или с оценкой <= targetRating
             var filteredCards = cardsWithRating
                 .Where(x => !x.LastRating.HasValue || x.LastRating.Value <= targetRating.Value)
                 .Select(x => x.Card)
@@ -65,7 +62,6 @@ public class CardBL : ICardBL
 
     public async Task<ServiceResult<IEnumerable<ResultCardDto>>> GetCardsByGroupAsync(Guid groupId, Guid userId)
     {
-        // Проверяем что группа принадлежит пользователю
         var groupExists = await _context.Groups
             .AnyAsync(g => g.Id == groupId && g.UserId == userId);
 
@@ -80,7 +76,6 @@ public class CardBL : ICardBL
             .OrderBy(c => c.CreatedAt)
             .ToListAsync();
 
-        // Получаем последние оценки для карточек из StudyHistory
         var cardIds = cards.Select(c => c.CardId).ToList();
         var lastRatings = await _context.StudyHistory
             .Where(sh => sh.UserId == userId && cardIds.Contains(sh.CardId))
@@ -108,7 +103,6 @@ public class CardBL : ICardBL
 
     public async Task<ServiceResult<ResultCardDto>> GetCardAsync(Guid cardId, Guid userId)
     {
-        // Проверяем доступ через группу
         var card = await _context.Cards
             .Include(c => c.Group)
             .AsNoTracking()
@@ -124,7 +118,6 @@ public class CardBL : ICardBL
 
     public async Task<ServiceResult<ResultCardDto>> CreateCardAsync(Guid userId, Guid groupId, CreateCardDto dto)
     {
-        // Проверяем что группа принадлежит пользователю
         var group = await _context.Groups
             .FirstOrDefaultAsync(g => g.Id == groupId && g.UserId == userId);
 
@@ -133,7 +126,6 @@ public class CardBL : ICardBL
             return ServiceResult<ResultCardDto>.Failure("Group not found or access denied");
         }
 
-        // Проверяем существование карточки с таким вопросом в группе
         var cardExists = await _context.Cards
             .AsNoTracking()
             .AnyAsync(c => c.GroupId == groupId && c.Question == dto.Question);
@@ -175,7 +167,6 @@ public class CardBL : ICardBL
             return ServiceResult<ResultCardDto>.Failure("Failed to create card");
         }
 
-        // Обновляем статистику пользователя
         var userStats = await _context.UserStatistics
             .FirstOrDefaultAsync(s => s.UserId == userId);
 
@@ -200,7 +191,6 @@ public class CardBL : ICardBL
 
     public async Task<ServiceResult<ResultCardDto>> UpdateCardAsync(Guid cardId, Guid userId, CreateCardDto dto)
     {
-        // Проверяем доступ через группу
         var card = await _context.Cards
             .Include(c => c.Group)
             .FirstOrDefaultAsync(c => c.CardId == cardId && c.Group.UserId == userId);
@@ -210,7 +200,6 @@ public class CardBL : ICardBL
             return ServiceResult<ResultCardDto>.Failure("Card not found or access denied");
         }
 
-        // Проверяем уникальность только если вопрос изменился
         if (card.Question != dto.Question)
         {
             var questionExists = await _context.Cards
@@ -254,7 +243,6 @@ public class CardBL : ICardBL
 
     public async Task<ServiceResult<bool>> DeleteCardAsync(Guid cardId, Guid userId)
     {
-        // Проверяем доступ через группу
         var card = await _context.Cards
             .Include(c => c.Group)
             .FirstOrDefaultAsync(c => c.CardId == cardId && c.Group.UserId == userId);

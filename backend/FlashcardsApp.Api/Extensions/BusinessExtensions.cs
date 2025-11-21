@@ -16,7 +16,7 @@ public static class BusinessExtensions
         services.AddScoped<IGroupBL, GroupBL>();
         services.AddScoped<ICardBL, CardBL>();
         
-        //Обучение
+        //Study
         services.AddScoped<IStudyBL, StudyBL>();
         services.AddScoped<IStudySessionBL, StudySessionBL>();
         services.AddScoped<IStudySettingsBL, StudySettingsBL>();

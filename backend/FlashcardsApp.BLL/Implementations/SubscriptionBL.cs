@@ -18,16 +18,12 @@ public class SubscriptionBL : ISubscriptionBL
         _context = context;
         _logger = logger;
     }
-
-    /// <summary>
-    /// Получить детали публичной группы по ID, включая статус подписки текущего пользователя.
-    /// </summary>
+    
     public async Task<ServiceResult<PublicGroupDto>> GetPublicGroupDetailsAsync(Guid groupId, Guid currentUserId)
     {
         try
         {
             var groupDetails = await _context.Groups
-                // Проверяем существование и статус публикации
                 .Where(g => g.Id == groupId && g.IsPublished)
                 .Select(g => new PublicGroupDto
                 {
@@ -39,7 +35,6 @@ public class SubscriptionBL : ISubscriptionBL
                     CardCount = g.Cards.Count,
                     SubscriberCount = g.SubscriberCount,
                     CreatedAt = g.CreatedAt,
-                    // Проверяем статус подписки в одном запросе
                     IsSubscribed = g.Subscriptions.Any(s => s.SubscriberUserId == currentUserId)
                 })
                 .AsNoTracking()
@@ -78,7 +73,6 @@ public class SubscriptionBL : ISubscriptionBL
                 .Where(g => g.IsPublished && g.UserId != currentUserId)
                 .AsNoTracking();
 
-            // --- ФИЛЬТР ПО ТЕГУ ---
             if (tagId.HasValue)
             {
                 query = query.Where(g => g.Tags.Any(t => t.Id == tagId));
@@ -210,7 +204,6 @@ public class SubscriptionBL : ISubscriptionBL
     {
         try
         {
-            // Получаем authorId сразу
             var authorId = await _context.UserGroupSubscriptions
                 .Where(s => s.GroupId == groupId && s.SubscriberUserId == subscriberUserId)
                 .Select(s => (Guid?)s.Group.UserId)
@@ -221,7 +214,6 @@ public class SubscriptionBL : ISubscriptionBL
                 return ServiceResult<bool>.Failure("Подписка не найдена");
             }
 
-            // Удаляем подписку
             var deleted = await _context.UserGroupSubscriptions
                 .Where(s => s.GroupId == groupId && s.SubscriberUserId == subscriberUserId)
                 .ExecuteDeleteAsync();
@@ -231,7 +223,6 @@ public class SubscriptionBL : ISubscriptionBL
                 return ServiceResult<bool>.Failure("Подписка не найдена");
             }
 
-            // Обновляем счётчики (если упадёт — залогируется, но подписка уже удалена)
             await _context.Groups
                 .Where(g => g.Id == groupId && g.SubscriberCount > 0)
                 .ExecuteUpdateAsync(s => s.SetProperty(g => g.SubscriberCount, g => g.SubscriberCount - 1));
@@ -293,7 +284,6 @@ public class SubscriptionBL : ISubscriptionBL
     {
         try
         {
-            // Проверяем, что группа существует и опубликована
             var isPublished = await _context.Groups
                 .Where(g => g.Id == groupId)
                 .Select(g => g.IsPublished)
@@ -304,7 +294,6 @@ public class SubscriptionBL : ISubscriptionBL
                 return ServiceResult<IEnumerable<object>>.Failure("Группа не найдена или не опубликована");
             }
 
-            // Получаем карточки группы
             var cards = await _context.Cards
                 .Where(c => c.GroupId == groupId)
                 .OrderBy(c => c.CreatedAt)
@@ -330,7 +319,6 @@ public class SubscriptionBL : ISubscriptionBL
     {
         try
         {
-            // Берем только те теги, которые используются в ПУБЛИЧНЫХ группах (чтобы не показывать пустые)
             var tags = await _context.Tags
                 .Where(t => t.Groups.Any(g => g.IsPublished))
                 .Select(t => new TagDto

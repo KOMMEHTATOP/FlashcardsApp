@@ -31,7 +31,6 @@ public class ImportBL : IImportBL
         Guid userId, 
         ImportGroupWithCardsDto dto)
     {
-        // ШАГ 1: Валидация уникальности имени группы
         var groupExists = await _context.Groups
             .AsNoTracking()
             .AnyAsync(g => g.UserId == userId && g.GroupName == dto.GroupName);
@@ -45,12 +44,10 @@ public class ImportBL : IImportBL
                 $"You already have a group named '{dto.GroupName}'");
         }
 
-        // ШАГ 2: Начать транзакцию
         await using var transaction = await _context.Database.BeginTransactionAsync();
         
         try
         {
-            // ШАГ 3: Создать группу
             var createGroupDto = new CreateGroupDto
             {
                 Name = dto.GroupName,
@@ -80,7 +77,6 @@ public class ImportBL : IImportBL
             _logger.LogInformation(
                 "Group {GroupId} created for import by user {UserId}", createdGroup.Id, userId);
 
-            // ШАГ 4: Создать карточки с обработкой ошибок
             var cardResults = new List<ImportedCardResultDto>();
             int successfulCount = 0;
             int failedCount = 0;
@@ -114,10 +110,7 @@ public class ImportBL : IImportBL
                     {
                         failedCount++;
                         
-                        // Объединяем все ошибки в одну строку
                         var errorMessage = string.Join("; ", cardResult.Errors);
-                        
-                        // Проверяем на дубликат
                         bool isDuplicate = cardResult.Errors.Any(e => 
                             e.Contains("already have a card with this question", 
                                       StringComparison.OrdinalIgnoreCase));
@@ -136,7 +129,8 @@ public class ImportBL : IImportBL
                         });
 
                         _logger.LogWarning(
-                            "Failed to import card '{Question}' for user {UserId}: {Errors}", cardDto.Question, userId, errorMessage);
+                            "Failed to import card '{Question}' for user {UserId}: {Errors}", 
+                            cardDto.Question, userId, errorMessage);
                     }
                 }
                 catch (Exception ex)
@@ -156,14 +150,12 @@ public class ImportBL : IImportBL
                 }
             }
 
-            // ШАГ 5: Коммит транзакции
             await transaction.CommitAsync();
 
             _logger.LogInformation(
                 "Import completed for user {UserId}: group '{GroupName}', {Successful}/{Total} cards created, {Failed} failed",
                 userId, dto.GroupName, successfulCount, dto.Cards.Count, failedCount);
 
-            // ШАГ 6: Формирование результата
             var result = new ImportResultDto
             {
                 GroupId = createdGroup.Id,

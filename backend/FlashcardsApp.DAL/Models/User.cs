@@ -10,13 +10,10 @@ public class User : IdentityUser<Guid>
     [Required(ErrorMessage = "Логин обязателен")]
     [StringLength(50, MinimumLength = 3, ErrorMessage = "Логин должен быть от 3 до 50 символов")]
     public required string Login { get; set; } 
-    
     [Range(0, int.MaxValue, ErrorMessage = "Рейтинг не может быть отрицательным")]
     public int TotalRating { get; set; }
     public DateTime CreatedAt { get; set; } 
     public DateTime LastLogin { get; set; }
-    
-    // Навигационные свойства
     public List<StudyHistory>? StudyHistory { get; set; }
     public List<Group>? Groups { get; set; }
     public UserStatistics? Statistics { get; set; }

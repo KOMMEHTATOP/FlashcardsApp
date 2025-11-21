@@ -20,7 +20,6 @@ public class CardConfiguration : IEntityTypeConfiguration<Card>
             .IsUnique()
             .HasDatabaseName("IX_Cards_Group_Question");
 
-        // Оставляем только связь с Group
         builder.HasOne(c => c.Group)
             .WithMany(g => g.Cards)
             .HasForeignKey(c => c.GroupId)

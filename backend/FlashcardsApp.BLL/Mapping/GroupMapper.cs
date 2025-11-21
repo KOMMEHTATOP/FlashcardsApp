@@ -7,9 +7,6 @@ namespace FlashcardsApp.BLL.Mapping;
 
 public static class GroupMapper
 {
-    /// <summary>
-    /// Маппинг для загруженной сущности (когда используем FindAsync или получили объект после SaveChanges)
-    /// </summary>
     public static ResultGroupDto ToDto(this Group model)
     {
         return new ResultGroupDto
@@ -24,7 +21,6 @@ public static class GroupMapper
             SubscriberCount = model.SubscriberCount,
             CardCount = model.Cards?.Count ?? 0,
             
-            // --- МАППИНГ ТЕГОВ ---
             Tags = model.Tags?.Select(t => new GroupTagDto
             {
                 Id = t.Id,
@@ -34,10 +30,7 @@ public static class GroupMapper
             }).ToList() ?? new List<GroupTagDto>()
         };
     }
-
-    /// <summary>
-    /// Проекция для EF Core (SQL генерация)
-    /// </summary>
+    
     public static Expression<Func<Group, ResultGroupDto>> ToDtoExpression()
     {
         return g => new ResultGroupDto
@@ -50,10 +43,8 @@ public static class GroupMapper
             CreatedAt = g.CreatedAt,
             Order = g.Order,
             SubscriberCount = g.SubscriberCount,
-            CardCount = g.Cards!.Count, // COUNT(*)
+            CardCount = g.Cards!.Count, 
             
-            // --- ПРОЕКЦИЯ ТЕГОВ ---
-            // EF Core превратит это в эффективный JOIN
             Tags = g.Tags.Select(t => new GroupTagDto
             {
                 Id = t.Id,

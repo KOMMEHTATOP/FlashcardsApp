@@ -120,9 +120,6 @@ public class AuthBL : IAuthBL
         return ServiceResult<User>.Success(user);
     }
 
-    /// <summary>
-    /// Обновить access token используя refresh token
-    /// </summary>
     public async Task<ServiceResult<RefreshTokenResult>> RefreshAccessToken(
         string refreshTokenValue,
         string ipAddress,
@@ -130,7 +127,6 @@ public class AuthBL : IAuthBL
     {
         try
         {
-            // Валидируем refresh token в БД
             var refreshToken = await _context.RefreshTokens
                 .Include(rt => rt.User)
                 .FirstOrDefaultAsync(rt =>
@@ -143,21 +139,17 @@ public class AuthBL : IAuthBL
                 return ServiceResult<RefreshTokenResult>.Failure("Недействительный или истекший refresh токен");
             }
 
-            // Получаем роли пользователя для нового access token
             var roles = await _userManager.GetRolesAsync(refreshToken.User);
 
-            // Генерируем новый access token через TokenService
             var accessToken = _tokenService.GenerateAccessToken(
                 refreshToken.User.Id,
                 refreshToken.User.Email ?? string.Empty,
                 roles);
 
-            // Refresh Token Rotation: отзываем старый refresh token
             refreshToken.IsRevoked = true;
             refreshToken.RevokedAt = DateTime.UtcNow;
             refreshToken.RevokedByIp = ipAddress;
 
-            // Создаём новый refresh token
             var newRefreshTokenString = _tokenService.GenerateRefreshTokenString();
             var newRefreshToken = new RefreshToken
             {
@@ -186,9 +178,6 @@ public class AuthBL : IAuthBL
         }
     }
 
-    /// <summary>
-    /// Выйти из системы (отозвать refresh token)
-    /// </summary>
     public async Task<ServiceResult<bool>> Logout(string? refreshTokenValue)
     {
         try
@@ -220,10 +209,7 @@ public class AuthBL : IAuthBL
             return ServiceResult<bool>.Failure("Ошибка при выходе из системы");
         }
     }
-
-    /// <summary>
-    /// Получить действующий refresh token из БД
-    /// </summary>
+    
     private async Task<RefreshToken?> GetValidRefreshTokenAsync(string token)
     {
         return await _context.RefreshTokens
@@ -233,10 +219,7 @@ public class AuthBL : IAuthBL
                 rt.ExpiresAt > DateTime.UtcNow &&
                 !rt.IsRevoked);
     }
-
-    /// <summary>
-    /// Очистка истекших токенов (можно вызывать периодически)
-    /// </summary>
+    
     public async Task CleanupExpiredTokensAsync()
     {
         var expiredTokens = await _context.RefreshTokens

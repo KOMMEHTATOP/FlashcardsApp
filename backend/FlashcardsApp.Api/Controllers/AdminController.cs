@@ -20,6 +20,9 @@ public class AdminController : ControllerBase
         _logger = logger;
     }
 
+    /// <summary>
+    /// Получить всех пользователей
+    /// </summary>
     [HttpGet("users")]
     public async Task<ActionResult<List<AdminUserDto>>> GetAllUsers()
     {
@@ -37,8 +40,6 @@ public class AdminController : ControllerBase
                     CreatedAt = u.CreatedAt,
                     LastLogin = u.LastLogin,
                     GroupsCount = u.Groups != null ? u.Groups.Count : 0,
-                    // Считаем сумму карточек во всех группах пользователя
-                    // (EF Core преобразует это в SUM во вложенном запросе)
                     CardsCount = u.Groups != null 
                         ? u.Groups.SelectMany(g => g.Cards).Count() 
                         : 0

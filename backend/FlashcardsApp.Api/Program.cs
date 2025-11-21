@@ -12,11 +12,9 @@ try
     var builder = WebApplication.CreateBuilder(args);
     var services = builder.Services;
 
-    // LOGGING
     builder.Logging.ClearProviders();
     builder.Host.UseNLog();
 
-    // ASP.NET CORE SERVICES
     services.AddControllers()
         .AddJsonOptions(options =>
         {
@@ -25,7 +23,6 @@ try
         })
         .ConfigureApiBehaviorOptions(options =>
         {
-            // Автоматическая валидация ModelState с единообразным форматом ошибок
             options.InvalidModelStateResponseFactory = context =>
             {
                 var errors = context.ModelState.Values
@@ -37,13 +34,11 @@ try
             };
         });
 
-    // INFRASTRUCTURE LAYER 
     services
         .AddDatabaseConfiguration(builder.Configuration)
         .AddIdentityConfiguration()
         .AddJwtAuthentication(builder.Configuration);
 
-    // APPLICATION LAYER
     services
         .AddBusinessLogics()
         .AddHealthChecks()
@@ -56,24 +51,19 @@ try
         .AddConfigures(builder)
         .AddServices();
 
-    // CROSS-CUTTING CONCERNS
     services
         .AddLocalizationConfiguration()
         .AddCorsConfiguration(builder.Configuration, builder.Environment);
 
-    // OTHER
     services.AddSignalRConfiguration(builder.Environment);
 
-    // DEVELOPMENT TOOLS
     if (builder.Environment.IsDevelopment())
     {
         services.AddSwaggerDocumentation();
     }
 
-    // BUILD & CONFIGURE PIPELINE
     var app = builder.Build();
 
-    // APPLY DATABASE MIGRATIONS
     app.ApplyDatabaseMigrations();
 
     app.ConfigureMiddleware(builder.Configuration, builder.Environment);
@@ -104,7 +94,6 @@ finally
     LogManager.Shutdown();
 }
 
-// HELPERS
 static bool IsRunningInDocker()
 {
     return Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true";

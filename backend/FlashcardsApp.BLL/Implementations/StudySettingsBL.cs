@@ -17,10 +17,7 @@ public class StudySettingsBL : IStudySettingsBL
     {
         _context = context;
     }
-
-    /// <summary>
-    /// Получить глобальные настройки пользователя
-    /// </summary>
+    
     public async Task<ServiceResult<ResultSettingsDto>> GetStudySettingsAsync(Guid userId)
     {
         var settings = await _context.StudySettings
@@ -34,10 +31,7 @@ public class StudySettingsBL : IStudySettingsBL
 
         return ServiceResult<ResultSettingsDto>.Success(ResultSettingsDto.GetDefault());
     }
-    
-    /// <summary>
-    /// Сохранить глобальные настройки пользователя
-    /// </summary>
+
     public async Task<ServiceResult<ResultSettingsDto>> SaveStudySettingsAsync(Guid userId, CreateSettingsDto dto)
     {
         var settings = await _context.StudySettings
@@ -45,7 +39,6 @@ public class StudySettingsBL : IStudySettingsBL
 
         if (settings != null)
         {
-            // Обновляем существующие настройки
             settings.MinRating = dto.MinRating;
             settings.MaxRating = dto.MaxRating;
             settings.StudyOrder = dto.StudyOrder;
@@ -56,7 +49,6 @@ public class StudySettingsBL : IStudySettingsBL
         }
         else
         {
-            // Создаем новые настройки
             settings = new StudySettings
             {
                 StudySettingsId = Guid.NewGuid(),
@@ -74,9 +66,6 @@ public class StudySettingsBL : IStudySettingsBL
         return ServiceResult<ResultSettingsDto>.Success(settings.ToDto());
     }
     
-    /// <summary>
-    /// Сбросить настройки к дефолтным (удалить пользовательские)
-    /// </summary>
     public async Task<ServiceResult<ResultSettingsDto>> ResetToDefaultAsync(Guid userId)
     {
         var settings = await _context.StudySettings

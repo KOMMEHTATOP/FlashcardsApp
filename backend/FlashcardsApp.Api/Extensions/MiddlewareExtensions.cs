@@ -18,30 +18,25 @@ public static class MiddlewareExtensions
         var loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();
         var logger = loggerFactory.CreateLogger("MiddlewareConfiguration");
 
-        // Локализация
         var localizationOptions = app.Services
             .GetRequiredService<IOptions<RequestLocalizationOptions>>();
         app.UseRequestLocalization(localizationOptions.Value);
 
-        // HTTPS только в Production
         if (environment.IsProduction())
         {
             app.UseHttpsRedirection();
         }
 
-        // Middleware
         app.UseCors();
         app.UseAuthentication();
         app.UseAuthorization();
 
-        // Swagger только не в Production
         if (!environment.IsProduction())
         {
             app.UseSwagger();
             app.UseSwaggerUI();
         }
 
-        // Seed initial data
         var autoSeed = configuration.GetValue("AutoSeed", false);
 
         if (autoSeed)
@@ -56,10 +51,8 @@ public static class MiddlewareExtensions
         logger.LogInformation("Application started in {Environment} mode",
             environment.EnvironmentName);
 
-        // Контроллеры
         app.MapControllers();
 
-        // Health Check endpoint
         app.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
         {
             ResponseWriter = async (context, report) =>
@@ -81,7 +74,6 @@ public static class MiddlewareExtensions
             }
         });
 
-        // SignalR Hub
         app.MapHub<NotificationHub>("/hubs/notifications");
 
         return app;
@@ -104,7 +96,6 @@ public static class MiddlewareExtensions
 
             logger.LogInformation("✓ Database seeding completed!");
 
-            // Проверяем достижения для тестового пользователя
             var achievementBL = scope.ServiceProvider.GetRequiredService<IAchievementBL>();
             var testUserId = SeedManager.GetTestUserId();
 

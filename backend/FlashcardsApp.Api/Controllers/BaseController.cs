@@ -61,7 +61,6 @@ namespace FlashcardsApp.Api.Controllers
         {
             if (!result.IsSuccess)
             {
-                // Проверяем, является ли ошибка "не найдено"
                 if (result.Errors.Any(e => 
                     e.Contains("не найдено", StringComparison.OrdinalIgnoreCase) || 
                     e.Contains("not found", StringComparison.OrdinalIgnoreCase)))
@@ -108,7 +107,6 @@ namespace FlashcardsApp.Api.Controllers
         {
             if (!result.IsSuccess)
             {
-                // Проверяем, является ли ошибка "не найдено"
                 if (result.Errors.Any(e =>
                     e.Contains("не найдено", StringComparison.OrdinalIgnoreCase) ||
                     e.Contains("не найдена", StringComparison.OrdinalIgnoreCase) ||

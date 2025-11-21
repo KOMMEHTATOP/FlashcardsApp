@@ -18,13 +18,9 @@ public class StudySessionBL : IStudySessionBL
         _context = context;
         _studySettingsBl = studySettingsBl;
     }
-
-    /// <summary>
-    /// Начать сессию изучения для конкретной группы
-    /// </summary>
+    
     public async Task<ServiceResult<ResultStudySessionDto>> StartSessionAsync(Guid userId, Guid groupId)
     {
-        // Получаем глобальные настройки пользователя (или дефолтные)
         var settingsResult = await _studySettingsBl.GetStudySettingsAsync(userId);
 
         if (!settingsResult.IsSuccess || settingsResult.Data == null)
@@ -33,13 +29,10 @@ public class StudySessionBL : IStudySessionBL
         }
 
         var settings = settingsResult.Data;
-
-        // Получаем карточки группы
         var cards = await _context.Cards
             .Where(c => c.GroupId == groupId)
             .ToListAsync();
 
-        // Получаем последние оценки для всех карточек из StudyHistory
         var cardIds = cards.Select(c => c.CardId).ToList();
         
         var lastRatings = await _context.StudyHistory
@@ -54,14 +47,12 @@ public class StudySessionBL : IStudySessionBL
             })
             .ToDictionaryAsync(x => x.CardId, x => x.LastRating);
 
-        // Фильтруем по диапазону оценок
         var filteredCards = cards.Where(card =>
         {
             var lastRating = lastRatings.GetValueOrDefault(card.CardId, 0);
             return lastRating >= settings.MinRating && lastRating <= settings.MaxRating;
         }).ToList();
 
-        // Сортируем согласно настройкам
         List<Card> sortedCards = settings.StudyOrder switch
         {
             StudyOrder.CreatedDate => filteredCards.OrderBy(c => c.CreatedAt).ToList(),
@@ -72,7 +63,6 @@ public class StudySessionBL : IStudySessionBL
             _ => filteredCards
         };
 
-        // Преобразуем в DTO
         var studyCards = sortedCards.Select(card => new StudyCardDto
         {
             CardId = card.CardId,

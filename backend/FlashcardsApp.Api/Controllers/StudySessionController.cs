@@ -1,6 +1,5 @@
 using FlashcardsApp.BLL.Interfaces;
 using FlashcardsApp.DAL.Models;
-using FlashcardsApp.Models.DTOs.Study.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;

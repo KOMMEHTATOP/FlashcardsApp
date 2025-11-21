@@ -28,13 +28,9 @@ public class StudyBL : IStudyBL
         _achievementBL = achievementBL;
         _logger = logger;
     }
-
-    /// <summary>
-    /// Записывает сессию изучения карточки и начисляет награды
-    /// </summary>
+    
     public async Task<ServiceResult<StudyRewardDto>> RecordStudySessionAsync(Guid userId, RecordStudyDto dto)
     {
-        // Проверяем что карточка принадлежит пользователю
         var cardExists = await _context.Cards.AnyAsync(c => c.CardId == dto.CardId);
         
         if (!cardExists)
@@ -46,10 +42,8 @@ public class StudyBL : IStudyBL
         
         try
         {
-            // 1. Рассчитываем XP за карточку
             var xpEarned = await _gamificationBL.CalculateXPForCardAsync(userId, dto.CardId, dto.Rating);
 
-            // 2. Сохраняем в историю изучения
             var studyHistory = new StudyHistory
             {
                 Id = Guid.NewGuid(),
@@ -61,7 +55,6 @@ public class StudyBL : IStudyBL
             };
             _context.StudyHistory.Add(studyHistory);
 
-            // 3. Добавляем XP пользователю и проверяем level up
             var addXpResult = await _gamificationBL.AddXPToUserAsync(userId, xpEarned);
             if (!addXpResult.IsSuccess)
             {
@@ -70,9 +63,8 @@ public class StudyBL : IStudyBL
             }
 
             var (leveledUp, newLevel) = addXpResult.Data;
-
-            // 4. Обновляем streak
             var streakResult = await _gamificationBL.UpdateStreakAsync(userId);
+            
             if (!streakResult.IsSuccess)
             {
                 await transaction.RollbackAsync();
@@ -80,8 +72,6 @@ public class StudyBL : IStudyBL
             }
 
             var streakIncreased = streakResult.Data;
-
-            // 5. Обновляем статистику карточек
             var userStats = await _context.UserStatistics
                 .FirstOrDefaultAsync(us => us.UserId == userId);
 
@@ -93,7 +83,6 @@ public class StudyBL : IStudyBL
 
             userStats.TotalCardsStudied++;
             
-            // Обновляем Perfect Ratings Streak
             if (dto.Rating == 5)
             {
                 userStats.PerfectRatingsStreak++;
@@ -105,9 +94,7 @@ public class StudyBL : IStudyBL
 
             await _context.SaveChangesAsync();
 
-            // 6. Проверяем достижения (после сохранения статистики)
             var achievementResult = await _achievementBL.CheckAndUnlockAchievementsAsync(userId);
-            
             var newAchievements = achievementResult.IsSuccess 
                 ? achievementResult.Data 
                 : new List<AchievementDto>();
@@ -121,7 +108,6 @@ public class StudyBL : IStudyBL
                     string.Join(", ", newAchievements.Select(a => a.Name)));
             }
 
-            // 7. Получаем актуальную статистику пользователя (после всех обновлений)
             var updatedStats = await _context.UserStatistics
                 .AsNoTracking()
                 .FirstOrDefaultAsync(us => us.UserId == userId);
@@ -132,7 +118,6 @@ public class StudyBL : IStudyBL
                 return ServiceResult<StudyRewardDto>.Failure("User statistics not found");
             }
 
-            // 8. Рассчитываем прогресс до следующего уровня
             var xpForCurrentLevel = _gamificationBL.CalculateXPForLevel(updatedStats.Level);
             var xpForNextLevel = _gamificationBL.CalculateXPForLevel(updatedStats.Level + 1);
             
@@ -142,25 +127,20 @@ public class StudyBL : IStudyBL
 
             await transaction.CommitAsync();
 
-            // 9. Формируем ответ
             var reward = new StudyRewardDto
             {
-                // XP и уровень
                 XPEarned = xpEarned,
                 TotalXP = updatedStats.TotalXP,
                 CurrentLevel = updatedStats.Level,
                 LeveledUp = leveledUp,
                 
-                // Прогресс до следующего уровня
                 CurrentLevelXP = currentLevelXP,
                 XPForNextLevel = xpNeededForLevel,
                 XPToNextLevel = xpToNextLevel,
                 
-                // Streak
                 StreakIncreased = streakIncreased,
                 CurrentStreak = updatedStats.CurrentStreak,
                 
-                // Достижения
                 NewAchievements = newAchievements.Select(a => new AchievementUnlockedDto
                 {
                     Id = a.Id,
@@ -180,10 +160,7 @@ public class StudyBL : IStudyBL
             return ServiceResult<StudyRewardDto>.Failure($"Error recording study session: {ex.Message}");
         }
     }
-    
-    /// <summary>
-    /// Получить историю изучения
-    /// </summary>
+
     public async Task<ServiceResult<IEnumerable<StudyHistoryDto>>> GetStudyHistoryAsync(Guid userId, int? limit = 50)
     {
         var history = await _context.StudyHistory

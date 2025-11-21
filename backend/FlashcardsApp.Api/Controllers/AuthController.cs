@@ -29,6 +29,9 @@ namespace FlashcardsApp.Api.Controllers
             _environment = environment;
         }
 
+        /// <summary>
+        /// Регистрация нового пользователя
+        /// </summary>
         [AllowAnonymous]
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterModel model)
@@ -43,6 +46,9 @@ namespace FlashcardsApp.Api.Controllers
             return Ok(result.Data);
         }
 
+        /// <summary>
+        /// Вход пользователя
+        /// </summary>
         [AllowAnonymous]
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginModel model)
@@ -73,6 +79,9 @@ namespace FlashcardsApp.Api.Controllers
             });
         }
 
+        /// <summary>
+        /// Обновить токен
+        /// </summary>
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh()
         {
@@ -96,6 +105,9 @@ namespace FlashcardsApp.Api.Controllers
             return Ok(new { accessToken = result.Data.AccessToken });
         }
 
+        /// <summary>
+        /// Выйти и отозвать токен обновления
+        /// </summary>
         [HttpPost("logout")]
         [Authorize]
         public async Task<IActionResult> Logout()
@@ -115,6 +127,10 @@ namespace FlashcardsApp.Api.Controllers
             return Ok(new { message = "Выход выполнен успешно" });
         }
         
+        
+        /// <summary>
+        /// Легкий запрос, ничего не делает. Нужно для получения токена
+        /// </summary>
         [HttpGet("validate")]
         [Authorize]
         public IActionResult Validate()

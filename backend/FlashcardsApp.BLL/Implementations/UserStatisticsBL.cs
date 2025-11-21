@@ -17,15 +17,11 @@ public class UserStatisticsBL: IUserStatisticsBL
         _gamificationBl = gamificationBl;
     }
 
-    /// <summary>
-    /// Получить статистику пользователя с расчетами для фронтенда
-    /// </summary>
     public async Task<ServiceResult<UserStatsDto>> GetUserStatsAsync(Guid userId)
     {
         var stats = await _context.UserStatistics
             .FirstOrDefaultAsync(us => us.UserId == userId);
 
-        // Автоматическая инициализация если статистики нет
         if (stats == null)
         {
             stats = new UserStatistics
@@ -46,7 +42,6 @@ public class UserStatisticsBL: IUserStatisticsBL
             await _context.SaveChangesAsync();
         }
 
-        // Рассчитываем DTO
         var xpForCurrentLevel = _gamificationBl.CalculateXPForLevel(stats.Level);
         var xpForNextLevel = _gamificationBl.CalculateXPForLevel(stats.Level + 1);
 

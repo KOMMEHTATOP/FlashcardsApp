@@ -29,7 +29,6 @@ public class GroupConfiguration : IEntityTypeConfiguration<Group>
             .IsUnique()
             .HasDatabaseName("IX_Groups_User_Name");
 
-        // Связь с User (Identity)
         builder.HasOne(g => g.User)
             .WithMany(u => u.Groups)
             .HasForeignKey(g => g.UserId)
@@ -40,7 +39,6 @@ public class GroupConfiguration : IEntityTypeConfiguration<Group>
             .HasForeignKey(c => c.GroupId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Связь с подписками
         builder.HasMany(g => g.Subscriptions)
             .WithOne(ugs => ugs.Group)
             .HasForeignKey(ugs => ugs.GroupId)

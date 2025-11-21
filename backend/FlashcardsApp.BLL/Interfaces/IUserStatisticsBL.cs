@@ -6,5 +6,4 @@ namespace FlashcardsApp.BLL.Interfaces;
 public interface IUserStatisticsBL
 {
     Task<ServiceResult<UserStatsDto>> GetUserStatsAsync(Guid userId);
-    
 }

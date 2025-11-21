@@ -6,11 +6,8 @@ namespace FlashcardsApp.Api.Extensions;
 
 public static class DatabaseExtensions
 {
-    private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-
-    /// <summary>
-    /// Настройка подключения к базе данных PostgreSQL
-    /// </summary>
+    private readonly static Logger Logger = LogManager.GetCurrentClassLogger();
+    
     public static IServiceCollection AddDatabaseConfiguration(
         this IServiceCollection services,
         IConfiguration configuration)
@@ -27,34 +24,28 @@ public static class DatabaseExtensions
 
         return services;
     }
-
-    /// <summary>
-    /// Применение миграций базы данных при запуске приложения
-    /// Fail-fast: если миграции не применятся, приложение не запустится
-    /// </summary>
+    
     public static IApplicationBuilder ApplyDatabaseMigrations(this IApplicationBuilder app)
     {
-        using (var scope = app.ApplicationServices.CreateScope())
+        using var scope = app.ApplicationServices.CreateScope();
+
+        try
         {
-            try
-            {
-                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 
-                // Проверка, что БД доступна
-                if (context.Database.CanConnect())
-                {
-                    context.Database.Migrate();
-                }
-                else
-                {
-                    throw new InvalidOperationException("Database connection failed");
-                }
-            }
-            catch (Exception ex)
+            if (context.Database.CanConnect())
             {
-                Logger.Error(ex, "✗ Ошибка при применении миграций");
-                throw; // Fail-fast principle
+                context.Database.Migrate();
             }
+            else
+            {
+                throw new InvalidOperationException("Database connection failed");
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, "✗ Ошибка при применении миграций");
+            throw; 
         }
 
         return app;

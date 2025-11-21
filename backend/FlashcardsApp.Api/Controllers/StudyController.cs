@@ -28,9 +28,7 @@ public class StudyController : BaseController
     {
         var userId = GetCurrentUserId();
         var result = await _studyBl.RecordStudySessionAsync(userId, dto);
-
-        // Если создаётся новая запись - используй Created, если просто обновляется статистика - используй Ok
-        // Предполагаю, что создаётся новая StudySession
+        
         if (!result.IsSuccess)
         {
             return BadRequest(new { errors = result.Errors });
@@ -46,7 +44,6 @@ public class StudyController : BaseController
     [HttpGet("history")]
     public async Task<IActionResult> GetStudyHistory([FromQuery] int? limit = 50)
     {
-        // Валидация параметра limit
         if (limit.HasValue && (limit.Value <= 0 || limit.Value > 1000))
         {
             return BadRequest(new

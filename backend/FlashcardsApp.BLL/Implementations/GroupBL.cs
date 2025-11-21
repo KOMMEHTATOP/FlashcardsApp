@@ -66,7 +66,6 @@ public class GroupBL : IGroupBL
     {
         _logger.LogInformation("Creating new group '{GroupName}' for user {UserId}", model.Name, userId);
 
-        // 1. Обрабатываем теги
         var tags = await ProcessTagsAsync(model.Tags);
 
         var group = new Group
@@ -117,15 +116,11 @@ public class GroupBL : IGroupBL
         group.GroupColor = model.Color;
         group.GroupIcon = model.GroupIcon;
         group.IsPublished = model.IsPublished;
-
-        // ОБНОВЛЕНИЕ ТЕГОВ
-        // 1. Очищаем текущий список
+        
         group.Tags.Clear();
         
-        // 2. Получаем новые теги (находим или создаем)
         var newTags = await ProcessTagsAsync(model.Tags);
         
-        // 3. Добавляем новые
         foreach (var tag in newTags)
         {
             group.Tags.Add(tag);
@@ -241,7 +236,6 @@ public class GroupBL : IGroupBL
             return ServiceResult<bool>.Failure("Группа не найдена");
         }
 
-        // Проверка минимума карточек только при публикации
         if (isPublish)
         {
             var cardCount = await _context.Cards
@@ -257,7 +251,6 @@ public class GroupBL : IGroupBL
         {
             group.IsPublished = isPublish;
 
-            // Если снимаем с публикации — удаляем все подписки
             if (!isPublish)
             {
                 var subscriptions = await _context.UserGroupSubscriptions
@@ -283,8 +276,6 @@ public class GroupBL : IGroupBL
         }
     }
     
-    // --- PRIVATE HELPER METHODS ---
-
     private async Task<Group?> GetUserGroupAsync(Guid groupId, Guid userId)
     {
         // Include(Tags) нужен, чтобы при обновлении группы мы могли корректно обновить список тегов
@@ -298,7 +289,6 @@ public class GroupBL : IGroupBL
         return exception.InnerException is PostgresException { SqlState: "23505" };
     }
 
-    // Логика обработки тегов (Найти или Создать)
     private async Task<List<Tag>> ProcessTagsAsync(List<string> tagNames)
     {
         if (tagNames == null || !tagNames.Any()) return new List<Tag>();
@@ -311,8 +301,6 @@ public class GroupBL : IGroupBL
             if (string.IsNullOrWhiteSpace(tagName)) continue;
 
             var slug = GenerateSlug(tagName);
-
-            // Ищем существующий тег
             var existingTag = await _context.Tags.FirstOrDefaultAsync(t => t.Slug == slug);
 
             if (existingTag != null)
@@ -321,7 +309,6 @@ public class GroupBL : IGroupBL
             }
             else
             {
-                // Создаем новый
                 var newTag = new Tag
                 {
                     Id = Guid.NewGuid(),

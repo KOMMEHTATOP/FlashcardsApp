@@ -72,6 +72,10 @@ namespace FlashcardsApp.Api.Controllers
             return OkOrBadRequest(result);
         }
 
+        /// <summary>
+        /// Подписаться на группу
+        /// </summary>
+        /// <param name="groupId">ID группы</param>
         [HttpPost("{groupId:guid}/subscribe")]
         public async Task<IActionResult> SubscribeToGroup(Guid groupId)
         {
@@ -80,6 +84,10 @@ namespace FlashcardsApp.Api.Controllers
             return OkOrNotFound(result);
         }
 
+        /// <summary>
+        /// Отписаться от группы
+        /// </summary>
+        /// <param name="groupId">ID группы</param>
         [HttpDelete("{groupId:guid}/subscribe")]
         public async Task<IActionResult> UnsubscribeFromGroup(Guid groupId)
         {
@@ -88,6 +96,10 @@ namespace FlashcardsApp.Api.Controllers
             return NoContentOrBadRequest(result);
         }
 
+        /// <summary>
+        /// Проверяет подписку на группу
+        /// </summary>
+        /// <param name="groupId">ID группы</param>
         [HttpGet("{groupId:guid}/is-subscribed")]
         public async Task<IActionResult> IsSubscribed(Guid groupId)
         {
@@ -96,6 +108,10 @@ namespace FlashcardsApp.Api.Controllers
             return OkOrBadRequest(result);
         }
 
+        /// <summary>
+        /// Получить рейтинг автора
+        /// </summary>
+        /// <param name="authorId">ID автора</param>
         [HttpGet("authors/{authorId:guid}/rating")]
         public async Task<IActionResult> GetAuthorRating(Guid authorId)
         {
@@ -103,6 +119,9 @@ namespace FlashcardsApp.Api.Controllers
             return OkOrNotFound(result);
         }
         
+        /// <summary>
+        /// Получить теги
+        /// </summary>
         [HttpGet("tags")]
         [AllowAnonymous]
         public async Task<IActionResult> GetTags()
@@ -111,9 +130,9 @@ namespace FlashcardsApp.Api.Controllers
             return OkOrBadRequest(result);
         }
         
-        // Вспомогательный метод для безопасного получения ID
-        // Если пользователь вошел - возвращает его ID.
-        // Если гость - возвращает Guid.Empty (0000-000...), чтобы логика BL работала корректно.
+        /// <summary>
+        /// Вспомогательный метод для безопасного получения ID пользователя
+        /// </summary>
         private Guid GetUserIdOrEmpty()
         {
             return User.Identity?.IsAuthenticated == true 

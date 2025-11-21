@@ -27,7 +27,6 @@ public class TokenService : ITokenService
         _userManager = userManager;
     }
 
-    // Базовый метод создания токена (чистая генерация)
     public string GenerateAccessToken(Guid userId, string email, IEnumerable<string>? roles = null)
     {
         var claims = new List<Claim>
@@ -68,10 +67,8 @@ public class TokenService : ITokenService
     
     public async Task<string> GenerateAccessToken(User user)
     {
-        // Явно запрашиваем роли у UserManager
         var roles = await _userManager.GetRolesAsync(user);
         
-        // Передаем их в базовый метод
         return GenerateAccessToken(user.Id, user.Login ?? user.Email ?? "", roles);
     }
 
