@@ -6,26 +6,28 @@ import {
     BookOpen,
     Medal,
     BookCopyIcon,
-    Library 
+    Library
 } from "lucide-react";
 import { Helmet } from "react-helmet-async";
+import { useMemo, useState, useRef } from "react"; 
+import { AnimatePresence } from "framer-motion";
 
 import LevelCard from "../components/cards/Level_card";
 import StateCard from "../components/cards/State_card";
-import { useData } from "../context/DataContext";
-import { AnimatePresence } from "framer-motion";
 import MotivationCard from "../components/cards/Motivation_card";
-import { useMemo, useState } from "react";
-import formatTotalHour from "../utils/formatTotalHour";
 import SettingModal from "../components/modal/SettingModal";
+import GroupForm from "../components/modal/GroupForm";
 
 import { LessonsTab } from "../components/tabs/LessonsTab";
 import { StoreTab } from "../components/tabs/StoreTab";
 import { AchievementsTab } from "../components/tabs/AchievementsTab";
 
+import { useData } from "../context/DataContext";
+import formatTotalHour from "../utils/formatTotalHour";
+
 const modulePage = [
-    { name: "Мои колоды" }, 
-    { name: "Библиотека" }, 
+    { name: "Мои колоды" },
+    { name: "Библиотека" },
     { name: "Достижения" }
 ];
 
@@ -33,18 +35,20 @@ export function HomePage() {
     const { user, achivment, groups, motivationText } = useData();
     const [modul] = useState<typeof modulePage>(modulePage);
 
-    // Восстанавливаем активную вкладку из localStorage
+    // Якорь для скролла к табам
+    const tabsRef = useRef<HTMLDivElement>(null);
+
     const [currentModul, setCurrentModul] = useState<number>(() => {
         const saved = localStorage.getItem('activeTab');
         return saved ? parseInt(saved, 10) : 0;
     });
 
     const [isOpenSetting, setIsOpenSetting] = useState<boolean>(false);
+    const [isCreateModalOpen, setCreateModalOpen] = useState<boolean>(false);
 
     const currentXP = user?.Statistics?.XPProgressInCurrentLevel ?? 0;
     const xpForNextLevel = user?.Statistics?.XPRequiredForCurrentLevel ?? 0;
     const xpToNextLevel = Math.max(0, xpForNextLevel - currentXP);
-
     const level = user?.Statistics?.Level || 0;
 
     const totalCardCount = useMemo(
@@ -52,16 +56,31 @@ export function HomePage() {
         [groups]
     );
 
+    // --- Handlers ---
+
+    // Функция для переключения табов при клике на меню
     const selectModul = (name: string) => {
         const index = modul.findIndex((item) => item.name === name);
         setCurrentModul(index);
         localStorage.setItem('activeTab', index.toString());
     };
 
+    // Функция переключения на библиотеку (вызывается из LessonsTab)
+    const handleSwitchToStore = () => {
+        setCurrentModul(1); // 1 = Библиотека
+        localStorage.setItem('activeTab', '1');
+
+        // Скроллим экран к началу табов (где поиск), с небольшим отступом
+        setTimeout(() => {
+            tabsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 100);
+    };
+
     const handleOpenSetting = () => setIsOpenSetting(true);
     const handleCloseSetting = () => setIsOpenSetting(false);
+    const handleCreateGroup = () => setCreateModalOpen(true);
+    const handleCloseCreateModal = () => setCreateModalOpen(false);
 
-    // Рендер текущей вкладки
     const renderCurrentTab = () => {
         switch (currentModul) {
             case 0:
@@ -69,10 +88,12 @@ export function HomePage() {
                     <LessonsTab
                         groups={groups}
                         onOpenSettings={handleOpenSetting}
+                        onCreateGroup={handleCreateGroup}
+                        onSwitchToStore={handleSwitchToStore}
                     />
                 );
             case 1:
-                return <StoreTab />; 
+                return <StoreTab />;
             case 2:
                 return <AchievementsTab />;
             default:
@@ -82,13 +103,12 @@ export function HomePage() {
 
     return (
         <div className="w-full pb-10">
-            {/* Устанавливаем заголовок вкладки браузера */}
             <Helmet>
                 <title>Моё обучение | FlashcardsLoop</title>
             </Helmet>
 
             <div className="space-y-8">
-                {/* Карточка уровня */}
+                {/* Блок статистики (Level, Cards...) */}
                 <div>
                     <LevelCard
                         level={level}
@@ -98,7 +118,6 @@ export function HomePage() {
                     />
                 </div>
 
-                {/* Статистика */}
                 <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <StateCard
                         icon={Clock}
@@ -125,15 +144,19 @@ export function HomePage() {
                     />
                     <StateCard
                         icon={BookCopyIcon}
-                        label="Всего карточек" 
+                        label="Всего карточек"
                         value={totalCardCount.toString() || "0"}
                         gradient="from-purple-500 to-pink-500"
                         delay={0.4}
                     />
                 </div>
 
-                {/* Табы (Навигация) */}
-                <div role="tablist" className="tabs tabs-border">
+                {/* Табы (Навигация) - СЮДА ДОБАВИЛИ REF */}
+                <div
+                    ref={tabsRef} // <--- Якорь для скролла
+                    role="tablist"
+                    className="tabs tabs-border scroll-mt-24" // scroll-mt делает отступ сверху при скролле
+                >
                     <button
                         role="tab"
                         className={`tab gap-2 transition-all duration-300 ${
@@ -151,7 +174,7 @@ export function HomePage() {
                         }`}
                         onClick={() => selectModul("Библиотека")}
                     >
-                        <Library className="h-5 w-5" /> {/* Иконка Библиотеки */}
+                        <Library className="h-5 w-5" />
                         Библиотека
                     </button>
                     <button
@@ -166,11 +189,18 @@ export function HomePage() {
                     </button>
                 </div>
 
-                {/* Модальное окно настроек */}
+                {/* Модалки */}
                 {isOpenSetting && (
                     <SettingModal
                         handleCancel={handleCloseSetting}
                         handleSave={() => {}}
+                    />
+                )}
+
+                {isCreateModalOpen && (
+                    <GroupForm
+                        isOpen={isCreateModalOpen}
+                        handleCancle={handleCloseCreateModal}
                     />
                 )}
 
@@ -181,7 +211,7 @@ export function HomePage() {
                     </AnimatePresence>
                 </div>
 
-                {/* Мотивационная карточка */}
+                {/* Мотивация */}
                 <MotivationCard
                     animated="rotate"
                     animatedDelay={20}
