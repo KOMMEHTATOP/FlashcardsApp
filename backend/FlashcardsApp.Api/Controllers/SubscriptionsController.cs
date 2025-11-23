@@ -45,9 +45,18 @@ namespace FlashcardsApp.Api.Controllers
             [FromQuery] int pageSize = 20,
             [FromQuery] Guid? tagId = null)
         {
-            var userId = GetUserIdOrEmpty(); 
+            var userId = GetUserIdOrEmpty();
+    
             var result = await _subscriptionBL.GetPublicGroupsAsync(userId, search, sortBy, page, pageSize, tagId);
-            return OkOrBadRequest(result);
+
+            if (result.IsSuccess && result.Data != null)
+            {
+                Response.Headers.Append("x-total-count", result.Data.TotalCount.ToString());
+        
+                return Ok(result.Data.Items);
+            }
+
+            return BadRequest(new { errors = result.Errors });
         }
 
         /// <summary>

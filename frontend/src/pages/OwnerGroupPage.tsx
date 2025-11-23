@@ -12,10 +12,9 @@ import { errorFormater } from "../utils/errorFormater";
 import { useGroupData } from "../hooks/useGroupData";
 import { GroupHeader } from "../components/GroupHeader";
 import { CardsList } from "../components/CardsList";
+import LessonPlayer from "../pages/LessonPlayer"; // Импорт плеера
 
 export default function OwnerGroupPage() {
-    // Используем хук данных. 
-    // Так как маршрут будет /study/:id, хук сам поймет, что isSubscriptionView = false
     const {
         group,
         setGroup,
@@ -27,15 +26,14 @@ export default function OwnerGroupPage() {
 
     const {
         handleSelectLesson,
+        currentLesson,      // Достаем состояние урока
+        handleCompliteLesson, // Достаем функцию выхода
         deleteCard,
         handleOpenConfrimModal,
         handleCloseConfrimModal,
         setGroups,
     } = useData();
 
-    // --- ЛОГИКА ВЛАДЕЛЬЦА (CRUD) ---
-
-    // State для формы добавления карточки
     const [isOpenAddModal, setIsOpenAddModal] = useState(false);
     const [newQuestion, setNewQuestion] = useState("");
     const [newAnswer, setNewAnswer] = useState("");
@@ -43,11 +41,9 @@ export default function OwnerGroupPage() {
     const [formLoading, setFormLoading] = useState(false);
     const [formError, setFormError] = useState<string | null>(null);
 
-    // State для публикации
     const [isPublishing, setIsPublishing] = useState(false);
     const [publishError, setPublishError] = useState<string | null>(null);
 
-    // Вычисляемые значения
     const progress = useMemo(() => {
         if (cards.length === 0) return 0;
         const completedCards = cards.filter((card) => card.LastRating > 0).length;
@@ -58,13 +54,26 @@ export default function OwnerGroupPage() {
 
     useTitle(group?.GroupName || "");
 
-    // Handlers для управления доступом
+    // ЛОГИКА ОТОБРАЖЕНИЯ ПЛЕЕРА
+    if (currentLesson) {
+        return (
+            <LessonPlayer
+                lessonTitle={currentLesson.group.GroupName}
+                subjectColor={currentLesson.group.GroupColor}
+                initialIndex={currentLesson.initialIndex}
+                onComplete={(earnedXP) => {
+                    console.log("XP:", earnedXP);
+                    handleCompliteLesson();
+                }}
+                onBack={handleCompliteLesson}
+            />
+        );
+    }
+
     const handleTogglePublish = async () => {
         if (!group) return;
-
         setIsPublishing(true);
         setPublishError(null);
-
         const newPublishedState = !group.IsPublished;
 
         try {
@@ -72,67 +81,36 @@ export default function OwnerGroupPage() {
                 GroupId: groupId,
                 IsPublished: newPublishedState,
             });
-
-            setGroup((prev) =>
-                prev ? { ...prev, IsPublished: newPublishedState } : null
-            );
-
-            // Обновляем глобальный список групп, чтобы изменения отразились в меню
+            setGroup((prev) => (prev ? { ...prev, IsPublished: newPublishedState } : null));
             setGroups((prev) =>
-                prev.map((g) =>
-                    g.Id === groupId ? { ...g, IsPublished: newPublishedState } : g
-                )
+                prev.map((g) => (g.Id === groupId ? { ...g, IsPublished: newPublishedState } : g))
             );
         } catch (err: any) {
-            const errorMessage =
-                err.response?.data?.errors?.[0] ||
-                err.response?.data?.message ||
-                "Ошибка при изменении доступа";
+            const errorMessage = err.response?.data?.errors?.[0] || err.response?.data?.message || "Ошибка";
             setPublishError(errorMessage);
-            console.error("Ошибка публикации:", err);
         } finally {
             setIsPublishing(false);
         }
     };
 
-    // Handlers для карточек (CRUD)
-    const handleAddCard = async (
-        question: string,
-        answer: string
-    ): Promise<boolean> => {
+    const handleAddCard = async (question: string, answer: string): Promise<boolean> => {
         try {
             setFormLoading(true);
             setFormError(null);
-
             const data = { question, answer };
 
             if (targetCard) {
-                // Обновление
                 await apiFetch.put(`/Cards/${targetCard.CardId}`, data);
-
-                setCards((prev) =>
-                    prev.map((card) =>
-                        card.CardId === targetCard.CardId
-                            ? { ...card, Question: question, Answer: answer }
-                            : card
-                    )
-                );
+                setCards((prev) => prev.map((c) => (c.CardId === targetCard.CardId ? { ...c, Question: question, Answer: answer } : c)));
             } else {
-                // Создание
                 const res = await apiFetch.post(`/groups/${groupId}/cards`, data);
-
                 setCards((prev) => [res.data, ...prev]);
-                setGroups((prev) =>
-                    prev.map((g) =>
-                        g.Id === groupId ? { ...g, CardCount: g.CardCount + 1 } : g
-                    )
-                );
+                setGroups((prev) => prev.map((g) => (g.Id === groupId ? { ...g, CardCount: g.CardCount + 1 } : g)));
             }
-
             setIsOpenAddModal(false);
             return true;
         } catch (err) {
-            setFormError(errorFormater(err) || "Произошла ошибка");
+            setFormError(errorFormater(err) || "Ошибка");
             return false;
         } finally {
             setFormLoading(false);
@@ -141,7 +119,7 @@ export default function OwnerGroupPage() {
 
     const handleDeleteCard = (card: GroupCardType) => {
         const modal: ConfrimModalState = {
-            title: "Вы уверены, что хотите удалить карточку?",
+            title: "Удалить карточку?",
             target: card.Question,
             handleConfirm: () => {
                 setCards((prev) => prev.filter((c) => c.CardId !== card.CardId));
@@ -169,44 +147,50 @@ export default function OwnerGroupPage() {
 
     const handleCloseModal = () => setIsOpenAddModal(false);
 
+    const handleStartLearning = () => {
+        if (group && cards.length > 0) {
+            handleSelectLesson(cards, group, 0);
+        }
+    };
+
     if (!group || loading) return <SkeletonGroupDetail />;
 
-    const Icon =
-        availableIcons.find((icon) => icon.name === group.GroupIcon)?.icon ||
-        BookHeartIcon;
+    const Icon = availableIcons.find((icon) => icon.name === group.GroupIcon)?.icon || BookHeartIcon;
 
     return (
         <div className="min-h-screen">
-            {/* Навигация */}
             <Link
                 to="/"
-                className="text-white hover:bg-white/20 mb-6 flex items-center rounded px-4 py-2 duration-300 transition w-fit"
+                className="text-base-content/70 hover:bg-base-content/10 mb-6 flex items-center rounded px-4 py-2 duration-300 transition w-fit"
             >
                 <ArrowLeft className="w-5 h-5 mr-2" />
                 Назад на главную
             </Link>
 
-            {/* Заголовок (Режим владельца) */}
             <GroupHeader
                 group={group}
                 icon={Icon}
                 progress={progress}
-                isSubscriptionView={false} // Явно указываем false
-                isSubscribed={false}       // Не используется
+                isSubscriptionView={false}
+                isSubscribed={false}
                 isPublishing={isPublishing}
                 submittingSubscription={false}
                 publishError={publishError}
                 canPublish={canPublish}
                 onTogglePublish={handleTogglePublish}
-                onToggleSubscription={async () => {}} // Заглушка
+                onToggleSubscription={async () => {}}
+                onStart={handleStartLearning}
+                hasCards={cards.length > 0}
             />
 
-            {/* Список карточек (Режим владельца - с редактированием) */}
             <CardsList
                 cards={cards}
                 group={group}
-                isSubscriptionView={false} // Разрешает кнопки редактирования
-                onCardClick={handleSelectLesson}
+                isSubscriptionView={false}
+                // ВАЖНО: Убрали onCardClick.
+                // Теперь карточки в режиме владельца тоже разворачиваются вниз при клике.
+                // Редактирование доступно через иконки (которые CardsList отрисует сам, т.к. переданы onEditCard).
+
                 onDeleteCard={handleDeleteCard}
                 onEditCard={handleEditCard}
                 addCardFormProps={{
@@ -224,16 +208,13 @@ export default function OwnerGroupPage() {
                 }}
             />
 
-            {/* Общий элемент: Мотивация */}
             {cards.length > 5 && (
                 <MotivationCard
                     animated="scale"
                     animatedDelay={4}
                     icon={Trophy}
                     label="У тебя отлично получается!"
-                    description={`Пройдите еще ${
-                        cards.filter((item) => !item.completed).length
-                    } урока, чтобы получить итоговую оценку и заработать 500 бонусных очков опыта!`}
+                    description={`Пройдите еще ${cards.filter((item) => !item.completed).length} урока, чтобы получить бонусы!`}
                     textIcon={BowArrowIcon}
                     gradient={group.GroupColor || ""}
                     delay={0.6}

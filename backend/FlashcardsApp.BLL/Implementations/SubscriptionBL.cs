@@ -18,7 +18,7 @@ public class SubscriptionBL : ISubscriptionBL
         _context = context;
         _logger = logger;
     }
-    
+
     public async Task<ServiceResult<PublicGroupDto>> GetPublicGroupDetailsAsync(Guid groupId, Guid currentUserId)
     {
         try
@@ -55,7 +55,7 @@ public class SubscriptionBL : ISubscriptionBL
         }
     }
 
-    public async Task<ServiceResult<IEnumerable<PublicGroupDto>>> GetPublicGroupsAsync(
+    public async Task<ServiceResult<PagedResult<PublicGroupDto>>> GetPublicGroupsAsync(
         Guid currentUserId,
         string? search = null,
         string sortBy = "date",
@@ -87,6 +87,8 @@ public class SubscriptionBL : ISubscriptionBL
                 );
             }
 
+            var totalCount = await query.CountAsync();
+
             query = sortBy.ToLower() switch
             {
                 "popular" => query.OrderByDescending(g => g.SubscriberCount)
@@ -113,12 +115,15 @@ public class SubscriptionBL : ISubscriptionBL
                 })
                 .ToListAsync();
 
-            return ServiceResult<IEnumerable<PublicGroupDto>>.Success(groups);
+            return ServiceResult<PagedResult<PublicGroupDto>>.Success(new PagedResult<PublicGroupDto>
+            {
+                Items = groups, TotalCount = totalCount
+            });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Ошибка при получении публичных групп");
-            return ServiceResult<IEnumerable<PublicGroupDto>>.Failure("Ошибка при загрузке групп");
+            return ServiceResult<PagedResult<PublicGroupDto>>.Failure("Ошибка при загрузке групп");
         }
     }
 

@@ -11,6 +11,7 @@ import { useGroupData } from "../hooks/useGroupData";
 import { GroupHeader } from "../components/GroupHeader";
 import { CardsList } from "../components/CardsList";
 import { useAuth } from "../context/AuthContext";
+import LessonPlayer from "../pages/LessonPlayer"; // 1. Импорт плеера
 
 export default function SubscriberGroupPage() {
     const {
@@ -22,7 +23,8 @@ export default function SubscriberGroupPage() {
         setIsSubscribed,
     } = useGroupData();
 
-    const { handleSelectLesson } = useData();
+    // 2. Достаем состояние текущего урока и функцию завершения
+    const { handleSelectLesson, currentLesson, handleCompliteLesson } = useData();
     const { isAuthenticated } = useAuth();
 
     const [submittingSubscription, setSubmittingSubscription] = useState(false);
@@ -34,6 +36,24 @@ export default function SubscriberGroupPage() {
     }, [cards]);
 
     useTitle(group?.GroupName || "");
+
+    // 3. БЛОК ОТРИСОВКИ ПЛЕЕРА
+    // Если в контексте выбран урок — показываем плеер поверх всего
+    if (currentLesson) {
+        return (
+            <LessonPlayer
+                lessonTitle={currentLesson.group.GroupName}
+                subjectColor={currentLesson.group.GroupColor}
+                initialIndex={currentLesson.initialIndex}
+                onComplete={(earnedXP) => {
+                    // Здесь можно добавить логику модалки успеха или просто выйти
+                    console.log("Урок завершен, получено XP:", earnedXP);
+                    handleCompliteLesson();
+                }}
+                onBack={handleCompliteLesson}
+            />
+        );
+    }
 
     const handleToggleSubscription = async () => {
         if (!group) return;
@@ -70,6 +90,12 @@ export default function SubscriberGroupPage() {
         }
     };
 
+    const handleStartLearning = () => {
+        if (group && cards.length > 0) {
+            handleSelectLesson(cards, group, 0);
+        }
+    };
+
     if (!group || loading) return <SkeletonGroupDetail />;
 
     const Icon =
@@ -77,13 +103,9 @@ export default function SubscriberGroupPage() {
         BookHeartIcon;
 
     return (
-        // Добавил bg-base-300, чтобы фон совпадал с общим фоном приложения (если там темная тема)
         <div className="min-h-screen bg-base-300 py-8">
-
-            {/* КОНТЕЙНЕР-ОГРАНИЧИТЕЛЬ: max-w-7xl (как в AppLayout) */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-                {/* Навигация */}
                 <Link
                     to="/"
                     className="text-base-content/70 hover:bg-base-content/10 mb-6 flex items-center rounded px-4 py-2 duration-300 transition w-fit"
@@ -92,7 +114,6 @@ export default function SubscriberGroupPage() {
                     Назад на главную
                 </Link>
 
-                {/* Заголовок */}
                 <GroupHeader
                     group={group}
                     icon={Icon}
@@ -105,15 +126,20 @@ export default function SubscriberGroupPage() {
                     canPublish={false}
                     onTogglePublish={async () => {}}
                     onToggleSubscription={handleToggleSubscription}
+                    onStart={handleStartLearning}
+                    hasCards={cards.length > 0}
                 />
 
-                {/* Список карточек */}
                 <CardsList
                     cards={cards}
                     group={group}
                     isSubscriptionView={true}
                     isAuthenticated={isAuthenticated}
-                    onCardClick={handleSelectLesson}
+
+                    // 4. ВАЖНО: Мы убрали onCardClick.
+                    // Теперь список карточек ведет себя как "Аккордеон" (разворачивается вниз),
+                    // а обучение запускается только кнопкой в шапке.
+
                     onDeleteCard={() => {}}
                     onEditCard={() => {}}
                     addCardFormProps={{
@@ -131,7 +157,6 @@ export default function SubscriberGroupPage() {
                     }}
                 />
 
-                {/* Мотивация */}
                 {cards.length > 5 && (
                     <MotivationCard
                         animated="scale"

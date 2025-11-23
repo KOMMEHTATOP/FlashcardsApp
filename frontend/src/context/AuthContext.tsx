@@ -60,7 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         const handleUnauthorized = () => {
             setIsAuthenticated(false);
-            navigate("/about", { replace: true });
+            navigate("/login", { replace: true });
         };
 
         setUnauthorizedCallback(handleUnauthorized);
@@ -73,26 +73,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 password,
             });
 
-            const token = response.data.AccessToken;
+            // Поддержка и camelCase (обычный json) и PascalCase (C# defaults)
+            const token = response.data.accessToken || response.data.AccessToken;
+
+            if (!token) {
+                throw new Error("Токен не получен от сервера при входе.");
+            }
+
             setAuthToken(token);
             setIsAuthenticated(true);
         },
         []
     );
 
+    // ИСПРАВЛЕННАЯ ЛОГИКА РЕГИСТРАЦИИ
     const register = useCallback(
-        async (login: string, email: string, password: string) => {
-            const response = await apiFetch.post("/Auth/register", {
-                Login: login,
+        async (loginName: string, email: string, password: string) => {
+            // 1. Сначала регистрируем пользователя
+            // Мы не ждем токен от этого запроса, так как вы подтвердили, что его там нет
+            await apiFetch.post("/Auth/register", {
+                Login: loginName,
                 Email: email,
                 Password: password,
             });
 
-            const token = response.data.AccessToken;
-            setAuthToken(token);
-            setIsAuthenticated(true);
+            // 2. Сразу же выполняем автоматический вход с теми же данными
+            // Это получит токен и установит isAuthenticated = true
+            await login(email, password);
         },
-        []
+        [login] // Важно: register зависит от login
     );
 
     const logout = useCallback(async () => {
@@ -103,7 +112,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } finally {
             removeAuthToken();
             setIsAuthenticated(false);
-            navigate("/about", { replace: true });
+            navigate("/login", { replace: true });
         }
     }, [navigate]);
 

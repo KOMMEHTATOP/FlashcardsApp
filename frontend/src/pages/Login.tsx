@@ -10,8 +10,9 @@ import {
     User,
     Zap,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
+import { useNavigate } from "react-router-dom";
 
 import { Input } from "../components/ui/input";
 import { Button } from "../shared/ui/Button";
@@ -20,7 +21,8 @@ import { floatingIcons, TITLE_APP } from "../test/data";
 import { useAuth } from "../context/AuthContext";
 
 export default function LoginPage() {
-    const { login: authLogin, register: authRegister } = useAuth();
+    const { login: authLogin, register: authRegister, isAuthenticated } = useAuth();
+    const navigate = useNavigate();
 
     const [selectedBlock, setSelectedBlock] = useState<"login" | "register">(
         "login"
@@ -33,9 +35,50 @@ export default function LoginPage() {
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string>("");
 
+    // Автоматический редирект при успешном входе
+    useEffect(() => {
+        if (isAuthenticated) {
+            navigate("/", { replace: true });
+        }
+    }, [isAuthenticated, navigate]);
+
     const handleSelect = (block: string) => {
         setSelectedBlock(block as "login" | "register");
-        setError(" ");
+        setError("");
+        // Очистка полей при переключении (опционально, для лучшего UX)
+        setLogin("");
+        setEmail("");
+        setPassword("");
+    };
+
+    // Хелпер для обработки ошибок API
+    const handleApiError = (err: any, defaultMessage: string) => {
+        console.log("API Error:", err);
+        const responseData = err.response?.data;
+
+        // 1. Пробуем достать ошибки валидации (ASP.NET ValidationProblemDetails)
+        // Обычно это объект errors: { Password: ["Too short"], Email: ["Invalid"] }
+        const validationErrors = responseData?.errors;
+
+        if (validationErrors && typeof validationErrors === "object") {
+            // Собираем все сообщения в одну строку с переносами
+            const messages = Object.values(validationErrors)
+                .flat()
+                .join("\n");
+            setError(messages);
+        }
+            // 2. Пробуем достать простое сообщение об ошибке (например "User not found")
+        // Часто сервер присылает строку в поле Message или просто строку
+        else if (typeof responseData === "string") {
+            setError(responseData);
+        }
+        else if (responseData?.Message) {
+            setError(responseData.Message);
+        }
+        // 3. Дефолтная ошибка
+        else {
+            setError(defaultMessage);
+        }
     };
 
     const handleLogin = async (e?: React.FormEvent) => {
@@ -48,21 +91,13 @@ export default function LoginPage() {
             return;
         }
         setLoading(true);
+        setError(""); // Сброс предыдущей ошибки
+
         try {
             await authLogin(email, password);
         } catch (err: any) {
-            console.log(err);
-            const errors = err.response?.data?.errors;
-            if (errors && typeof errors === "object") {
-                const messages = Object.values(errors).flat().join("\n");
-                setError(messages);
-            } else {
-                setError("Произошла ошибка при входе");
-            }
-        } finally {
-            setTimeout(() => {
-                setLoading(false);
-            }, 2000);
+            handleApiError(err, "Неверный логин или пароль");
+            setLoading(false);
         }
     };
 
@@ -79,30 +114,18 @@ export default function LoginPage() {
             return;
         }
         setLoading(true);
+        setError("");
+
         try {
             await authRegister(login, email, password);
         } catch (err: any) {
-            const errors = err.response?.data?.errors;
-            if (errors && typeof errors === "object") {
-                const messages = Object.values(errors).flat().join("\n");
-                setError(messages);
-            } else {
-                setError("Произошла ошибка при регистрации");
-            }
-        } finally {
-            setTimeout(() => {
-                setLoading(false);
-            }, 2000);
+            handleApiError(err, "Произошла ошибка при регистрации");
+            setLoading(false);
         }
     };
 
-    const hasError = Array.isArray(error)
-        ? error.length > 0
-        : typeof error === "string"
-            ? error.trim() !== ""
-            : Boolean(error);
+    const hasError = Boolean(error);
 
-    // 2. Настраиваем SEO тексты в зависимости от вкладки
     const pageTitle = selectedBlock === "login"
         ? "Вход в систему | FlashcardsLoop - Учить карточки"
         : "Регистрация | Создать свои карточки бесплатно";
@@ -111,7 +134,6 @@ export default function LoginPage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-base-300 via-base-100 to-base-300 flex items-center justify-center p-4 relative overflow-hidden">
-            {/* SEO META */}
             <Helmet>
                 <title>{pageTitle}</title>
                 <meta name="description" content={pageDescription} />
@@ -169,7 +191,6 @@ export default function LoginPage() {
                         {TITLE_APP}
                     </h1>
 
-                    {/* 3. Оптимизированный подзаголовок с ключевыми словами */}
                     <p className="text-gray-600 dark:text-gray-400 text-lg text-subtitle">
                         Создавайте карточки и прокачивайте знания бесплатно! 🚀
                     </p>
@@ -182,11 +203,13 @@ export default function LoginPage() {
                 >
                     <motion.div
                         transition={{ duration: 0.4, ease: "easeInOut" }}
-                        className={`p-8 backdrop-blur-xl bg-white/80 border-2 border-purple-300 shadow-2xl rounded-xl overflow-hidden transition-all duration-300 ${selectedBlock === "login" ? "h-100" : hasError ? "h-130" : "h-120"
-                            }`}
+                        // Динамическая высота: увеличиваем, если есть ошибка
+                        className={`p-8 backdrop-blur-xl bg-white/80 border-2 border-purple-300 shadow-2xl rounded-xl overflow-hidden transition-all duration-300 ${selectedBlock === "login"
+                            ? (hasError ? "h-130" : "h-110")
+                            : (hasError ? "h-140" : "h-130")
+                        }`}
                     >
                         <div className="space-y-4">
-                            {/* Переключатель Вход / Регистрация */}
                             <div className="overflow-hidden grid w-full grid-cols-2 bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/50 dark:to-pink-900/50 rounded-2xl p-1 relative">
                                 <div className="absolute inset-1 rounded-full overflow-hidden">
                                     <motion.div
@@ -198,16 +221,16 @@ export default function LoginPage() {
                                 </div>
                                 <div
                                     className={`transition-all items-center justify-center flex p-1 z-10 cursor-pointer hover:bg-white/10 rounded-2xl font-medium ${selectedBlock === "login" ? "text-white" : "text-gray-900"
-                                        }`}
+                                    }`}
                                     onClick={() => handleSelect("login")}
                                 >
                                     Вход
                                 </div>
                                 <div
                                     className={`transition-all items-center justify-center flex p-1 z-10 cursor-pointer hover:bg-white/10 rounded-2xl font-medium ${selectedBlock === "register"
-                                            ? "text-white"
-                                            : "text-gray-900"
-                                        }`}
+                                        ? "text-white"
+                                        : "text-gray-900"
+                                    }`}
                                     onClick={() => handleSelect("register")}
                                 >
                                     Регистрация
@@ -256,12 +279,18 @@ export default function LoginPage() {
                                                 >
                                                     Войти в аккаунт
                                                 </Button>
-                                                <button className="w-full text-purple-600 hover:text-purple-700 text-subtitle hover:bg-purple-300/20 py-2 rounded-xl text-sm">
+                                                <button type="button" className="w-full text-purple-600 hover:text-purple-700 text-subtitle hover:bg-purple-300/20 py-2 rounded-xl text-sm">
                                                     Забыли пароль?
                                                 </button>
-                                                <span className="items-center text-center">
-                                                    {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
-                                                </span>
+
+                                                {/* Блок ошибки с поддержкой переноса строк */}
+                                                <div className="min-h-[20px] flex items-center justify-center">
+                                                    {error && (
+                                                        <p className="text-red-500 text-sm text-center whitespace-pre-wrap leading-tight bg-red-50 p-2 rounded-lg border border-red-100 w-full">
+                                                            {error}
+                                                        </p>
+                                                    )}
+                                                </div>
                                             </motion.form>
                                         </div>
                                     </div>
@@ -320,9 +349,15 @@ export default function LoginPage() {
                                                 <p className="text-xs text-center text-gray-500 dark:text-gray-400">
                                                     Регистрируясь, вы принимаете условия сервиса
                                                 </p>
-                                                <span className="items-center text-center">
-                                                    {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
-                                                </span>
+
+                                                {/* Блок ошибки с поддержкой переноса строк */}
+                                                <div className="min-h-[20px] flex items-center justify-center">
+                                                    {error && (
+                                                        <p className="text-red-500 text-sm text-center whitespace-pre-wrap leading-tight bg-red-50 p-2 rounded-lg border border-red-100 w-full">
+                                                            {error}
+                                                        </p>
+                                                    )}
+                                                </div>
                                             </motion.form>
                                         </div>
                                     </div>
@@ -332,7 +367,6 @@ export default function LoginPage() {
                     </motion.div>
                 </motion.div>
 
-                {/* Футер с преимуществами (для убеждения зарегистрироваться) */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}

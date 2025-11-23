@@ -1,7 +1,8 @@
 import { Search, Calendar, TrendingUp, SortAsc } from "lucide-react";
+import { useState, useEffect } from "react"; // Добавили useState и useEffect
 import type { TagDto } from "../../types/types";
 
-// Стили тегов вынесены сюда, так как они относятся к UI фильтра
+// Стили тегов
 const tagStyles: Record<string, string> = {
     blue: "bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200",
     green: "bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-200",
@@ -21,7 +22,7 @@ interface SearchFilterBarProps {
     // Поиск
     search: string;
     onSearchChange: (value: string) => void;
-    onSearchSubmit?: (e: React.FormEvent) => void; // Опционально, если нужен submit формы
+    onSearchSubmit?: (e: React.FormEvent) => void;
 
     // Теги
     tags?: TagDto[];
@@ -32,7 +33,7 @@ interface SearchFilterBarProps {
     sortBy: SortOption;
     onSortChange: (sort: SortOption) => void;
 
-    // Состояние загрузки (чтобы блокировать инпуты если надо)
+    // Состояние загрузки
     loading?: boolean;
 }
 
@@ -48,10 +49,32 @@ export function SearchFilterBar({
                                     loading = false
                                 }: SearchFilterBarProps) {
 
+    // 1. Локальный стейт для инпута, чтобы ввод был плавным
+    const [localSearch, setLocalSearch] = useState(search);
+
+    // 2. Синхронизация: если URL изменился извне (например, кнопка "Назад"), обновляем инпут
+    useEffect(() => {
+        setLocalSearch(search);
+    }, [search]);
+
+    // 3. Debounce: обновляем родительский стейт (и URL) только через 600мс после окончания ввода
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            // Вызываем onSearchChange только если значение реально отличается
+            if (localSearch !== search) {
+                onSearchChange(localSearch);
+            }
+        }, 600);
+
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [localSearch, search, onSearchChange]);
+
     // Обработчик клика по тегу
     const handleTagClick = (tagId: string | null) => {
         if (selectedTagId === tagId) {
-            onTagSelect(null); // Сброс
+            onTagSelect(null);
         } else {
             onTagSelect(tagId);
         }
@@ -59,10 +82,12 @@ export function SearchFilterBar({
 
     return (
         <div className="space-y-4">
-            {/* 1. Поиск */}
+            {/* Поиск */}
             <form
                 onSubmit={(e) => {
                     e.preventDefault();
+                    // При нажатии Enter форсируем поиск мгновенно, без задержки
+                    onSearchChange(localSearch);
                     onSearchSubmit?.(e);
                 }}
                 className="flex gap-2"
@@ -72,13 +97,14 @@ export function SearchFilterBar({
                     <input
                         type="text"
                         placeholder="Поиск..."
-                        value={search}
-                        onChange={(e) => onSearchChange(e.target.value)}
+                        // Связываем с локальным стейтом
+                        value={localSearch}
+                        onChange={(e) => setLocalSearch(e.target.value)}
                         className="input input-bordered w-full pl-10 bg-base-100"
-                        disabled={loading}
+                        // ВАЖНО: Убрали disabled={loading}, чтобы фокус не слетал
+                        // Можно оставить disabled только при сабмите, если критично
                     />
                 </div>
-                {/* Кнопка нужна только если передан обработчик сабмита (для серверного поиска) */}
                 {onSearchSubmit && (
                     <button type="submit" className="btn btn-primary" disabled={loading}>
                         Найти
@@ -86,7 +112,7 @@ export function SearchFilterBar({
                 )}
             </form>
 
-            {/* 2. Список тегов */}
+            {/* Список тегов */}
             {tags && tags.length > 0 && (
                 <div className="relative group">
                     <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide mask-linear-fade">
@@ -126,7 +152,7 @@ export function SearchFilterBar({
                 </div>
             )}
 
-            {/* 3. Сортировка */}
+            {/* Сортировка */}
             <div className="flex gap-2 flex-wrap border-t border-base-content/10 pt-4">
                 <span className="text-sm text-base-content/60 flex items-center mr-2">Сортировка:</span>
                 <button onClick={() => onSortChange("date")} className={`btn btn-xs sm:btn-sm gap-2 ${sortBy === "date" ? "btn-active" : "btn-ghost"}`}>

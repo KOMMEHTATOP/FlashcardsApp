@@ -32,7 +32,8 @@ public static class CorsExtensions
                     .WithOrigins(allowedOrigins)
                     .AllowAnyHeader()
                     .AllowAnyMethod()
-                    .AllowCredentials(); 
+                    .AllowCredentials()
+                    .WithExposedHeaders("x-total-count"); 
             });
         });
 

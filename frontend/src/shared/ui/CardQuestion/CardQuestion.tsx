@@ -21,13 +21,19 @@ export function CardQuestion({
                              }: CardQuestionProps) {
     const [isOpen, setIsOpen] = useState(false);
     const isCompleted = item.LastRating > 0;
+    // Определяем режим владельца по наличию функции редактирования
     const isOwnerMode = !!onEdit;
+    // Есть ли какие-либо действия с карточкой
+    const hasActions = !!onEdit || !!onDelete;
 
     const handleClick = (e?: React.MouseEvent) => {
         e?.stopPropagation();
-        if (showOverviewButton) {
+
+        // Разрешаем раскрытие, если это режим обзора ИЛИ режим владельца
+        if (showOverviewButton || isOwnerMode) {
             setIsOpen(!isOpen);
         } else {
+            // Если это не режим просмотра (например, режим выбора для урока), вызываем onClick
             onClick?.();
         }
     };
@@ -45,28 +51,17 @@ export function CardQuestion({
             )}
 
             <div
+                // Добавляем hover эффект, если элемент интерактивен
                 className={`relative z-10 rounded-[10px] p-6 shadow-lg transition-all bg-base-100 
-                ${(onClick || showOverviewButton) ? "cursor-pointer hover:bg-base-200/50" : "cursor-default"}`}
+                ${(onClick || showOverviewButton || isOwnerMode) ? "cursor-pointer hover:bg-base-200/50" : "cursor-default"}`}
                 onClick={handleClick}
             >
                 <div className="flex items-start overflow-hidden text-left">
-                    {/* ЛЕВАЯ ИКОНКА */}
+                    {/* ЛЕВАЯ ИКОНКА - Теперь всегда статична */}
                     <div
-                        className={`shrink-0 w-12 h-12 rounded-full flex items-center justify-center transition-all mt-1
-                        ${isOwnerMode ? "bg-gray-400/70 hover:bg-green-400/80" : "bg-base-200"}`}
+                        className="shrink-0 w-12 h-12 rounded-full flex items-center justify-center transition-all mt-1 bg-base-200"
                     >
-                        {isOwnerMode ? (
-                            <ButtonCircle
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onEdit?.();
-                                }}
-                            >
-                                <Edit className="w-6 h-6 text-base-content" />
-                            </ButtonCircle>
-                        ) : (
-                            <FileText className="w-6 h-6 text-base-content/30" />
-                        )}
+                        <FileText className="w-6 h-6 text-base-content/30" />
                     </div>
 
                     {/* ЦЕНТР: Контент */}
@@ -116,20 +111,37 @@ export function CardQuestion({
                         </AnimatePresence>
                     </div>
 
-                    {/* ПРАВАЯ ЧАСТЬ */}
-                    {onDelete && (
-                        <div className="md:opacity-0 group-hover:opacity-100 transition-all duration-600 flex mx-2 self-center">
-                            <ButtonCircle
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onDelete();
-                                }}
-                            >
-                                <Trash className="w-6 h-6 text-error" />
-                            </ButtonCircle>
+                    {/* ПРАВАЯ ЧАСТЬ: Кнопки действий (Редактировать / Удалить) */}
+                    {hasActions && (
+                        // Этот блок появляется при наведении на всю карточку (group-hover)
+                        <div className="md:opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center gap-1 mx-2 self-center">
+                            {onEdit && (
+                                <ButtonCircle
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onEdit();
+                                    }}
+                                    // Добавил небольшой hover эффект для самой иконки
+                                    className="hover:bg-base-200"
+                                >
+                                    <Edit className="w-5 h-5 text-base-content/70 hover:text-primary transition-colors" />
+                                </ButtonCircle>
+                            )}
+                            {onDelete && (
+                                <ButtonCircle
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onDelete();
+                                    }}
+                                    className="hover:bg-red-100"
+                                >
+                                    <Trash className="w-5 h-5 text-error" />
+                                </ButtonCircle>
+                            )}
                         </div>
                     )}
 
+                    {/* Кнопка "Обзор" или шеврон */}
                     <div className="ml-2 self-center">
                         {(isOwnerMode || showOverviewButton) ? (
                             <button

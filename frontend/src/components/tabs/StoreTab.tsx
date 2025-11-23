@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Store, ChevronLeft, ChevronRight, BookHeartIcon } from "lucide-react";
-import { useState, useEffect, useRef } from "react"; // Добавили useRef
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import apiFetch from "../../utils/apiFetch";
 import type { PublicGroupDto, TagDto } from "../../types/types";
@@ -15,7 +15,6 @@ export function StoreTab() {
     const { user, setUser } = useData();
     const navigate = useNavigate();
 
-    // 1. Создаем ссылку на элемент, к которому будем скроллить
     const scrollRef = useRef<HTMLDivElement>(null);
 
     const [searchParams, setSearchParams] = useSearchParams();
@@ -77,13 +76,18 @@ export function StoreTab() {
 
                 setGroups(response.data);
 
+                // --- ИСПРАВЛЕНИЕ ЛОГИКИ ПАГИНАЦИИ ---
+                // Axios всегда приводит заголовки к нижнему регистру
                 const serverTotal = response.headers['x-total-count'];
+
                 if (serverTotal) {
-                    setTotalCount(parseInt(serverTotal));
+                    setTotalCount(parseInt(serverTotal, 10));
                 } else {
-                    const loadedCount = response.data.length;
-                    const estimatedTotal = (page - 1) * ITEMS_PER_PAGE + loadedCount;
-                    setTotalCount(loadedCount === ITEMS_PER_PAGE ? estimatedTotal + 1 : estimatedTotal);
+                    // Если заголовка нет, мы не угадываем, а ставим текущую длину,
+                    // но выводим предупреждение для разработчика.
+                    console.warn("⚠️ Пагинация: Отсутствует заголовок 'x-total-count'. Проверьте CORS на бэкенде (WithExposedHeaders).");
+                    // Временный фоллбек, чтобы интерфейс не падал, но он не даст переключить страницу дальше
+                    setTotalCount(response.data.length > 0 ? (page * ITEMS_PER_PAGE) : 0);
                 }
 
             } catch (err: any) {
@@ -96,8 +100,6 @@ export function StoreTab() {
 
         fetchGroups();
 
-        // 2. Скроллим к нашему рефу (заголовку фильтров), а не в самый верх
-        // Проверяем, что page > 1 или были применены фильтры, чтобы не дёргать экран при первой загрузке
         if (scrollRef.current && (page > 1 || search || selectedTagId)) {
             scrollRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
@@ -171,7 +173,6 @@ export function StoreTab() {
             initial={{ opacity: 0 }} animate={{ opacity: 1 }}
             className="space-y-6"
         >
-            {/* 3. Привязываем ref к заголовку. Скролл остановится здесь. */}
             <div ref={scrollRef} className="flex justify-between items-center scroll-mt-24">
                 <h2 className="text-2xl text-base-content font-bold">Библиотека</h2>
             </div>
@@ -244,6 +245,7 @@ export function StoreTab() {
                         </div>
                     )}
 
+                    {/* ПАГИНАЦИЯ */}
                     {groups.length > 0 && (
                         <div className="flex justify-center items-center gap-4 mt-8 pt-4 border-t border-base-content/5">
                             <button
@@ -259,7 +261,7 @@ export function StoreTab() {
                             </span>
 
                             <button
-                                disabled={(totalPages > 0 && page >= totalPages) || groups.length < ITEMS_PER_PAGE || loading}
+                                disabled={(totalPages > 0 && page >= totalPages) || loading}
                                 onClick={() => updateParams({ page: (page + 1).toString() })}
                                 className="btn btn-circle btn-sm btn-ghost"
                             >

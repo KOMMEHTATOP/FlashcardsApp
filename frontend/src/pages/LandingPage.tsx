@@ -15,6 +15,8 @@ import { LandingContentService } from "./landing/landingContent";
 
 export default function LandingPage() {
     const { logout } = useAuth();
+    const { isAuthenticated } = useAuth();
+
     const features = useMemo(() => LandingContentService.getFeatures(), []);
     const gamificationFeatures = useMemo(
         () => LandingContentService.getGamificationFeatures(),
@@ -58,11 +60,19 @@ export default function LandingPage() {
         }
     };
 
+    const mockUserForHeader = isAuthenticated ? {
+        Id: "current",
+        Email: "user",
+        Statistics: {} as any,
+        Groups: []
+    } : undefined;
+
     return (
         <div className="min-h-screen bg-base-300">
             <LandingHelmet />
 
-            <Header user={undefined} onLogout={logout} />
+            <Header user={mockUserForHeader} onLogout={logout} />
+
             <AnimatePresence>
                 {showScrollButton && (
                     <motion.div

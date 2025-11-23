@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import {
     GalleryVerticalEndIcon,
     Users,
+    Play,
     type LucideIcon,
 } from "lucide-react";
 import type { GroupType } from "../types/types";
@@ -10,14 +11,19 @@ interface GroupHeaderProps {
     group: GroupType;
     icon: LucideIcon;
     progress: number;
+    // Режим отображения
     isSubscriptionView: boolean;
     isSubscribed: boolean;
+    // Публикация
     isPublishing: boolean;
     submittingSubscription: boolean;
     publishError: string | null;
     canPublish: boolean;
     onTogglePublish: () => void;
     onToggleSubscription: () => void;
+    // Новые пропсы для старта обучения
+    onStart?: () => void;
+    hasCards?: boolean;
 }
 
 export function GroupHeader({
@@ -32,7 +38,13 @@ export function GroupHeader({
                                 canPublish,
                                 onTogglePublish,
                                 onToggleSubscription,
+                                onStart,
+                                hasCards = false
                             }: GroupHeaderProps) {
+
+    // Логика отображения кнопки старта
+    const showStartButton = hasCards && (!isSubscriptionView || isSubscribed);
+
     return (
         <motion.div
             initial={{ opacity: 0, y: -20 }}
@@ -65,124 +77,114 @@ export function GroupHeader({
                         <Icon className="w-16 h-16 md:w-16 md:h-16 text-white" />
                     </motion.div>
 
-                    <div className="flex-1 text-center sm:text-left">
+                    <div className="flex-1 text-center sm:text-left w-full">
 
-                        {/* Заголовок и бейджи */}
-                        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 mb-2 w-full flex-wrap">
-                            <h1 className="text-3xl text-white">{group.GroupName}</h1>
+                        {/* Верхняя строка: Заголовок + Тогглы */}
+                        <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-4 mb-4">
+                            <div className="flex flex-col items-center md:items-start">
+                                <h1 className="text-3xl text-white font-bold mb-2">{group.GroupName}</h1>
 
-                            {/* Количество карточек */}
-                            {Number(group.CardCount) > 0 && (
-                                <motion.div
-                                    animate={{ rotate: [0, 10, -10, 0] }}
-                                    transition={{
-                                        duration: 1,
-                                        repeat: Infinity,
-                                        repeatDelay: 2,
-                                    }}
-                                    className="bg-orange-500 text-white px-3 py-2 rounded-full flex items-center gap-1 text-sm md:text-base line-clamp-1 truncate"
-                                >
-                                    <GalleryVerticalEndIcon className="w-4 md:w-5 text-yellow-300" />
-                                    <span className="font-mono">
-                                        {group.CardCount} карточек
-                                    </span>
-                                </motion.div>
-                            )}
-
-                            {/* Счётчик подписчиков */}
-                            {group.IsPublished && (group.SubscriberCount || 0) > 0 && (
-                                <div className="bg-white/20 text-white px-3 py-2 rounded-full flex items-center gap-1 text-sm">
-                                    <Users className="w-4 h-4" />
-                                    <span>{group.SubscriberCount} подписчиков</span>
+                                {/* Бейджи */}
+                                <div className="flex flex-wrap justify-center md:justify-start gap-2">
+                                    {Number(group.CardCount) > 0 && (
+                                        <div className="bg-white/20 text-white px-3 py-1 rounded-full flex items-center gap-1 text-sm backdrop-blur-md">
+                                            <GalleryVerticalEndIcon className="w-4 h-4" />
+                                            <span>{group.CardCount} карточек</span>
+                                        </div>
+                                    )}
+                                    {group.IsPublished && (group.SubscriberCount || 0) > 0 && (
+                                        <div className="bg-white/20 text-white px-3 py-1 rounded-full flex items-center gap-1 text-sm backdrop-blur-md">
+                                            <Users className="w-4 h-4" />
+                                            <span>{group.SubscriberCount} подп.</span>
+                                        </div>
+                                    )}
                                 </div>
-                            )}
-
-                            {/* Распорка */}
-                            <div className="flex-1" />
+                            </div>
 
                             {/* Переключатель: Публикация или Подписка */}
-                            <div className="flex flex-col items-end">
+                            <div className="flex flex-col items-center md:items-end">
                                 {isSubscriptionView ? (
-                                    // Режим подписчика
                                     <label className={`
-                                        flex items-center gap-2 cursor-pointer
+                                        flex items-center gap-2 cursor-pointer bg-black/20 px-3 py-2 rounded-lg hover:bg-black/30 transition
                                         ${submittingSubscription ? 'opacity-50 cursor-wait' : ''}
                                     `}>
-                                        <span className="text-white text-sm">
-                                            Подписка на группу
+                                        <span className="text-white text-sm font-medium">
+                                            {isSubscribed ? "Вы подписаны" : "Подписаться"}
                                         </span>
                                         <input
                                             type="checkbox"
                                             checked={isSubscribed}
                                             onChange={onToggleSubscription}
                                             disabled={submittingSubscription}
-                                            className="checkbox checkbox-success bg-white border-2 border-gray-800"
+                                            className="checkbox checkbox-sm checkbox-success bg-white border-white/50"
                                         />
-                                        {submittingSubscription && (
-                                            <span className="loading loading-spinner loading-xs text-white"></span>
-                                        )}
                                     </label>
                                 ) : (
-                                    // Режим владельца
-                                    <>
+                                    <div className="flex flex-col items-end gap-1">
                                         <label className={`
-                                            flex items-center gap-2 cursor-pointer
+                                            flex items-center gap-2 cursor-pointer bg-black/20 px-3 py-2 rounded-lg hover:bg-black/30 transition
                                             ${!canPublish ? 'opacity-50 cursor-not-allowed' : ''}
                                             ${isPublishing ? 'opacity-50 cursor-wait' : ''}
                                         `}>
-                                            <span className="text-white text-sm">
-                                                Поделиться с другими
+                                            <span className="text-white text-sm font-medium">
+                                                {group.IsPublished ? "Опубликовано" : "Приватная"}
                                             </span>
                                             <input
                                                 type="checkbox"
                                                 checked={group.IsPublished || false}
                                                 onChange={onTogglePublish}
                                                 disabled={isPublishing || !canPublish}
-                                                className="checkbox checkbox-success bg-white border-2 border-gray-800"
+                                                className="checkbox checkbox-sm checkbox-success bg-white border-white/50"
                                             />
-                                            {isPublishing && (
-                                                <span className="loading loading-spinner loading-xs text-white"></span>
-                                            )}
                                         </label>
-
                                         {!canPublish && (
-                                            <div className="text-xs text-white/70 mt-1">
-                                                Нужно минимум 10 карточек
-                                            </div>
+                                            <span className="text-[10px] text-white/70">Мин. 10 карточек</span>
                                         )}
-                                    </>
+                                    </div>
                                 )}
                             </div>
                         </div>
 
-                        {/* Блок ошибки */}
+                        {/* Кнопка НАЧАТЬ ОБУЧЕНИЕ + Прогресс */}
+                        <div className="mt-6 flex flex-col md:flex-row items-center gap-4">
+
+                            {/* Кнопка Старт */}
+                            {showStartButton && (
+                                <motion.button
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={onStart}
+                                    className="btn border-none bg-white text-gray-900 hover:bg-gray-100 px-6 rounded-full shadow-lg gap-2 flex items-center group w-full md:w-auto"
+                                >
+                                    <Play className="w-5 h-5 fill-current group-hover:text-primary transition-colors" />
+                                    <span className="font-bold">Начать обучение</span>
+                                </motion.button>
+                            )}
+
+                            {/* Прогресс бар */}
+                            <div className="flex-1 w-full min-w-[200px]">
+                                <div className="flex justify-between text-white/80 text-xs mb-1">
+                                    <span>Прогресс изучения</span>
+                                    <span className="font-mono">{progress ? Number(progress).toFixed(0) : 0}%</span>
+                                </div>
+                                <div className="relative w-full h-2 bg-black/20 rounded-full overflow-hidden">
+                                    <motion.div
+                                        initial={{ width: 0 }}
+                                        animate={{ width: `${progress || 0}%` }}
+                                        transition={{ duration: 1, ease: "easeOut" }}
+                                        className="h-full bg-white rounded-full"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Ошибка публикации */}
                         {publishError && !isSubscriptionView && (
-                            <div className="bg-red-500/20 text-white px-3 py-2 rounded-lg text-sm mb-2">
+                            <div className="mt-4 bg-red-500/80 text-white px-3 py-2 rounded-lg text-sm text-center md:text-left">
                                 {publishError}
                             </div>
                         )}
 
-                        <p className="text-white/90 text-base mb-6">
-                            Овладейте основами и раскройте свой потенциал
-                        </p>
-
-                        {/* Прогресс-бар */}
-                        <div className="space-y-2 w-full">
-                            <div className="flex justify-between text-white/80 text-sm">
-                                <span className="text-white/80">Общий прогресс</span>
-                                <span className="font-mono">
-                                    {progress ? Number(progress).toFixed(0) : 0}%
-                                </span>
-                            </div>
-                            <div className="relative z-10 w-full h-4 bg-white/10 rounded-full">
-                                <motion.div
-                                    initial={{ width: 0 }}
-                                    animate={{ width: `${progress || 0}%` }}
-                                    transition={{ duration: 1, ease: "easeOut" }}
-                                    className="h-full bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-full"
-                                />
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
