@@ -1,5 +1,5 @@
-import type { AchievementsType, GroupType, MotivationType, SettingType, UserData } from "../types/types";
-import apiFetch from "./apiFetch";
+import type { AchievementsType, GroupType, MotivationType, SettingType, UserData } from "@/types/types";
+import apiFetch from "@/utils/apiFetch";
 
 export class ApiService {
     private getToken(): string | null {

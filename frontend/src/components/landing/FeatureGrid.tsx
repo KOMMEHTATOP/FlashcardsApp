@@ -1,6 +1,6 @@
 import { useState } from "react";
 import FeatureCard from "./FeatureCard";
-import type { Feature } from "../../pages/landing/landingContent";
+import type { Feature } from "@/pages/landing/landingContent";
 
 export default function FeaturesGrid({ features }: { features: Feature[] }) {
   const [hovered, setHovered] = useState<boolean>(false);
@@ -9,9 +9,8 @@ export default function FeaturesGrid({ features }: { features: Feature[] }) {
     <div className="relative">
       {/* затемнение экрана */}
       <div
-        className={`fixed inset-0 bg-black/50 transition-all duration-300 z-10 pointer-events-none ${
-          hovered ? "opacity-50" : "opacity-0"
-        }`}
+        className={`fixed inset-0 bg-black/50 transition-all duration-300 z-10 pointer-events-none ${hovered ? "opacity-50" : "opacity-0"
+          }`}
       />
 
       {/* сетка карточек */}
@@ -19,9 +18,8 @@ export default function FeaturesGrid({ features }: { features: Feature[] }) {
         {features.map((feature, index) => (
           <div
             key={index}
-            className={`group relative ${
-              index % 2 === 0 ? " hover:rotate-2" : " hover:-rotate-2"
-            } hover:scale-110 transition-all duration-300 ease-in-out`}
+            className={`group relative ${index % 2 === 0 ? " hover:rotate-2" : " hover:-rotate-2"
+              } hover:scale-110 transition-all duration-300 ease-in-out`}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
           >

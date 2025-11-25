@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Trophy, ArrowRight, Library, CheckCircle2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "../../../shared/ui/Button";
+import { Button } from "@/shared/ui/Button";
 
 export function LandingCTA() {
     const navigate = useNavigate();

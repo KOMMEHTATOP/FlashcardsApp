@@ -1,14 +1,14 @@
 import { motion } from "framer-motion";
-import { Settings2Icon, BookHeartIcon, Users, ChevronLeft, ChevronRight, Plus } from "lucide-react"; 
-import SortableList from "../SortebleList";
-import GroupCard from "../../components/cards/GroupCard";
-import type { GroupType, SubscribedGroupDto, GroupCardType, TagDto } from "../../types/types";
-import { useData } from "../../context/DataContext";
-import { availableIcons } from "../../test/data";
+import { Settings2Icon, BookHeartIcon, Users, ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import SortableList from "@/features/groups/ui/SortableGroupList";
+import GroupCard from "@/features/groups/ui/GroupCard";
+import type { GroupType, SubscribedGroupDto, GroupCardType, TagDto } from "@/types/types";
+import { useData } from "@/context/DataContext";
+import { availableIcons } from "@/shared/data";
 import { useNavigate } from "react-router-dom";
-import apiFetch from "../../utils/apiFetch";
+import apiFetch from "@/utils/apiFetch";
 import { useState, useMemo, useEffect } from "react";
-import { SearchFilterBar, type SortOption } from "../filters/SearchFilterBar";
+import { SearchFilterBar, type SortOption } from "@/components/filters/SearchFilterBar";
 
 interface LessonsTabProps {
     groups: GroupType[] | undefined;

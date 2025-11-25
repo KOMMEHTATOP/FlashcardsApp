@@ -1,4 +1,4 @@
-import { levelMotivationVariants, motivationTexts } from "../test/data";
+import { levelMotivationVariants, motivationTexts } from "@/shared/data";
 
 const getMotivationText = (score: number): string => {
   if (score === 100) return motivationTexts["100"];

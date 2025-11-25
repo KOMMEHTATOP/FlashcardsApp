@@ -1,22 +1,22 @@
 import "./App.css";
 import { Routes, Route } from "react-router-dom";
-import AppLayout from "./layout/AppLayout";
-import { HomePage } from "./pages/Home";
-import { ProfilePage } from "./pages/Profile";
-import OwnerGroupPage from "./pages/OwnerGroupPage"; 
+import AppLayout from "@/layout/AppLayout";
+import { HomePage } from "@/pages/Home";
+import { ProfilePage } from "@/pages/Profile";
+import OwnerGroupPage from "@/pages/OwnerGroupPage";
 
-import LoginPage from "./pages/Login";
-import { NotFoundPage } from "./pages/NotFound";
-import { PrivateRoute } from "./layout/PrivateRoute";
-import { GuestRoute } from "./layout/GuestRoute";
+import LoginPage from "@/pages/Login";
+import { NotFoundPage } from "@/pages/NotFound";
+import { PrivateRoute } from "@/layout/PrivateRoute";
+import { GuestRoute } from "@/layout/GuestRoute";
 import { lazy } from "react";
-import ScrollToTop from "./utils/scrollToTop";
-import { DataProvider } from "./context/DataContext";
+import ScrollToTop from "@/utils/scrollToTop";
+import { DataProvider } from "@/context/DataContext";
 
-const LandingPage = lazy(() => import("./pages/LandingPage"));
-const PublicStorePage = lazy(() => import("./pages/PublicStore"));
-const AdminPage = lazy(() => import("./pages/AdminPage"));
-const SubscriberGroupPage = lazy(() => import("./pages/SubscriberGroupPage")); 
+const LandingPage = lazy(() => import("@/pages/LandingPage"));
+const PublicStorePage = lazy(() => import("@/pages/PublicStore"));
+const AdminPage = lazy(() => import("@/pages/AdminPage"));
+const SubscriberGroupPage = lazy(() => import("@/pages/SubscriberGroupPage"));
 
 export const DEV = false;
 
@@ -36,14 +36,14 @@ function App() {
                     <PublicStorePage />
                 </>
             } />
-            
+
             <Route path="/subscription/:id" element={
                 <DataProvider>
                     <ScrollToTop />
                     <SubscriberGroupPage />
                 </DataProvider>
             } />
-            
+
             <Route path="/login" element={
                 <GuestRoute>
                     <LoginPage />
@@ -89,7 +89,7 @@ function App() {
                         </PrivateRoute>
                     }
                 />
-                
+
             </Route>
 
             <Route path="*" element={<NotFoundPage />} />

@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
-import { Card } from "../../shared/ui/Card"; // Проверьте путь, он мог измениться при переносе
-import type { GroupCardType } from "../../types/types";
+import { Card } from "@/shared/ui/Card";
+import type { GroupCardType } from "@/types/types";
 
 interface StudyFlashcardProps {
     currentCardIndex: number;
@@ -12,13 +12,13 @@ interface StudyFlashcardProps {
 }
 
 export default function StudyFlashcard({
-                                           currentCardIndex,
-                                           currentCard,
-                                           isNext,
-                                           isFlipped,
-                                           subjectColor,
-                                           handleFlip,
-                                       }: StudyFlashcardProps) {
+    currentCardIndex,
+    currentCard,
+    isNext,
+    isFlipped,
+    subjectColor,
+    handleFlip,
+}: StudyFlashcardProps) {
     return (
         <motion.div
             key={currentCardIndex}

@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
 import { SettingsIcon, Star, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { ButtonCircle, Button } from "../../shared/ui/Button";
-import { Slider } from "../ui/slider";
-import { Switch } from "../ui/switch";
+import { ButtonCircle, Button } from "@/shared/ui/Button";
+import { Slider } from "@/shared/ui/slider";
+import { Switch } from "@/shared/ui/switch";
 import { useData } from "../../context/DataContext";
 import type { SettingType } from "../../types/types";
 import apiFetch from "../../utils/apiFetch";

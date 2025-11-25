@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Tag as TagIcon } from "lucide-react";
 import { useState, useMemo } from "react";
-import type { TagDto } from "../../../types/types";
+import type { TagDto } from "@/types/types";
 
 interface GroupTagInputProps {
     selectedTags: string[];

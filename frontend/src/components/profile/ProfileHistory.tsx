@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import apiFetch from "../../utils/apiFetch";
-import { recallRatingInfo } from "../../test/data";
+import { recallRatingInfo } from "@/shared/data";
 
 interface StudyHistoryItem {
     Id: string;

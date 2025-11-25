@@ -1,12 +1,12 @@
 import { motion } from "framer-motion";
 import { Brain, ArrowRight, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "../../../shared/ui/Button";
+import { Button } from "@/shared/ui/Button";
 import GridMotion from "../../GridMotion";
 import RotatingText from "../../RotatingText";
 import StatCard from "../StatCard";
-import { questions } from "../../../test/testData";
-import type { Stat } from "../../../pages/landing/landingContent";
+import { questions } from "@/shared/data/testData";
+import type { Stat } from "@/pages/landing/landingContent";
 
 interface LandingHeroProps {
     isMobile: boolean;

@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
-import { availableColors } from "../../../test/data";
+import { availableColors } from "@/shared/data";
 
 interface GroupColorSelectorProps {
     selectedColor: string;

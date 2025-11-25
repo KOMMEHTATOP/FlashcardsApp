@@ -5,7 +5,7 @@ import {
     Play,
     type LucideIcon,
 } from "lucide-react";
-import type { GroupType } from "../types/types";
+import type { GroupType } from "@/types/types";
 
 interface GroupHeaderProps {
     group: GroupType;
@@ -27,20 +27,20 @@ interface GroupHeaderProps {
 }
 
 export function GroupHeader({
-                                group,
-                                icon: Icon,
-                                progress,
-                                isSubscriptionView,
-                                isSubscribed,
-                                isPublishing,
-                                submittingSubscription,
-                                publishError,
-                                canPublish,
-                                onTogglePublish,
-                                onToggleSubscription,
-                                onStart,
-                                hasCards = false
-                            }: GroupHeaderProps) {
+    group,
+    icon: Icon,
+    progress,
+    isSubscriptionView,
+    isSubscribed,
+    isPublishing,
+    submittingSubscription,
+    publishError,
+    canPublish,
+    onTogglePublish,
+    onToggleSubscription,
+    onStart,
+    hasCards = false
+}: GroupHeaderProps) {
 
     // Логика отображения кнопки старта
     const showStartButton = hasCards && (!isSubscriptionView || isSubscribed);
@@ -50,9 +50,8 @@ export function GroupHeader({
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className={`relative bg-gradient-to-br ${
-                group.GroupColor || "from-blue-500 to-blue-700"
-            } w-full px-4 sm:px-6 lg:px-8 pt-8 pb-6 overflow-hidden rounded-2xl shadow-xl flex flex-col items-center`}
+            className={`relative bg-gradient-to-br ${group.GroupColor || "from-blue-500 to-blue-700"
+                } w-full px-4 sm:px-6 lg:px-8 pt-8 pb-6 overflow-hidden rounded-2xl shadow-xl flex flex-col items-center`}
         >
             {/* Паттерн фона */}
             <div

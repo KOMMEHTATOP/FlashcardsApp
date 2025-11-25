@@ -1,8 +1,8 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "../../shared/ui/Button";
+import { Button } from "@/shared/ui/Button";
 import { motion } from "framer-motion";
-import type { GroupCardType, RatingValue } from "../../types/types";
-import { colorRatingCard } from "../../test/data";
+import type { GroupCardType, RatingValue } from "@/types/types";
+import { colorRatingCard } from "@/shared/data";
 
 interface NavigationLessonsProps {
   flashcards: GroupCardType[];
@@ -55,12 +55,10 @@ export default function NavigationLessons({
             animate={{ scale: 1 }}
             transition={{ delay: index * 0.05 }}
             onClick={() => handleSelect(index)}
-            className={`w-3 h-3 rounded-full cursor-pointer ${
-              colorRatingCard[rating[card.CardId] || 0]
-            } ${
-              index === currentCardIndex &&
+            className={`w-3 h-3 rounded-full cursor-pointer ${colorRatingCard[rating[card.CardId] || 0]
+              } ${index === currentCardIndex &&
               "border-1 border-white shadow shadow-white"
-            }`}
+              }`}
           />
         ))}
       </div>
@@ -88,12 +86,10 @@ export default function NavigationLessons({
           <div
             key={index}
             onClick={() => handleSelect(index)}
-            className={`w-3 h-3 rounded-full cursor-pointer ${
-              colorRatingCard[rating[card.LastRating] || 0]
-            } ${
-              index === currentCardIndex &&
+            className={`w-3 h-3 rounded-full cursor-pointer ${colorRatingCard[rating[card.LastRating] || 0]
+              } ${index === currentCardIndex &&
               "border-1 border-white shadow shadow-white"
-            }`}
+              }`}
           />
         ))}
       </div>

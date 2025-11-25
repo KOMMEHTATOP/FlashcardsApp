@@ -1,6 +1,6 @@
 import { Globe } from "lucide-react";
 import type { GroupType } from "../../types/types";
-import { availableIcons } from "../../test/data";
+import { availableIcons } from "@/shared/data";
 
 interface ProfileDecksProps {
     groups: GroupType[] | undefined;

@@ -9,21 +9,21 @@ import {
     Library
 } from "lucide-react";
 import { Helmet } from "react-helmet-async";
-import { useMemo, useState, useRef } from "react"; 
+import { useMemo, useState, useRef } from "react";
 import { AnimatePresence } from "framer-motion";
 
-import LevelCard from "../components/cards/Level_card";
-import StateCard from "../components/cards/State_card";
-import MotivationCard from "../components/cards/Motivation_card";
-import SettingModal from "../components/modal/SettingModal";
-import GroupForm from "../components/modal/GroupForm";
+import LevelCard from "@/components/cards/Level_card";
+import StateCard from "@/components/cards/State_card";
+import MotivationCard from "@/components/cards/Motivation_card";
+import SettingModal from "@/components/modal/SettingModal";
+import GroupForm from "@/features/groups/ui/GroupForm";
 
-import { LessonsTab } from "../components/tabs/LessonsTab";
-import { StoreTab } from "../components/tabs/StoreTab";
-import { AchievementsTab } from "../components/tabs/AchievementsTab";
+import { LessonsTab } from "@/components/tabs/LessonsTab";
+import { StoreTab } from "@/components/tabs/StoreTab";
+import { AchievementsTab } from "@/components/tabs/AchievementsTab";
 
-import { useData } from "../context/DataContext";
-import formatTotalHour from "../utils/formatTotalHour";
+import { useData } from "@/context/DataContext";
+import formatTotalHour from "@/utils/formatTotalHour";
 
 const modulePage = [
     { name: "Мои колоды" },
@@ -159,9 +159,8 @@ export function HomePage() {
                 >
                     <button
                         role="tab"
-                        className={`tab gap-2 transition-all duration-300 ${
-                            currentModul === 0 ? "tab-active bg-base-100 font-medium" : "opacity-60"
-                        }`}
+                        className={`tab gap-2 transition-all duration-300 ${currentModul === 0 ? "tab-active bg-base-100 font-medium" : "opacity-60"
+                            }`}
                         onClick={() => selectModul("Мои колоды")}
                     >
                         <BookOpen className="h-5 w-5" />
@@ -169,9 +168,8 @@ export function HomePage() {
                     </button>
                     <button
                         role="tab"
-                        className={`tab gap-2 transition-all duration-300 ${
-                            currentModul === 1 ? "tab-active bg-base-100 font-medium" : "opacity-60"
-                        }`}
+                        className={`tab gap-2 transition-all duration-300 ${currentModul === 1 ? "tab-active bg-base-100 font-medium" : "opacity-60"
+                            }`}
                         onClick={() => selectModul("Библиотека")}
                     >
                         <Library className="h-5 w-5" />
@@ -179,9 +177,8 @@ export function HomePage() {
                     </button>
                     <button
                         role="tab"
-                        className={`tab gap-2 transition-all duration-300 ${
-                            currentModul === 2 ? "tab-active bg-base-100 font-medium" : "opacity-60"
-                        }`}
+                        className={`tab gap-2 transition-all duration-300 ${currentModul === 2 ? "tab-active bg-base-100 font-medium" : "opacity-60"
+                            }`}
                         onClick={() => selectModul("Достижения")}
                     >
                         <Medal className="h-5 w-5" />
@@ -193,7 +190,7 @@ export function HomePage() {
                 {isOpenSetting && (
                     <SettingModal
                         handleCancel={handleCloseSetting}
-                        handleSave={() => {}}
+                        handleSave={() => { }}
                     />
                 )}
 

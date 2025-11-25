@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 import type { RatingValue } from "../../../types/types";
-import { recallRatingInfo } from "../../../test/data";
+import { recallRatingInfo } from "@/shared/data";
 import { RecallStar } from "./RecallStar";
 
 interface RecallRatingProps {
@@ -12,11 +12,11 @@ interface RecallRatingProps {
 }
 
 export const RecallRating = ({
-                                 disabled = false,
-                                 value,
-                                 onChange,
-                                 size = 8,
-                             }: RecallRatingProps) => {
+    disabled = false,
+    value,
+    onChange,
+    size = 8,
+}: RecallRatingProps) => {
     const [hoverValue, setHoverValue] = useState<RatingValue | null>(null);
     const displayedValue = hoverValue ?? value;
 
@@ -43,11 +43,10 @@ export const RecallRating = ({
                 initial={{ opacity: 0, y: -5 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2 }}
-                className={`font-medium transition-all duration-300 ease-in-out h-6 ${
-                    displayedValue === 5
+                className={`font-medium transition-all duration-300 ease-in-out h-6 ${displayedValue === 5
                         ? "text-yellow-500 drop-shadow-[0_0_6px_rgba(255,215,0,0.6)] text-2xl"
                         : "text-base-content/50 text-lg"
-                }`}
+                    }`}
             >
                 {recallRatingInfo[displayedValue] ?? "Оцените, насколько запомнили"}
             </motion.span>

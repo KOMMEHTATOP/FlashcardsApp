@@ -2,12 +2,12 @@ import { motion } from "framer-motion";
 import { Store, ChevronLeft, ChevronRight, BookHeartIcon } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import apiFetch from "../../utils/apiFetch";
-import type { PublicGroupDto, TagDto } from "../../types/types";
-import PublicGroupCard from "../cards/PublicGroupCard";
-import { availableIcons } from "../../test/data";
-import { useData } from "../../context/DataContext";
-import { SearchFilterBar, type SortOption } from "../filters/SearchFilterBar";
+import apiFetch from "@/utils/apiFetch";
+import type { PublicGroupDto, TagDto } from "@/types/types";
+import PublicGroupCard from "@/features/groups/ui/PublicGroupCard";
+import { availableIcons } from "@/shared/data";
+import { useData } from "@/context/DataContext";
+import { SearchFilterBar, type SortOption } from "@/components/filters/SearchFilterBar";
 
 const ITEMS_PER_PAGE = 12;
 

@@ -1,11 +1,11 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { BookHeartIcon, Trophy, Lock, ArrowRight } from "lucide-react";
-import type { GroupCardType, GroupType } from "../types/types";
-import { CardQuestion } from "../shared/ui/CardQuestion";
-import AddFlashcardForm from "../components/modal/AddFlashcardForm";
+import type { GroupCardType, GroupType } from "@/types/types";
+import { CardQuestion } from "@/shared/ui/CardQuestion";
+import AddFlashcardForm from "@/components/modal/AddFlashcardForm";
 import type { Dispatch, SetStateAction } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "../shared/ui/Button";
+import { Button } from "@/shared/ui/Button";
 
 interface CardsListProps {
     cards: GroupCardType[];
@@ -15,7 +15,7 @@ interface CardsListProps {
     onDeleteCard?: (card: GroupCardType) => void;
     onEditCard?: (card: GroupCardType) => void;
     blurAfterIndex?: number;
-    isAuthenticated?: boolean; 
+    isAuthenticated?: boolean;
     addCardFormProps?: {
         isOpen: boolean;
         question: string;
@@ -32,16 +32,16 @@ interface CardsListProps {
 }
 
 export function CardsList({
-                              cards,
-                              group,
-                              isSubscriptionView,
-                              onCardClick,
-                              onDeleteCard,
-                              onEditCard,
-                              addCardFormProps,
-                              blurAfterIndex,
-                              isAuthenticated,
-                          }: CardsListProps) {
+    cards,
+    group,
+    isSubscriptionView,
+    onCardClick,
+    onDeleteCard,
+    onEditCard,
+    addCardFormProps,
+    blurAfterIndex,
+    isAuthenticated,
+}: CardsListProps) {
     const navigate = useNavigate();
     const completedCount = cards.filter((item) => item.LastRating > 0).length;
     const showLockedContent = blurAfterIndex !== undefined && cards.length > blurAfterIndex;

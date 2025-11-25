@@ -1,4 +1,4 @@
-import { TITLE_APP } from "../../test/data";
+import { TITLE_APP } from "@/shared/data";
 
 export const LandingHelmet = () => {
     return (

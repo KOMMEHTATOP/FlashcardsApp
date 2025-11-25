@@ -1,17 +1,18 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, BookHeartIcon, BowArrowIcon, Trophy } from "lucide-react";
-import MotivationCard from "../components/cards/Motivation_card";
-import { useData } from "../context/DataContext";
-import useTitle from "../utils/useTitle";
-import apiFetch from "../utils/apiFetch";
-import SkeletonGroupDetail from "../components/StudySkeleton";
-import { availableIcons } from "../test/data";
-import { useGroupData } from "../hooks/useGroupData";
-import { GroupHeader } from "../components/GroupHeader";
-import { CardsList } from "../components/CardsList";
-import { useAuth } from "../context/AuthContext";
-import LessonPlayer from "../pages/LessonPlayer"; // 1. Импорт плеера
+import MotivationCard from "@/components/cards/Motivation_card";
+import { useData } from "@/context/DataContext";
+import useTitle from "@/utils/useTitle";
+import apiFetch from "@/utils/apiFetch";
+import SkeletonGroupDetail from "@/components/StudySkeleton";
+import { availableIcons } from "@/shared/data";
+import { useGroupData } from "@/features/groups/model/useGroupData";
+import { GroupHeader } from "@/features/groups/ui/GroupHeader";
+import { CardsList } from "@/components/CardsList";
+import { useAuth } from "@/context/AuthContext";
+import LessonPlayer from "@/pages/LessonPlayer";
+import type { GroupType } from "@/types/types";
 
 export default function SubscriberGroupPage() {
     const {
@@ -62,7 +63,7 @@ export default function SubscriberGroupPage() {
         try {
             if (isSubscribed) {
                 await apiFetch.delete(`/Subscriptions/${group.Id}/subscribe`);
-                setGroup((prev) =>
+                setGroup((prev: GroupType | null) =>
                     prev
                         ? {
                             ...prev,
@@ -72,7 +73,7 @@ export default function SubscriberGroupPage() {
                 );
             } else {
                 await apiFetch.post(`/Subscriptions/${group.Id}/subscribe`);
-                setGroup((prev) =>
+                setGroup((prev: GroupType | null) =>
                     prev
                         ? {
                             ...prev,
@@ -124,7 +125,7 @@ export default function SubscriberGroupPage() {
                     submittingSubscription={submittingSubscription}
                     publishError={null}
                     canPublish={false}
-                    onTogglePublish={async () => {}}
+                    onTogglePublish={async () => { }}
                     onToggleSubscription={handleToggleSubscription}
                     onStart={handleStartLearning}
                     hasCards={cards.length > 0}
@@ -140,8 +141,8 @@ export default function SubscriberGroupPage() {
                     // Теперь список карточек ведет себя как "Аккордеон" (разворачивается вниз),
                     // а обучение запускается только кнопкой в шапке.
 
-                    onDeleteCard={() => {}}
-                    onEditCard={() => {}}
+                    onDeleteCard={() => { }}
+                    onEditCard={() => { }}
                     addCardFormProps={{
                         isOpen: false,
                         question: "",
@@ -150,10 +151,10 @@ export default function SubscriberGroupPage() {
                         error: "",
                         isUpdateCard: false,
                         onAddCard: async () => false,
-                        onNewCard: () => {},
-                        onCloseModal: () => {},
-                        setQuestion: () => {},
-                        setAnswer: () => {},
+                        onNewCard: () => { },
+                        onCloseModal: () => { },
+                        setQuestion: () => { },
+                        setAnswer: () => { },
                     }}
                 />
 
@@ -163,9 +164,8 @@ export default function SubscriberGroupPage() {
                         animatedDelay={4}
                         icon={Trophy}
                         label="У тебя отлично получается!"
-                        description={`Пройдите еще ${
-                            cards.filter((item) => !item.completed).length
-                        } урока, чтобы получить итоговую оценку и заработать 500 бонусных очков опыта!`}
+                        description={`Пройдите еще ${cards.filter((item) => !item.completed).length
+                            } урока, чтобы получить итоговую оценку и заработать 500 бонусных очков опыта!`}
                         textIcon={BowArrowIcon}
                         gradient={group.GroupColor || ""}
                         delay={0.6}

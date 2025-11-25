@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
-import { Card } from "../../shared/ui/Card";
-import { recallRatingInfo } from "../../test/data";
+import { Card } from "@/shared/ui/Card";
+import { recallRatingInfo } from "@/shared/data";
 
 interface GradientState {
   [key: number]: string;
@@ -36,9 +36,8 @@ export default function StateLessens({
           transition={{ duration: 0.5, delay: index * 0.1 }}
         >
           <Card
-            className={`p-4 text-center bg-gradient-to-br border-none shadow-lg ${
-              gradinetState[index + 1]
-            }`}
+            className={`p-4 text-center bg-gradient-to-br border-none shadow-lg ${gradinetState[index + 1]
+              }`}
           >
             <div className="text-xl text-white mb-1 text-number">
               {values.filter((val) => val === index + 1).length || 0}

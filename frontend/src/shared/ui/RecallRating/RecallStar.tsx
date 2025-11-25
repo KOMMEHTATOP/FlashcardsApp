@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import type { RatingValue } from "../../../types/types";
-import { colorRatingCard } from "../../../test/data";
+import { colorRatingCard } from "@/shared/data";
 
 interface RecallStarProps {
     num: number;
@@ -15,15 +15,15 @@ interface RecallStarProps {
 }
 
 export const RecallStar: React.FC<RecallStarProps> = ({
-                                                          num,
-                                                          value,
-                                                          hoverValue,
-                                                          displayedValue,
-                                                          disabled,
-                                                          size,
-                                                          onChange,
-                                                          onHover,
-                                                      }) => {
+    num,
+    value,
+    hoverValue,
+    displayedValue,
+    disabled,
+    size,
+    onChange,
+    onHover,
+}) => {
     const active = hoverValue ? num <= hoverValue : num <= value;
     const isMax = value === 5 && active;
 
@@ -53,11 +53,10 @@ export const RecallStar: React.FC<RecallStarProps> = ({
                         : {}
             }
             transition={{ duration: 0.3 }}
-            className={`mask mask-star-2 cursor-pointer transition-all duration-150 group-hover:opacity-70 ${
-                active
+            className={`mask mask-star-2 cursor-pointer transition-all duration-150 group-hover:opacity-70 ${active
                     ? colorRatingCard[displayedValue as RatingValue]
                     : "bg-gray-300 dark:bg-gray-600"
-            }`}
+                }`}
             checked={value === num}
             onChange={() => onChange(num as RatingValue)}
             onMouseEnter={() => onHover(num as RatingValue)}

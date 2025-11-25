@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
-import { availableIcons } from "../../../test/data";
+import { availableIcons } from "@/shared/data";
 
 interface GroupIconSelectorProps {
     selectedIconIndex: number;
@@ -89,14 +89,14 @@ export function GroupIconSelector({
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                             className={`w-24 h-24 flex flex-col items-center justify-center p-2 rounded-xl border-2 transition-all shrink-0 ${selectedIconIndex === index
-                                    ? "border-purple-500 bg-purple-50 shadow-md"
-                                    : "border-gray-100 bg-white hover:border-purple-200"
+                                ? "border-purple-500 bg-purple-50 shadow-md"
+                                : "border-gray-100 bg-white hover:border-purple-200"
                                 }`}
                         >
                             <item.icon
                                 className={`w-8 h-8 mb-2 ${selectedIconIndex === index
-                                        ? "text-purple-600"
-                                        : "text-gray-400"
+                                    ? "text-purple-600"
+                                    : "text-gray-400"
                                     }`}
                             />
                             <p className={`text-[10px] text-center leading-tight line-clamp-2 w-full ${selectedIconIndex === index ? "text-purple-700 font-medium" : "text-gray-500"

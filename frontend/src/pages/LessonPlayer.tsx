@@ -2,15 +2,14 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Brain } from "lucide-react";
 
-import type { RatingValue } from "../types/types";
-import { RecallRating } from "../shared/ui/RecallRating";
+import type { RatingValue } from "@/types/types";
+import { RecallRating } from "@/shared/ui/RecallRating/RecallRating";
 
-import Celebration from "../components/lessons/Celebration";
-import StateLessens from "../components/lessons/StateLessens";
-import {HeaderLessons} from "../shared/ui/widgets/HeaderLessons";
-import NavigationLessons from "../components/lessons/NavigationLessons";
-import MainCardLessens from "../components/lessons/StudyFlashcard";
-import { useData } from "../context/DataContext";
+import Celebration from "@/features/game/ui/Celebration";
+import { HeaderLessons } from "@/shared/ui/widgets/HeaderLessons";
+import NavigationLessons from "@/features/game/ui/NavigationLessons";
+import MainCardLessens from "@/features/game/ui/StudyFlashcard";
+import { useData } from "@/context/DataContext";
 
 interface LessonPlayerProps {
     lessonTitle: string;
@@ -21,12 +20,12 @@ interface LessonPlayerProps {
 }
 
 export default function LessonPlayer({
-                                         lessonTitle,
-                                         subjectColor,
-                                         initialIndex,
-                                         onComplete,
-                                         onBack,
-                                     }: LessonPlayerProps) {
+    lessonTitle,
+    subjectColor,
+    initialIndex,
+    onComplete,
+    onBack,
+}: LessonPlayerProps) {
     const { currentLesson, questionAnswered } = useData();
 
     const [currentCardIndex, setCurrentCardIndex] = useState(initialIndex || 0);
@@ -170,8 +169,8 @@ export default function LessonPlayer({
                             className={`w-5 h-5 bg-gradient-to-r ${subjectColor} bg-clip-text`}
                         />
                         <span className="text-base-content">
-              Карточка {currentCardIndex + 1} из {currentLesson?.length || 0}
-            </span>
+                            Карточка {currentCardIndex + 1} из {currentLesson?.length || 0}
+                        </span>
                     </motion.div>
                 </div>
 
@@ -198,9 +197,8 @@ export default function LessonPlayer({
                 {/* кнопки */}
                 <AnimatePresence mode="wait">
                     <div
-                        className={`${
-                            isFlipped ? "h-30" : "h-10"
-                        } transition-all duration-500 ease-in-out `}
+                        className={`${isFlipped ? "h-30" : "h-10"
+                            } transition-all duration-500 ease-in-out `}
                     >
                         {isFlipped && (
                             <motion.div
@@ -213,30 +211,24 @@ export default function LessonPlayer({
                                     Насколько верно вы ответили?
                                 </p>
                                 <RecallRating
-                                    disabled={answeredCards.has(currentCard.CardId)}
+                                    onChange={handleAnswer}
                                     value={rating[currentCard.CardId] || 0}
-                                    onChange={(val: number) => handleAnswer(val as RatingValue)}
-                                    size={10}
+                                    disabled={false}
                                 />
                             </motion.div>
-                        )}
-
-                        {/* навигация */}
-                        {!isFlipped && (
-                            <NavigationLessons
-                                flashcards={currentLesson?.cards || []}
-                                currentCardIndex={currentCardIndex}
-                                rating={rating}
-                                handlePrev={handlePrev}
-                                handleNext={handleNext}
-                                handleSelect={handleSelect}
-                            />
                         )}
                     </div>
                 </AnimatePresence>
 
-                {/* статистика */}
-                <StateLessens values={values} total={calculateOverallScore(rating)} />
+                {/* навигация */}
+                <NavigationLessons
+                    flashcards={currentLesson?.cards || []}
+                    currentCardIndex={currentCardIndex}
+                    rating={rating}
+                    handlePrev={handlePrev}
+                    handleNext={handleNext}
+                    handleSelect={handleSelect}
+                />
             </div>
         </div>
     );

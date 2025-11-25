@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Home, Search, BookOpen, AlertCircle, CompassIcon } from "lucide-react";
-import { Button } from "../shared/ui/Button";
+import { Button } from "@/shared/ui/Button";
 import { useNavigate } from "react-router-dom";
 
 interface NotFoundPageProps {

@@ -1,14 +1,14 @@
 import { motion } from "framer-motion";
-import { useData } from "../context/DataContext";
+import { useData } from "@/context/DataContext";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { ShieldAlert } from "lucide-react";
-import { ProfileHeader } from "../components/profile/ProfileHeader";
-import { ProfileStats } from "../components/profile/ProfileStats";
-import { ProfileStreak } from "../components/profile/ProfileStreak";
-import { ProfileAchievements } from "../components/profile/ProfileAchievements";
-import { ProfileDecks } from "../components/profile/ProfileDecks";
-import { ProfileHistory } from "../components/profile/ProfileHistory";
+import { ProfileHeader } from "@/components/profile/ProfileHeader";
+import { ProfileStats } from "@/components/profile/ProfileStats";
+import { ProfileStreak } from "@/components/profile/ProfileStreak";
+import { ProfileAchievements } from "@/components/profile/ProfileAchievements";
+import { ProfileDecks } from "@/components/profile/ProfileDecks";
+import { ProfileHistory } from "@/components/profile/ProfileHistory";
 
 export function ProfilePage() {
     const { user, achivment, groups } = useData();

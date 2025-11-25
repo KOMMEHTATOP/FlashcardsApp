@@ -6,7 +6,7 @@ import React, {
     useState,
 } from "react";
 import { useNavigate } from "react-router-dom";
-import apiFetch, { setUnauthorizedCallback, setAuthToken, removeAuthToken } from "../utils/apiFetch";
+import apiFetch, { setUnauthorizedCallback, setAuthToken, removeAuthToken } from "@/utils/apiFetch";
 
 interface AuthContextType {
     isAuthenticated: boolean;

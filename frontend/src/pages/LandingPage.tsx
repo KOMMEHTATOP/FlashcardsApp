@@ -10,7 +10,7 @@ import { LandingGamification } from "../components/landing/sections/LandingGamif
 import { LandingHero } from "../components/landing/sections/LandingHero";
 import { LandingHowItWorks } from "../components/landing/sections/LandingHowItWorks";
 import { useAuth } from "../context/AuthContext";
-import { Header } from "../shared/ui/widgets/Header";
+import { Header } from "@/shared/ui/widgets/Header";
 import { LandingContentService } from "./landing/landingContent";
 
 export default function LandingPage() {

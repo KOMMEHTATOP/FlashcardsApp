@@ -1,8 +1,8 @@
 import { Brain, LogOut, UserRound } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
-import type { UserData } from "../../../../types/types"; 
-import { TITLE_APP } from "../../../../test/data"; 
+import type { UserData } from "../../../../types/types";
+import { TITLE_APP } from "@/shared/data";
 
 interface HeaderProps {
     user: UserData | undefined;
@@ -62,8 +62,8 @@ export function Header({ user, onLogout, className }: HeaderProps) {
                                         <UserRound className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                                     </div>
                                     <span className="hidden sm:inline text-base-content font-medium text-sm sm:text-base">
-            {user?.Login || user?.Email}
-        </span>
+                                        {user?.Login || user?.Email}
+                                    </span>
                                 </motion.div>
                             </Link>
 

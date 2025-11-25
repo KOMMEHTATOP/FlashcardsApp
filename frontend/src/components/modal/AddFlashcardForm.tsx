@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
-import { Button, ButtonCircle } from "../../shared/ui/Button";
+import { Button, ButtonCircle } from "@/shared/ui/Button";
 import { CheckCircle, Plus, Sparkles, X } from "lucide-react";
-import { RichTextEditor } from "../../shared/ui/RichTextEditor";
+import { RichTextEditor } from "@/shared/ui/RichTextEditor";
+import React from "react";
 
 // --- ТИПЫ ---
 interface AddFlashcardFormProps {
@@ -21,19 +22,19 @@ interface AddFlashcardFormProps {
 }
 
 export default function AddFlashcardForm({
-                                             subjectColor,
-                                             handleAddCard,
-                                             question,
-                                             answer,
-                                             setQuestion,
-                                             setAnswer,
-                                             isOpen,
-                                             handleNewCard,
-                                             handleCloseModal,
-                                             loading,
-                                             isUpdateCard,
-                                             error,
-                                         }: AddFlashcardFormProps) {
+    subjectColor,
+    handleAddCard,
+    question,
+    answer,
+    setQuestion,
+    setAnswer,
+    isOpen,
+    handleNewCard,
+    handleCloseModal,
+    loading,
+    isUpdateCard,
+    error,
+}: AddFlashcardFormProps) {
 
     // --- ЛОГИКА ---
     const handleSubmit = async () => {

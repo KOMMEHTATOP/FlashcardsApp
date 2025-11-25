@@ -1,9 +1,9 @@
-import { floatingIcons, recallRatingInfo } from "../../test/data";
+import { floatingIcons, recallRatingInfo } from "@/shared/data";
 import { motion } from "framer-motion";
-import { Card } from "../../shared/ui/Card";
+import { Card } from "@/shared/ui/Card";
 import { PartyPopperIcon, Trophy, Zap } from "lucide-react";
-import { Button } from "../../shared/ui/Button";
-import getMotivationText from "../../utils/getMotivationText";
+import { Button } from "@/shared/ui/Button";
+import getMotivationText from "@/utils/getMotivationText";
 
 interface CelebrationProps {
   subjectColor: string;

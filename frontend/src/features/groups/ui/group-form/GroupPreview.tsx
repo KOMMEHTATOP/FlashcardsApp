@@ -1,5 +1,5 @@
-import { Card } from "../../../shared/ui/Card";
-import { availableIcons } from "../../../test/data";
+import { Card } from "@/shared/ui/Card";
+import { availableIcons } from "@/shared/data";
 
 interface GroupPreviewProps {
     name: string;

@@ -1,18 +1,18 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import type { ConfrimModalState, GroupCardType } from "../types/types";
+import type { ConfrimModalState, GroupCardType } from "@/types/types";
 import { ArrowLeft, BookHeartIcon, BowArrowIcon, Trophy } from "lucide-react";
-import MotivationCard from "../components/cards/Motivation_card";
-import { useData } from "../context/DataContext";
-import useTitle from "../utils/useTitle";
-import apiFetch from "../utils/apiFetch";
-import SkeletonGroupDetail from "../components/StudySkeleton";
-import { availableIcons } from "../test/data";
-import { errorFormater } from "../utils/errorFormater";
-import { useGroupData } from "../hooks/useGroupData";
-import { GroupHeader } from "../components/GroupHeader";
-import { CardsList } from "../components/CardsList";
-import LessonPlayer from "../pages/LessonPlayer"; // Импорт плеера
+import MotivationCard from "@/components/cards/Motivation_card";
+import { useData } from "@/context/DataContext";
+import useTitle from "@/utils/useTitle";
+import apiFetch from "@/utils/apiFetch";
+import SkeletonGroupDetail from "@/components/StudySkeleton";
+import { availableIcons } from "@/shared/data";
+import { errorFormater } from "@/utils/errorFormater";
+import { useGroupData } from "@/features/groups/model/useGroupData";
+import { GroupHeader } from "@/features/groups/ui/GroupHeader";
+import { CardsList } from "@/components/CardsList";
+import LessonPlayer from "@/pages/LessonPlayer"; // Импорт плеера
 
 export default function OwnerGroupPage() {
     const {
@@ -178,7 +178,7 @@ export default function OwnerGroupPage() {
                 publishError={publishError}
                 canPublish={canPublish}
                 onTogglePublish={handleTogglePublish}
-                onToggleSubscription={async () => {}}
+                onToggleSubscription={async () => { }}
                 onStart={handleStartLearning}
                 hasCards={cards.length > 0}
             />

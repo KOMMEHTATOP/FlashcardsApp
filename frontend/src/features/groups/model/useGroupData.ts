@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useLocation } from "react-router-dom";
-import type { GroupCardType, GroupType } from "../types/types";
-import apiFetch from "../utils/apiFetch";
+import type { GroupCardType, GroupType } from "@/types/types";
+import apiFetch from "@/utils/apiFetch";
 
 interface GroupDetailDto extends GroupType {
     IsSubscribed?: boolean;

@@ -1,8 +1,8 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { BadgeCard } from "../../shared/ui/BadgeCard";
-import type { AchievementsType } from "../../types/types";
-import apiFetch from "../../utils/apiFetch";
+import { BadgeCard } from "@/shared/ui/BadgeCard";
+import type { AchievementsType } from "@/types/types";
+import apiFetch from "@/utils/apiFetch";
 import { Award } from "lucide-react";
 
 export function AchievementsTab() {

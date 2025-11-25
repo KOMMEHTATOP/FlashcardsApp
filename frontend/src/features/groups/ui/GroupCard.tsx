@@ -8,7 +8,7 @@ import {
     type LucideIcon,
 } from "lucide-react";
 import React from "react";
-import { Button, ButtonCard } from "../../shared/ui/Button";
+import { Button, ButtonCard } from "@/shared/ui/Button";
 
 interface GroupCardProps {
     id: string;
@@ -26,19 +26,19 @@ interface GroupCardProps {
 }
 
 export default function GroupCard({
-                                      id,
-                                      icon: Icon,
-                                      title,
-                                      cardCount,
-                                      gradient,
-                                      onClick,
-                                      onStartLesson,
-                                      onDelete,
-                                      onEdit,
-                                      dragHandleProps,
-                                      isPublished,
-                                      authorName,
-                                  }: GroupCardProps) {
+    id,
+    icon: Icon,
+    title,
+    cardCount,
+    gradient,
+    onClick,
+    onStartLesson,
+    onDelete,
+    onEdit,
+    dragHandleProps,
+    isPublished,
+    authorName,
+}: GroupCardProps) {
     const [pointerStart, setPointerStart] = React.useState<{
         x: number;
         y: number;

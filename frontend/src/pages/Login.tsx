@@ -14,11 +14,11 @@ import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
 
-import { Input } from "../components/ui/input";
-import { Button } from "../shared/ui/Button";
-import { Card } from "../shared/ui/Card";
-import { floatingIcons, TITLE_APP } from "../test/data";
-import { useAuth } from "../context/AuthContext";
+import { Input } from "@/shared/ui/input";
+import { Button } from "@/shared/ui/Button";
+import { Card } from "@/shared/ui/Card";
+import { floatingIcons, TITLE_APP } from "@/shared/data";
+import { useAuth } from "@/context/AuthContext";
 
 export default function LoginPage() {
     const { login: authLogin, register: authRegister, isAuthenticated } = useAuth();
@@ -67,7 +67,7 @@ export default function LoginPage() {
                 .join("\n");
             setError(messages);
         }
-            // 2. Пробуем достать простое сообщение об ошибке (например "User not found")
+        // 2. Пробуем достать простое сообщение об ошибке (например "User not found")
         // Часто сервер присылает строку в поле Message или просто строку
         else if (typeof responseData === "string") {
             setError(responseData);
@@ -207,7 +207,7 @@ export default function LoginPage() {
                         className={`p-8 backdrop-blur-xl bg-white/80 border-2 border-purple-300 shadow-2xl rounded-xl overflow-hidden transition-all duration-300 ${selectedBlock === "login"
                             ? (hasError ? "h-130" : "h-110")
                             : (hasError ? "h-140" : "h-130")
-                        }`}
+                            }`}
                     >
                         <div className="space-y-4">
                             <div className="overflow-hidden grid w-full grid-cols-2 bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/50 dark:to-pink-900/50 rounded-2xl p-1 relative">
@@ -221,7 +221,7 @@ export default function LoginPage() {
                                 </div>
                                 <div
                                     className={`transition-all items-center justify-center flex p-1 z-10 cursor-pointer hover:bg-white/10 rounded-2xl font-medium ${selectedBlock === "login" ? "text-white" : "text-gray-900"
-                                    }`}
+                                        }`}
                                     onClick={() => handleSelect("login")}
                                 >
                                     Вход
@@ -230,7 +230,7 @@ export default function LoginPage() {
                                     className={`transition-all items-center justify-center flex p-1 z-10 cursor-pointer hover:bg-white/10 rounded-2xl font-medium ${selectedBlock === "register"
                                         ? "text-white"
                                         : "text-gray-900"
-                                    }`}
+                                        }`}
                                     onClick={() => handleSelect("register")}
                                 >
                                     Регистрация

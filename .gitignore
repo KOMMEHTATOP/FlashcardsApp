@@ -100,3 +100,9 @@ $RECYCLE.BIN/
 *.pem
 *.crt
 *.cer
+
+# ===========================================
+# LOCAL IDE & AI SETTINGS
+# ===========================================
+.antigravity/
+.cursorrules

@@ -18,25 +18,25 @@ import { CSS } from "@dnd-kit/utilities";
 import { AnimatePresence, motion } from "framer-motion";
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useData } from "../context/DataContext";
+import { useData } from "@/context/DataContext";
 import type {
     ConfrimModalState,
     GroupCardType,
     GroupType,
-} from "../types/types";
+} from "@/types/types";
 import { BookHeartIcon, Check, Plus } from "lucide-react";
-import GroupForm from "./modal/GroupForm";
-import apiFetch from "../utils/apiFetch";
-import { Card } from "../shared/ui/Card";
-import shuffleArray from "../utils/shuffleArray";
-import { availableIcons } from "../test/data";
-import GroupCard from "../../src/components/cards/GroupCard";
+import GroupForm from "./GroupForm";
+import apiFetch from "@/utils/apiFetch";
+import { Card } from "@/shared/ui/Card";
+import shuffleArray from "@/utils/shuffleArray";
+import { availableIcons } from "@/shared/data";
+import GroupCard from "./GroupCard";
 
 export function SortableItem({
-                                 id,
-                                 children,
-                                 isEditMode = false,
-                             }: {
+    id,
+    children,
+    isEditMode = false,
+}: {
     id: string;
     children: React.ReactElement<any>;
     index: number;
@@ -82,8 +82,8 @@ export function SortableItem({
 }
 
 export default function SortableList({
-                                         initalItems,
-                                     }: {
+    initalItems,
+}: {
     initalItems: GroupType[];
 }) {
     const [items, setItems] = useState(initalItems);

@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { GalleryVerticalEndIcon, Users, Eye, UserMinus, UserPlus, type LucideIcon } from "lucide-react";
 import React from "react";
-import { Button } from "../../shared/ui/Button";
+import { Button } from "@/shared/ui/Button";
 
 interface PublicGroupCardProps {
     id: string;
@@ -19,19 +19,19 @@ interface PublicGroupCardProps {
 }
 
 export default function PublicGroupCard({
-                                            id,
-                                            icon,
-                                            title,
-                                            cardCount,
-                                            subscriberCount,
-                                            authorName,
-                                            gradient,
-                                            createdAt,
-                                            isSubscribed = false,
-                                            onView,
-                                            onSubscribe,
-                                            onUnsubscribe,
-                                        }: PublicGroupCardProps) {
+    id,
+    icon,
+    title,
+    cardCount,
+    subscriberCount,
+    authorName,
+    gradient,
+    createdAt,
+    isSubscribed = false,
+    onView,
+    onSubscribe,
+    onUnsubscribe,
+}: PublicGroupCardProps) {
     const [pointerStart, setPointerStart] = React.useState<{
         x: number;
         y: number;
@@ -144,11 +144,10 @@ export default function PublicGroupCard({
                             data-action="subscribe"
                             variant="accent"
                             size="sm"
-                            className={`rounded-xl flex-1 flex items-center justify-center gap-2 ${
-                                isSubscribed
+                            className={`rounded-xl flex-1 flex items-center justify-center gap-2 ${isSubscribed
                                     ? 'bg-red-500/80 hover:bg-red-600/80'
                                     : ''
-                            }`}
+                                }`}
                         >
                             {isSubscribed ? (
                                 <>

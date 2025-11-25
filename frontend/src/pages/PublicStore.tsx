@@ -1,10 +1,10 @@
 import { motion } from "framer-motion";
-import { StoreTab } from "../components/tabs/StoreTab";
-import { Header } from "../shared/ui/widgets/Header";
-import Footer from "../components/Footer";
-import { useAuth } from "../context/AuthContext";
-import { LandingHelmet } from "../components/landing/HelmetLanding";
-import { DataProvider, useData } from "../context/DataContext";
+import { StoreTab } from "@/components/tabs/StoreTab";
+import { Header } from "@/shared/ui/widgets/Header";
+import Footer from "@/components/Footer";
+import { useAuth } from "@/context/AuthContext";
+import { LandingHelmet } from "@/components/landing/HelmetLanding";
+import { DataProvider, useData } from "@/context/DataContext";
 
 // Внутренний компонент, который уже имеет доступ к Context
 function PublicStoreContent() {

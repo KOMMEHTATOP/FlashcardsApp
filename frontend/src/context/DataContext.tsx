@@ -14,9 +14,9 @@ import type {
     SettingType,
     MotivationType,
     CurrentLessonState,
-} from "../types/types";
-import { service } from "../utils/apiService";
-import { useAuth } from "./AuthContext";  
+} from "@/types/types";
+import { service } from "@/utils/apiService";
+import { useAuth } from "@/context/AuthContext";
 
 interface DataContextType {
     user: UserData | undefined;
@@ -44,7 +44,7 @@ interface DataContextType {
 const DataContext = createContext<DataContextType | null>(null);
 
 export function DataProvider({ children }: { children: React.ReactNode }) {
-    const { isAuthenticated, isLoading: authLoading } = useAuth();  
+    const { isAuthenticated, isLoading: authLoading } = useAuth();
 
     const [user, setUser] = useState<UserData>();
     const [setting, setSetting] = useState<SettingType>({
@@ -106,7 +106,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         return () => {
             controller.abort();
         };
-    }, [isAuthenticated, authLoading]); 
+    }, [isAuthenticated, authLoading]);
 
     const handleOpenConfrimModal = useCallback((modal: ConfrimModalState) => {
         setModalConfrimDetail(modal);
