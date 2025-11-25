@@ -1,18 +1,18 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, BookHeartIcon, BowArrowIcon, Trophy } from "lucide-react";
-import MotivationCard from "@/components/cards/Motivation_card";
+import MotivationCard from "@/features/dashboard/ui/MotivationCard";
 import { useData } from "@/context/DataContext";
-import useTitle from "@/utils/useTitle";
 import apiFetch from "@/utils/apiFetch";
 import SkeletonGroupDetail from "@/shared/ui/skeletons/StudySkeleton";
 import { availableIcons } from "@/shared/data";
 import { useGroupData } from "@/features/groups/model/useGroupData";
-import { GroupHeader } from "@/features/groups/ui/GroupHeader";
-import { CardsList } from "@/features/groups/ui/CardsList";
-import { useAuth } from "@/context/AuthContext";
+import {GroupHeader} from "@/features/groups/ui/GroupHeader";
+import {CardsList} from "@/features/groups/ui/CardsList";
+import {useAuth} from "@/context/AuthContext";
 import LessonPlayer from "@/pages/LessonPlayer";
 import type { GroupType } from "@/types/types";
+import { Seo } from "@/shared/components/Seo/Seo"; 
 
 export default function SubscriberGroupPage() {
     const {
@@ -24,7 +24,6 @@ export default function SubscriberGroupPage() {
         setIsSubscribed,
     } = useGroupData();
 
-    // 2. Достаем состояние текущего урока и функцию завершения
     const { handleSelectLesson, currentLesson, handleCompliteLesson } = useData();
     const { isAuthenticated } = useAuth();
 
@@ -35,11 +34,7 @@ export default function SubscriberGroupPage() {
         const completedCards = cards.filter((card) => card.LastRating > 0).length;
         return (completedCards / cards.length) * 100;
     }, [cards]);
-
-    useTitle(group?.GroupName || "");
-
-    // 3. БЛОК ОТРИСОВКИ ПЛЕЕРА
-    // Если в контексте выбран урок — показываем плеер поверх всего
+    
     if (currentLesson) {
         return (
             <LessonPlayer
@@ -47,7 +42,6 @@ export default function SubscriberGroupPage() {
                 subjectColor={currentLesson.group.GroupColor}
                 initialIndex={currentLesson.initialIndex}
                 onComplete={(earnedXP) => {
-                    // Здесь можно добавить логику модалки успеха или просто выйти
                     console.log("Урок завершен, получено XP:", earnedXP);
                     handleCompliteLesson();
                 }}
@@ -58,7 +52,6 @@ export default function SubscriberGroupPage() {
 
     const handleToggleSubscription = async () => {
         if (!group) return;
-
         setSubmittingSubscription(true);
         try {
             if (isSubscribed) {
@@ -82,7 +75,6 @@ export default function SubscriberGroupPage() {
                         : null
                 );
             }
-
             setIsSubscribed((prev) => !prev);
         } catch (err) {
             console.error("Ошибка при подписке/отписке:", err);
@@ -103,10 +95,28 @@ export default function SubscriberGroupPage() {
         availableIcons.find((icon) => icon.name === group.GroupIcon)?.icon ||
         BookHeartIcon;
 
+    // 1. Берем первые 3-5 вопросов из карточек для формирования "превью" контента
+    const previewTerms = cards
+        .slice(0, 5)                    // Берем первые 5 карточек
+        .map((c) => c.Question)         // Достаем текст вопроса
+        .filter((q) => q && q.length < 50) // (Опционально) Игнорируем слишком длинные вопросы, чтобы не забить всё место
+        .join(", ");                    // Соединяем через запятую
+
+    // 2. Генерируем динамическое описание
+    // Шаблон: "Колода [Название]. [Кол-во] терминов: [Термин1], [Термин2]..."
+    const generatedDescription =
+        `Изучайте набор "${group.GroupName}" (${cards.length} шт). ` +
+        (previewTerms ? `Содержит вопросы: ${previewTerms}...` : `Бесплатные карточки для запоминания.`);
+    
     return (
         <div className="min-h-screen bg-base-300 py-8">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <Seo
+                title={`${group.GroupName} | Flashcards Loop`}
+                description={generatedDescription}
+                type="article"
+            />
 
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <Link
                     to="/"
                     className="text-base-content/70 hover:bg-base-content/10 mb-6 flex items-center rounded px-4 py-2 duration-300 transition w-fit"
@@ -136,11 +146,6 @@ export default function SubscriberGroupPage() {
                     group={group}
                     isSubscriptionView={true}
                     isAuthenticated={isAuthenticated}
-
-                    // 4. ВАЖНО: Мы убрали onCardClick.
-                    // Теперь список карточек ведет себя как "Аккордеон" (разворачивается вниз),
-                    // а обучение запускается только кнопкой в шапке.
-
                     onDeleteCard={() => { }}
                     onEditCard={() => { }}
                     addCardFormProps={{
@@ -165,7 +170,7 @@ export default function SubscriberGroupPage() {
                         icon={Trophy}
                         label="У тебя отлично получается!"
                         description={`Пройдите еще ${cards.filter((item) => !item.completed).length
-                            } урока, чтобы получить итоговую оценку и заработать 500 бонусных очков опыта!`}
+                        } урока, чтобы получить итоговую оценку и заработать 500 бонусных очков опыта!`}
                         textIcon={BowArrowIcon}
                         gradient={group.GroupColor || ""}
                         delay={0.6}
