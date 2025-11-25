@@ -4,7 +4,7 @@ import ThemeSwithcer from "@/shared/ui/ThemeSwitcher";
 import { DataProvider, useData } from "@/context/DataContext";
 import { useAuth } from "@/context/AuthContext";
 import LessonPlayer from "@/pages/LessonPlayer";
-import ConfrimModal from "@/shared/ui/modals/ConfrimModal";
+import ConfrimModal from "@/shared/ui/modals/ConfirmModal";
 import Footer from "@/widgets/Footer";
 
 function AppLayoutContent() {
