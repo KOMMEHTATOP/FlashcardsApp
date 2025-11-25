@@ -3,21 +3,24 @@ import { StoreTab } from "@/features/dashboard/ui/StoreTab";
 import { Header } from "@/shared/ui/widgets/Header";
 import Footer from "@/widgets/Footer";
 import { useAuth } from "@/context/AuthContext";
-import { LandingHelmet } from "@/features/landing/ui/HelmetLanding";
 import { DataProvider, useData } from "@/context/DataContext";
+import { Seo } from "@/shared/components/Seo/Seo"; 
 
-// Внутренний компонент, который уже имеет доступ к Context
 function PublicStoreContent() {
-    // Теперь useData работает, так как мы внутри DataProvider
-    // user будет undefined для гостей, или заполнен для авторизованных
     const { user } = useData();
     const { logout } = useAuth();
 
     return (
         <div className="min-h-screen bg-base-300 flex flex-col">
-            <LandingHelmet />
+            {/* <--- Вставляем SEO для каталога */}
+            <Seo
+                title="Библиотека знаний и каталог колод | FlashcardsLoop"
+                description="Изучайте открытые наборы флеш-карточек от сообщества FlashcardsLoop. 
+                Тысячи вопросов по программированию, английскому и другим предметам. 
+                Бесплатный доступ к знаниям."
+                type="website"
+            />
 
-            {/* Header корректно принимает user | undefined */}
             <Header user={user} onLogout={logout} />
 
             <main className="flex-grow pt-24 px-4 pb-10">
@@ -36,7 +39,6 @@ function PublicStoreContent() {
                             </p>
                         </div>
 
-                        {/* StoreTab внутри себя вызовет useData(), и это сработает */}
                         <StoreTab />
                     </motion.div>
                 </div>

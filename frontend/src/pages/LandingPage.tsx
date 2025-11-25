@@ -3,7 +3,6 @@ import { ArrowUpFromDotIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import Footer from "@/widgets/Footer";
 import FeaturesGrid from "../features/landing/ui/FeatureGrid";
-import { LandingHelmet } from "../features/landing/ui/HelmetLanding";
 import { LandingBenefits } from "../features/landing/ui/sections/LandingBenefits";
 import { LandingCTA } from "../features/landing/ui/sections/LandingCTA";
 import { LandingGamification } from "../features/landing/ui/sections/LandingGamification";
@@ -12,6 +11,7 @@ import { LandingHowItWorks } from "../features/landing/ui/sections/LandingHowItW
 import { useAuth } from "../context/AuthContext";
 import { Header } from "@/shared/ui/widgets/Header";
 import { LandingContentService } from "./landing/landingContent";
+import { Seo } from "@/shared/components/Seo/Seo"; 
 
 export default function LandingPage() {
     const { logout } = useAuth();
@@ -69,7 +69,14 @@ export default function LandingPage() {
 
     return (
         <div className="min-h-screen bg-base-300">
-            <LandingHelmet />
+            {/* <--- 3. Вставляем мощное SEO описание */}
+            <Seo
+                title="FlashcardsLoop — Интервальное повторение и умные карточки"
+                description="Бесплатный сервис для эффективного запоминания информации. 
+                Создавайте свои флеш-карточки, используйте метод интервального повторения и делитесь колодами. 
+                Идеально для изучения языков и программирования."
+                type="website"
+            />
 
             <Header user={mockUserForHeader} onLogout={logout} />
 

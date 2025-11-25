@@ -7,6 +7,7 @@ interface SeoProps {
     type?: 'website' | 'article';
     name?: string;
     img?: string;
+    jsonLd?: string; 
 }
 
 export const Seo = ({
@@ -14,12 +15,10 @@ export const Seo = ({
                         description,
                         type = 'website',
                         name = 'Flashcards Loop',
-                        img
+                        img,
+                        jsonLd 
                     }: SeoProps) => {
     const location = useLocation();
-
-    // Формируем каноническую ссылку (текущий домен + путь без query параметров)
-    // Это говорит гуглу: "Вот эта страница — оригинал", даже если в URL есть ?ref=123
     const canonicalUrl = `https://flashcardsloop.org${location.pathname}`;
 
     return (
@@ -29,7 +28,7 @@ export const Seo = ({
             <meta name='description' content={description} />
             <link rel="canonical" href={canonicalUrl} />
 
-            {/* Open Graph / Facebook / Telegram */}
+            {/* Open Graph */}
             <meta property="og:type" content={type} />
             <meta property="og:title" content={title} />
             <meta property="og:description" content={description} />
@@ -42,6 +41,13 @@ export const Seo = ({
             <meta name="twitter:title" content={title} />
             <meta name="twitter:description" content={description} />
             {img && <meta name="twitter:image" content={img} />}
+
+            {/* <--- Вставляем JSON-LD в head, если он передан */}
+            {jsonLd && (
+                <script type="application/ld+json">
+                    {jsonLd}
+                </script>
+            )}
         </Helmet>
     );
 };

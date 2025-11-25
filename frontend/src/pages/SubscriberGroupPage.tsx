@@ -97,10 +97,10 @@ export default function SubscriberGroupPage() {
 
     // 1. Берем первые 3-5 вопросов из карточек для формирования "превью" контента
     const previewTerms = cards
-        .slice(0, 5)                    // Берем первые 5 карточек
+        .slice(0, 5)                                // Берем первые 5 карточек
         .map((c) => c.Question)         // Достаем текст вопроса
-        .filter((q) => q && q.length < 50) // (Опционально) Игнорируем слишком длинные вопросы, чтобы не забить всё место
-        .join(", ");                    // Соединяем через запятую
+        .filter((q) => q && q.length < 50)  // (Опционально) Игнорируем слишком длинные вопросы, чтобы не забить всё место
+        .join(", ");                                // Соединяем через запятую
 
     // 2. Генерируем динамическое описание
     // Шаблон: "Колода [Название]. [Кол-во] терминов: [Термин1], [Термин2]..."
@@ -108,12 +108,29 @@ export default function SubscriberGroupPage() {
         `Изучайте набор "${group.GroupName}" (${cards.length} шт). ` +
         (previewTerms ? `Содержит вопросы: ${previewTerms}...` : `Бесплатные карточки для запоминания.`);
     
+    // --- ГЕНЕРАЦИЯ JSON-LD ---
+    const jsonLdData = {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": cards.slice(0, 30).map((card) => ({
+            "@type": "Question",
+            "name": card.Question, 
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": card.Answer 
+            }
+        }))
+    };
+
+    const jsonLdString = JSON.stringify(jsonLdData);
+    
     return (
         <div className="min-h-screen bg-base-300 py-8">
             <Seo
                 title={`${group.GroupName} | Flashcards Loop`}
                 description={generatedDescription}
                 type="article"
+                jsonLd={jsonLdString}
             />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
