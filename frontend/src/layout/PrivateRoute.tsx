@@ -1,7 +1,7 @@
 import type { JSX } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Navigate } from "react-router-dom";
-import SkeletonHome from "@/components/SkeletonHome";
+import SkeletonHome from "@/shared/ui/skeletons/SkeletonHome";
 import { DEV } from "@/App";
 
 export function PrivateRoute({ children }: { children: JSX.Element }) {

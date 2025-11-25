@@ -2,17 +2,17 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import type { ConfrimModalState, GroupCardType } from "@/types/types";
 import { ArrowLeft, BookHeartIcon, BowArrowIcon, Trophy } from "lucide-react";
-import MotivationCard from "@/components/cards/Motivation_card";
+import MotivationCard from "@/features/dashboard/ui/MotivationCard";
 import { useData } from "@/context/DataContext";
 import useTitle from "@/utils/useTitle";
 import apiFetch from "@/utils/apiFetch";
-import SkeletonGroupDetail from "@/components/StudySkeleton";
+import SkeletonGroupDetail from "@/shared/ui/skeletons/StudySkeleton";
 import { availableIcons } from "@/shared/data";
 import { errorFormater } from "@/utils/errorFormater";
 import { useGroupData } from "@/features/groups/model/useGroupData";
 import { GroupHeader } from "@/features/groups/ui/GroupHeader";
-import { CardsList } from "@/components/CardsList";
-import LessonPlayer from "@/pages/LessonPlayer"; // Импорт плеера
+import { CardsList } from "@/features/groups/ui/CardsList";
+import LessonPlayer from "@/pages/LessonPlayer"; 
 
 export default function OwnerGroupPage() {
     const {

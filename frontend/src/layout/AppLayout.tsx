@@ -1,11 +1,11 @@
 import { Outlet, useNavigate } from "react-router-dom";
 import { Header } from "@/shared/ui/widgets/Header";
-import ThemeSwithcer from "@/components/ThemeSwitcher";
+import ThemeSwithcer from "@/shared/ui/ThemeSwitcher";
 import { DataProvider, useData } from "@/context/DataContext";
 import { useAuth } from "@/context/AuthContext";
 import LessonPlayer from "@/pages/LessonPlayer";
-import ConfrimModal from "@/components/modal/ConfrimModal";
-import Footer from "@/components/Footer";
+import ConfrimModal from "@/shared/ui/modals/ConfrimModal";
+import Footer from "@/widgets/Footer";
 
 function AppLayoutContent() {
     const { currentLesson, handleCompliteLesson, user, confrimModal } = useData();

@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
-import { StoreTab } from "@/components/tabs/StoreTab";
+import { StoreTab } from "@/features/dashboard/ui/StoreTab";
 import { Header } from "@/shared/ui/widgets/Header";
-import Footer from "@/components/Footer";
+import Footer from "@/widgets/Footer";
 import { useAuth } from "@/context/AuthContext";
-import { LandingHelmet } from "@/components/landing/HelmetLanding";
+import { LandingHelmet } from "@/features/landing/ui/HelmetLanding";
 import { DataProvider, useData } from "@/context/DataContext";
 
 // Внутренний компонент, который уже имеет доступ к Context

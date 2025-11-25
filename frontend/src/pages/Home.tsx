@@ -12,15 +12,15 @@ import { Helmet } from "react-helmet-async";
 import { useMemo, useState, useRef } from "react";
 import { AnimatePresence } from "framer-motion";
 
-import LevelCard from "@/components/cards/Level_card";
-import StateCard from "@/components/cards/State_card";
-import MotivationCard from "@/components/cards/Motivation_card";
-import SettingModal from "@/components/modal/SettingModal";
+import LevelCard from "@/features/profile/ui/LevelСard";
+import StateCard from "@/features/profile/ui/StateСard";
+import MotivationCard from "@/features/dashboard/ui/MotivationCard";
+import SettingModal from "@/shared/ui/modals/SettingModal";
 import GroupForm from "@/features/groups/ui/GroupForm";
 
-import { LessonsTab } from "@/components/tabs/LessonsTab";
-import { StoreTab } from "@/components/tabs/StoreTab";
-import { AchievementsTab } from "@/components/tabs/AchievementsTab";
+import { LessonsTab } from "@/features/dashboard/ui/LessonsTab";
+import { StoreTab } from "@/features/dashboard/ui/StoreTab";
+import { AchievementsTab } from "@/features/dashboard/ui/AchievementsTab";
 
 import { useData } from "@/context/DataContext";
 import formatTotalHour from "@/utils/formatTotalHour";
