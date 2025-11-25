@@ -16,7 +16,7 @@ import { DataProvider } from "./context/DataContext";
 const LandingPage = lazy(() => import("./pages/LandingPage"));
 const PublicStorePage = lazy(() => import("./pages/PublicStore"));
 const AdminPage = lazy(() => import("./pages/AdminPage"));
-const SubscriberGroupPage = lazy(() => import("./pages/SubscriberGroupPage")); // <--- ДОБАВЛЯЕМ НОВЫЙ (ПОДПИСЧИК)
+const SubscriberGroupPage = lazy(() => import("./pages/SubscriberGroupPage")); 
 
 export const DEV = false;
 
