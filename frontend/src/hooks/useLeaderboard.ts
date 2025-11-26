@@ -18,7 +18,6 @@ export const useLeaderboard = () => {
             return;
         }
 
-        // 1. REST запрос
         const fetchInitialData = async () => {
             try {
                 const response = await axios.get(`${API_URL}/leaderboard`, {
@@ -34,25 +33,21 @@ export const useLeaderboard = () => {
 
         fetchInitialData();
 
-        // 2. SignalR Подключение
+        // конфигурация SignalR
         const connection = new signalR.HubConnectionBuilder()
             .withUrl(`${API_URL}/notificationHub`, {
-                accessTokenFactory: () => token,
-                timeout: 120000 // 120 секунд
+                accessTokenFactory: () => token
             })
+            .withServerTimeout(120000) // 120 секунд - КРИТИЧНО!
+            .withKeepAliveInterval(15000) // 15 секунд
             .withAutomaticReconnect([0, 2000, 10000, 30000])
             .configureLogging(signalR.LogLevel.Warning)
             .build();
-
-        // ДОБАВЛЕНО: Настройка таймаутов
-        connection.serverTimeoutInMilliseconds = 120000; // 120 секунд
-        connection.keepAliveIntervalInMilliseconds = 15000; // 15 секунд
 
         connection.on('LeaderboardUpdated', (updatedData: LeaderboardResponseDto) => {
             setData(updatedData);
         });
 
-        // Функция старта
         const startConnection = async () => {
             try {
                 await connection.start();
@@ -73,7 +68,6 @@ export const useLeaderboard = () => {
         startConnection();
         connectionRef.current = connection;
 
-        // Cleanup
         return () => {
             connection.stop();
         };
