@@ -19,7 +19,7 @@ namespace FlashcardsApp.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetLeaderboard()
+        public async Task<IActionResult> GetLeaderboard()  
         {
             var userId = GetCurrentUserId();
             var result = await _leaderboardBL.GetLeaderboardAsync(userId);
