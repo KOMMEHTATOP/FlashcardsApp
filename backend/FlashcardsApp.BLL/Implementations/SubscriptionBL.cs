@@ -14,11 +14,19 @@ public class SubscriptionBL : ISubscriptionBL
 {
     private readonly ApplicationDbContext _context;
     private readonly ILogger<SubscriptionBL> _logger;
+    private readonly IHubContext<NotificationHub> _hubContext;
+    private readonly ILeaderboardBL _leaderboardBL;
     
-    public SubscriptionBL(ApplicationDbContext context, ILogger<SubscriptionBL> logger)
+    public SubscriptionBL(
+        ApplicationDbContext context, 
+        ILogger<SubscriptionBL> logger,
+        IHubContext<NotificationHub> hubContext,
+        ILeaderboardBL leaderboardBL)
     {
         _context = context;
         _logger = logger;
+        _hubContext = hubContext;
+        _leaderboardBL = leaderboardBL;
     }
 
     public async Task<ServiceResult<PublicGroupDto>> GetPublicGroupDetailsAsync(Guid groupId, Guid currentUserId)
@@ -204,6 +212,15 @@ public class SubscriptionBL : ISubscriptionBL
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
 
+            var leaderboardResult = await _leaderboardBL.GetLeaderboardAsync(authorId.Value);
+
+            if (leaderboardResult.IsSuccess)
+            {
+                await _hubContext.Clients.All.SendAsync("LeaderboardUpdated", leaderboardResult.Data);
+            }
+            
+            
+            
             _logger.LogInformation("Пользователь {UserId} подписался на группу {GroupId}", subscriberUserId, groupId);
             return ServiceResult<bool>.Success(true);
         }
@@ -254,6 +271,15 @@ public class SubscriptionBL : ISubscriptionBL
 
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
+            
+            var leaderboardResult = await _leaderboardBL.GetLeaderboardAsync(authorId.Value);
+            if (leaderboardResult.IsSuccess)
+            {
+                await _hubContext.Clients.All.SendAsync("LeaderboardUpdated", leaderboardResult.Data);
+            }
+
+            
+            
             _logger.LogInformation("Пользователь {UserId} отписался от группы {GroupId}", subscriberUserId, groupId);
             return ServiceResult<bool>.Success(true);
         }
