@@ -8,8 +8,6 @@ const API_URL = import.meta.env.VITE_API_URL;
 export const useLeaderboard = () => {
     const [data, setData] = useState<LeaderboardResponseDto | null>(null);
     const [loading, setLoading] = useState(true);
-
-    // Нам нужен только ref для самого соединения
     const connectionRef = useRef<signalR.HubConnection | null>(null);
 
     useEffect(() => {
@@ -37,14 +35,18 @@ export const useLeaderboard = () => {
         fetchInitialData();
 
         // 2. SignalR Подключение
-        // Создаем новый инстанс
         const connection = new signalR.HubConnectionBuilder()
             .withUrl(`${API_URL}/notificationHub`, {
-                accessTokenFactory: () => token
+                accessTokenFactory: () => token,
+                timeout: 120000 // 120 секунд
             })
-            .withAutomaticReconnect()
+            .withAutomaticReconnect([0, 2000, 10000, 30000])
             .configureLogging(signalR.LogLevel.Warning)
             .build();
+
+        // ДОБАВЛЕНО: Настройка таймаутов
+        connection.serverTimeoutInMilliseconds = 120000; // 120 секунд
+        connection.keepAliveIntervalInMilliseconds = 15000; // 15 секунд
 
         connection.on('LeaderboardUpdated', (updatedData: LeaderboardResponseDto) => {
             setData(updatedData);
@@ -57,13 +59,10 @@ export const useLeaderboard = () => {
                 console.log('🟢 SignalR Connected');
             } catch (err: any) {
                 const errorMessage = err.toString();
-                // АНАЛИЗ ПРОБЛЕМЫ:
-                // React Strict Mode прерывает соединение в момент "negotiation" (согласования).
-                // Это нормальное поведение для dev-режима, ошибку нужно игнорировать.
                 if (
                     errorMessage.includes("AbortError") ||
                     errorMessage.includes("invocation cancelled") ||
-                    errorMessage.includes("negotiation") // <--- Добавлено ключевое слово из твоей ошибки
+                    errorMessage.includes("negotiation")
                 ) {
                     return;
                 }
@@ -76,9 +75,6 @@ export const useLeaderboard = () => {
 
         // Cleanup
         return () => {
-            // При размонтировании останавливаем соединение
-            // Важно: SignalR сам выбросит ошибку, если мы остановим его во время старта,
-            // но мы перехватим её в catch блоке выше.
             connection.stop();
         };
     }, []);
