@@ -11,7 +11,7 @@ namespace FlashcardsApp.Api.Controllers
     [Authorize]
     public class LeaderboardController : BaseController  
     {
-        private readonly ILeaderboardBL _leaderboardBL;
+        private readonly ILeaderboardBL _leaderboardBL;  
 
         public LeaderboardController(UserManager<User> userManager, ILeaderboardBL leaderboardBL) : base(userManager)
         {
@@ -19,7 +19,7 @@ namespace FlashcardsApp.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetLeaderboard()
+        public async Task<IActionResult> GetLeaderboard()  
         {
             var userId = GetCurrentUserId();
             var result = await _leaderboardBL.GetLeaderboardAsync(userId);
