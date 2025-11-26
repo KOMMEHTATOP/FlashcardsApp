@@ -1,6 +1,7 @@
 using FlashcardsApp.BLL.Implementations;
 using FlashcardsApp.Models.DTOs;
 using FlashcardsApp.Models.DTOs.Subscriptions.Responses;
+using FlashcardsApp.Models.DTOs.Tags;
 
 namespace FlashcardsApp.BLL.Interfaces;
 

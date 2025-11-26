@@ -291,16 +291,19 @@ public class GroupBL : IGroupBL
 
     private async Task<List<Tag>> ProcessTagsAsync(List<string> tagNames)
     {
-        if (tagNames == null || !tagNames.Any()) return new List<Tag>();
+        var resultTags = new List<Tag>();
+        if (tagNames == null || !tagNames.Any()) return resultTags;
 
         var uniqueNames = tagNames.Distinct().ToList();
-        var resultTags = new List<Tag>();
-
+        
         foreach (var tagName in uniqueNames)
         {
-            if (string.IsNullOrWhiteSpace(tagName)) continue;
+            if (string.IsNullOrWhiteSpace(tagName))
+            {
+                continue;
+            }
 
-            var slug = GenerateSlug(tagName);
+            var slug = GetNewSlug(tagName);
             var existingTag = await _context.Tags.FirstOrDefaultAsync(t => t.Slug == slug);
 
             if (existingTag != null)
@@ -325,7 +328,7 @@ public class GroupBL : IGroupBL
         return resultTags;
     }
 
-    private string GenerateSlug(string phrase)
+    private string GetNewSlug(string phrase)
     {
         string str = phrase.ToLower();
         str = Regex.Replace(str, @"\s+", "-");

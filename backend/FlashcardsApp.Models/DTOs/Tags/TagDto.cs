@@ -1,4 +1,4 @@
-namespace FlashcardsApp.Models.DTOs;
+namespace FlashcardsApp.Models.DTOs.Tags;
 
 public class TagDto
 {
