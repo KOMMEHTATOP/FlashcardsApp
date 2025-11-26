@@ -9,7 +9,7 @@ namespace FlashcardsApp.Api.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class LeaderboardController : BaseController
+    public class LeaderboardController : BaseController  
     {
         private readonly ILeaderboardBL _leaderboardBL;
 
