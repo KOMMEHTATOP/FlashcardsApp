@@ -73,8 +73,8 @@ public static class MiddlewareExtensions
                 await context.Response.WriteAsync(result);
             }
         });
-
-        app.MapHub<NotificationHub>("/hubs/notifications");
+        
+        app.MapHub<NotificationHub>("/api/notificationHub");
 
         return app;
     }

@@ -9,7 +9,7 @@ interface ConfirmModalProps {
   handleConfirm: () => void;
 }
 
-export default function ConfrimModal({
+export default function ConfirmModal({
   text,
   target,
   handleCancel,

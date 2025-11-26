@@ -1,34 +1,31 @@
-import { Cookie, Moon, Shell, Sun, X } from "lucide-react";
+import { Cookie, Moon, Shell, Sun, Palette } from "lucide-react";
 import { useEffect, useState } from "react";
 
 const themeData = [
   {
     name: "dark",
-    icon: <Moon />,
-    title: "Темная тема",
-    btn: "btn-primary",
+    icon: <Moon className="w-4 h-4" />,
+    title: "Темная",
   },
   {
     name: "light",
-    icon: <Sun />,
-    title: "Светлая тема",
-    btn: "btn-secondary",
+    icon: <Sun className="w-4 h-4" />,
+    title: "Светлая",
   },
   {
     name: "cupcake",
-    icon: <Cookie />,
+    icon: <Cookie className="w-4 h-4" />,
     title: "Печенька",
-    btn: "btn-accent",
   },
   {
     name: "mainbreaker",
-    icon: <Shell />,
+    icon: <Shell className="w-4 h-4" />,
     title: "Чертеж",
-    btn: "btn-info",
   },
 ];
 
-export default function ThemeSwithcer() {
+export default function ThemeSwitcher() {
+  // Инициализируем тему из localStorage или берем дефолтную
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "dark");
 
   useEffect(() => {
@@ -36,32 +33,39 @@ export default function ThemeSwithcer() {
     localStorage.setItem("theme", theme);
   }, [theme]);
 
+  // Находим иконку текущей темы
+  const currentThemeIcon = themeData.find((item) => item.name === theme)?.icon || <Palette className="w-4 h-4" />;
+
   return (
-    <div className="fab fab-flower right-5 bottom-5 md:bottom-10">
-      <div
-        tabIndex={0}
-        role="button"
-        className="btn btn-lg btn-info btn-circle"
-      >
-        {themeData.find((item) => item.name === theme)?.icon}
-      </div>
-
-      <button className="fab-main-action btn btn-circle btn-lg btn-success">
-        <X />
-      </button>
-
-      {themeData.map((item) => (
+      // dropdown-end выравнивает меню по правому краю, чтобы оно не уходило за экран
+      // dropdown-bottom (по умолчанию) заставляет меню выпадать вниз
+      <div className="dropdown dropdown-end">
         <div
-          className="tooltip tooltip-left text-base-content"
-          data-tip={item.title}
-          key={item.name}
-          onClick={() => setTheme(item.name)}
+            tabIndex={0}
+            role="button"
+            className="btn btn-ghost btn-circle btn-sm md:btn-md"
+            aria-label="Сменить тему"
         >
-          <button className={`btn btn-circle btn-lg btn-soft ${item.btn}`}>
-            {item.icon}
-          </button>
+          {/* Текущая иконка */}
+          {currentThemeIcon}
         </div>
-      ))}
-    </div>
+
+        <ul
+            tabIndex={0}
+            className="dropdown-content z-[1] menu p-2 shadow-xl bg-base-200 rounded-box w-40 mt-2 border border-base-300"
+        >
+          {themeData.map((item) => (
+              <li key={item.name}>
+                <button
+                    onClick={() => setTheme(item.name)}
+                    className={`flex items-center gap-2 ${theme === item.name ? "active bg-primary text-primary-content" : ""}`}
+                >
+                  {item.icon}
+                  <span>{item.title}</span>
+                </button>
+              </li>
+          ))}
+        </ul>
+      </div>
   );
 }

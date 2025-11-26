@@ -3,6 +3,8 @@ import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import type { UserData } from "../../../../types/types";
 import { TITLE_APP } from "@/shared/data";
+// Импортируем компонент переключателя
+import ThemeSwithcer from "@/shared/ui/ThemeSwitcher";
 
 interface HeaderProps {
     user: UserData | undefined;
@@ -50,6 +52,9 @@ export function Header({ user, onLogout, className }: HeaderProps) {
                     transition={{ duration: 0.3 }}
                     className="flex items-center gap-3 sm:gap-4"
                 >
+                    {/* Вставляем переключатель темы сюда */}
+                    <ThemeSwithcer />
+
                     {user ? (
                         <>
                             {/* Аватар и имя - кликабельные */}

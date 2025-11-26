@@ -22,6 +22,9 @@ import { LessonsTab } from "@/features/dashboard/ui/LessonsTab";
 import { StoreTab } from "@/features/dashboard/ui/StoreTab";
 import { AchievementsTab } from "@/features/dashboard/ui/AchievementsTab";
 
+// Виджет теперь плавающий
+import { LeaderboardWidget } from "@/features/leaderboard/ui/LeaderboardWidget";
+
 import { useData } from "@/context/DataContext";
 import formatTotalHour from "@/utils/formatTotalHour";
 
@@ -34,8 +37,6 @@ const modulePage = [
 export function HomePage() {
     const { user, achivment, groups, motivationText } = useData();
     const [modul] = useState<typeof modulePage>(modulePage);
-
-    // Якорь для скролла к табам
     const tabsRef = useRef<HTMLDivElement>(null);
 
     const [currentModul, setCurrentModul] = useState<number>(() => {
@@ -57,20 +58,15 @@ export function HomePage() {
     );
 
     // --- Handlers ---
-
-    // Функция для переключения табов при клике на меню
     const selectModul = (name: string) => {
         const index = modul.findIndex((item) => item.name === name);
         setCurrentModul(index);
         localStorage.setItem('activeTab', index.toString());
     };
 
-    // Функция переключения на библиотеку (вызывается из LessonsTab)
     const handleSwitchToStore = () => {
-        setCurrentModul(1); // 1 = Библиотека
+        setCurrentModul(1);
         localStorage.setItem('activeTab', '1');
-
-        // Скроллим экран к началу табов (где поиск), с небольшим отступом
         setTimeout(() => {
             tabsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
         }, 100);
@@ -107,8 +103,11 @@ export function HomePage() {
                 <title>Моё обучение | FlashcardsLoop</title>
             </Helmet>
 
+            {/* Вставляем плавающий виджет. Он fixed, поэтому неважно где он в DOM */}
+            <LeaderboardWidget />
+
             <div className="space-y-8">
-                {/* Блок статистики (Level, Cards...) */}
+                {/* Блок статистики */}
                 <div>
                     <LevelCard
                         level={level}
@@ -118,13 +117,12 @@ export function HomePage() {
                     />
                 </div>
 
+                {/* Карточки статов */}
                 <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <StateCard
                         icon={Clock}
                         label="Общее время учебы"
-                        value={`${formatTotalHour(
-                            user?.Statistics?.TotalStudyTime || "0"
-                        )} ч.`}
+                        value={`${formatTotalHour(user?.Statistics?.TotalStudyTime || "0")} ч.`}
                         gradient="from-blue-500 to-cyan-500"
                         delay={0.1}
                     />
@@ -151,57 +149,38 @@ export function HomePage() {
                     />
                 </div>
 
-                {/* Табы (Навигация) - СЮДА ДОБАВИЛИ REF */}
+                {/* Табы */}
                 <div
-                    ref={tabsRef} // <--- Якорь для скролла
+                    ref={tabsRef}
                     role="tablist"
-                    className="tabs tabs-border scroll-mt-24" // scroll-mt делает отступ сверху при скролле
+                    className="tabs tabs-border scroll-mt-24"
                 >
-                    <button
-                        role="tab"
-                        className={`tab gap-2 transition-all duration-300 ${currentModul === 0 ? "tab-active bg-base-100 font-medium" : "opacity-60"
+                    {modulePage.map((item, index) => (
+                        <button
+                            key={item.name}
+                            role="tab"
+                            className={`tab gap-2 transition-all duration-300 ${
+                                currentModul === index ? "tab-active bg-base-100 font-medium" : "opacity-60"
                             }`}
-                        onClick={() => selectModul("Мои колоды")}
-                    >
-                        <BookOpen className="h-5 w-5" />
-                        Мои колоды
-                    </button>
-                    <button
-                        role="tab"
-                        className={`tab gap-2 transition-all duration-300 ${currentModul === 1 ? "tab-active bg-base-100 font-medium" : "opacity-60"
-                            }`}
-                        onClick={() => selectModul("Библиотека")}
-                    >
-                        <Library className="h-5 w-5" />
-                        Библиотека
-                    </button>
-                    <button
-                        role="tab"
-                        className={`tab gap-2 transition-all duration-300 ${currentModul === 2 ? "tab-active bg-base-100 font-medium" : "opacity-60"
-                            }`}
-                        onClick={() => selectModul("Достижения")}
-                    >
-                        <Medal className="h-5 w-5" />
-                        Достижения
-                    </button>
+                            onClick={() => selectModul(item.name)}
+                        >
+                            {index === 0 && <BookOpen className="h-5 w-5" />}
+                            {index === 1 && <Library className="h-5 w-5" />}
+                            {index === 2 && <Medal className="h-5 w-5" />}
+                            {item.name}
+                        </button>
+                    ))}
                 </div>
 
                 {/* Модалки */}
                 {isOpenSetting && (
-                    <SettingModal
-                        handleCancel={handleCloseSetting}
-                        handleSave={() => { }}
-                    />
+                    <SettingModal handleCancel={handleCloseSetting} handleSave={() => { }} />
                 )}
-
                 {isCreateModalOpen && (
-                    <GroupForm
-                        isOpen={isCreateModalOpen}
-                        handleCancle={handleCloseCreateModal}
-                    />
+                    <GroupForm isOpen={isCreateModalOpen} handleCancle={handleCloseCreateModal} />
                 )}
 
-                {/* Контент вкладок */}
+                {/* Контент */}
                 <div className="space-y-6 mb-12">
                     <AnimatePresence mode="wait">
                         {renderCurrentTab()}

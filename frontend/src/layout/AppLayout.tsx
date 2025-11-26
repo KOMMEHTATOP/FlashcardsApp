@@ -1,11 +1,10 @@
 import { Outlet, useNavigate } from "react-router-dom";
 import { Header } from "@/shared/ui/widgets/Header";
-import ThemeSwithcer from "@/shared/ui/ThemeSwitcher";
 import { DataProvider, useData } from "@/context/DataContext";
 import { useAuth } from "@/context/AuthContext";
 import LessonPlayer from "@/pages/LessonPlayer";
-import ConfrimModal from "@/shared/ui/modals/ConfirmModal";
 import Footer from "@/widgets/Footer";
+import ConfirmModal from "@/shared/ui/modals/ConfirmModal";
 
 function AppLayoutContent() {
     const { currentLesson, handleCompliteLesson, user, confrimModal } = useData();
@@ -38,7 +37,7 @@ function AppLayoutContent() {
 
             <main className="flex-1 w-full max-w-6xl pt-30 px-4 sm:px-6 md:px-10">
                 {confrimModal && (
-                    <ConfrimModal
+                    <ConfirmModal
                         text={confrimModal.title}
                         target={confrimModal.target}
                         handleCancel={confrimModal.handleCancel}
@@ -49,7 +48,6 @@ function AppLayoutContent() {
             </main>
 
             <Footer />
-            <ThemeSwithcer />
         </div>
     );
 }
@@ -79,7 +77,6 @@ export default function AppLayout() {
                 <Outlet />
             </main>
             <Footer />
-            <ThemeSwithcer />
         </div>
     );
 }
