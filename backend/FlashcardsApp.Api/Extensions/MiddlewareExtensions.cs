@@ -1,4 +1,4 @@
-using FlashcardsApp.Api.Hubs;
+using FlashcardsApp.BLL.Hubs;
 using FlashcardsApp.BLL.Interfaces.Achievements;
 using FlashcardsApp.DAL;
 using FlashcardsApp.DAL.Models;

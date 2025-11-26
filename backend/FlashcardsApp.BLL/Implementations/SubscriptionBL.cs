@@ -1,8 +1,10 @@
+using FlashcardsApp.BLL.Hubs;
 using FlashcardsApp.BLL.Interfaces;
 using FlashcardsApp.DAL;
 using FlashcardsApp.DAL.Models;
 using FlashcardsApp.Models.DTOs;
 using FlashcardsApp.Models.DTOs.Subscriptions.Responses;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -12,7 +14,7 @@ public class SubscriptionBL : ISubscriptionBL
 {
     private readonly ApplicationDbContext _context;
     private readonly ILogger<SubscriptionBL> _logger;
-
+    
     public SubscriptionBL(ApplicationDbContext context, ILogger<SubscriptionBL> logger)
     {
         _context = context;
@@ -158,6 +160,8 @@ public class SubscriptionBL : ISubscriptionBL
 
     public async Task<ServiceResult<bool>> SubscribeToGroupAsync(Guid groupId, Guid subscriberUserId)
     {
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+
         try
         {
             var authorId = await _context.Groups
@@ -187,19 +191,25 @@ public class SubscriptionBL : ISubscriptionBL
 
             await _context.Groups
                 .Where(g => g.Id == groupId)
-                .ExecuteUpdateAsync(s => s.SetProperty(g => g.SubscriberCount, g => g.SubscriberCount + 1));
+                .ExecuteUpdateAsync(s =>
+                    s.SetProperty(g => g.SubscriberCount, g => g.SubscriberCount + 1));
 
+            var now = DateTime.UtcNow;
             await _context.Users
                 .Where(u => u.Id == authorId.Value)
-                .ExecuteUpdateAsync(s => s.SetProperty(u => u.TotalRating, u => u.TotalRating + 1));
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(u => u.TotalRating, u => u.TotalRating + 1)
+                    .SetProperty(u => u.RatingLastUpdatedAt, now));
 
             await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
 
             _logger.LogInformation("Пользователь {UserId} подписался на группу {GroupId}", subscriberUserId, groupId);
             return ServiceResult<bool>.Success(true);
         }
         catch (Exception ex)
         {
+            await transaction.RollbackAsync();
             _logger.LogError(ex, "Ошибка при подписке пользователя {UserId} на группу {GroupId}", subscriberUserId, groupId);
             return ServiceResult<bool>.Failure("Ошибка при подписке на группу");
         }
@@ -207,6 +217,8 @@ public class SubscriptionBL : ISubscriptionBL
 
     public async Task<ServiceResult<bool>> UnsubscribeFromGroupAsync(Guid groupId, Guid subscriberUserId)
     {
+        await  using var transaction = await _context.Database.BeginTransactionAsync();
+        
         try
         {
             var authorId = await _context.UserGroupSubscriptions
@@ -228,19 +240,26 @@ public class SubscriptionBL : ISubscriptionBL
                 return ServiceResult<bool>.Failure("Подписка не найдена");
             }
 
+            var now = DateTime.UtcNow;
             await _context.Groups
                 .Where(g => g.Id == groupId && g.SubscriberCount > 0)
-                .ExecuteUpdateAsync(s => s.SetProperty(g => g.SubscriberCount, g => g.SubscriberCount - 1));
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(g => g.SubscriberCount, g => g.SubscriberCount - 1));
 
             await _context.Users
                 .Where(u => u.Id == authorId.Value && u.TotalRating > 0)
-                .ExecuteUpdateAsync(s => s.SetProperty(u => u.TotalRating, u => u.TotalRating - 1));
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(u => u.TotalRating, u => u.TotalRating - 1)
+                    .SetProperty(u => u.RatingLastUpdatedAt, now));
 
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
             _logger.LogInformation("Пользователь {UserId} отписался от группы {GroupId}", subscriberUserId, groupId);
             return ServiceResult<bool>.Success(true);
         }
         catch (Exception ex)
         {
+            await transaction.RollbackAsync();
             _logger.LogError(ex, "Ошибка при отписке пользователя {UserId} от группы {GroupId}", subscriberUserId, groupId);
             return ServiceResult<bool>.Failure("Ошибка при отписке от группы");
         }

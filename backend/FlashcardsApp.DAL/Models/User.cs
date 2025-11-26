@@ -12,6 +12,7 @@ public class User : IdentityUser<Guid>
     public required string Login { get; set; } 
     [Range(0, int.MaxValue, ErrorMessage = "Рейтинг не может быть отрицательным")]
     public int TotalRating { get; set; }
+    public DateTime RatingLastUpdatedAt { get; set; }
     public DateTime CreatedAt { get; set; } 
     public DateTime LastLogin { get; set; }
     public List<StudyHistory>? StudyHistory { get; set; }

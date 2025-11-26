@@ -1,8 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 
-namespace FlashcardsApp.Api.Hubs;
+namespace FlashcardsApp.BLL.Hubs;
 
 /// <summary>
 /// SignalR Hub для real-time уведомлений

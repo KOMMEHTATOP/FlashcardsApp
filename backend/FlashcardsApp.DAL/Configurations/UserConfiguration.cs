@@ -20,10 +20,18 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .IsRequired()
             .HasDefaultValue(0)
             .HasAnnotation("CheckConstraint", "TotalRating >= 0");
+        
+        builder.Property(u => u.RatingLastUpdatedAt)
+            .IsRequired()
+            .HasDefaultValueSql("CURRENT_TIMESTAMP");
             
         builder.HasIndex(u => u.Login)
             .IsUnique()
             .HasDatabaseName("IX_Users_Login");
+        
+        builder.HasIndex(u => new { u.TotalRating, u.RatingLastUpdatedAt })
+            .HasDatabaseName("IX_Users_Leaderboard")
+            .IsDescending(true, true);
             
         builder.HasMany(u => u.Subscriptions)
             .WithOne(ugs => ugs.SubscriberUser)

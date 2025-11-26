@@ -1,4 +1,4 @@
-using FlashcardsApp.Api.Hubs;
+using FlashcardsApp.BLL.Hubs;
 using FlashcardsApp.Models.Notifications;
 using FlashcardsApp.Services.Interfaces;
 using Microsoft.AspNetCore.SignalR;

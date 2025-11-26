@@ -41,6 +41,9 @@ public static class BusinessExtensions
         
         //Подписки на общие группы
         services.AddScoped<ISubscriptionBL, SubscriptionBL>();
+        
+        // Лидерборд
+        services.AddScoped<ILeaderboardBL, LeaderboardBL>();
 
         return services;
     }
