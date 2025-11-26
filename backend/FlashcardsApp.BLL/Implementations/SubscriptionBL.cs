@@ -4,6 +4,7 @@ using FlashcardsApp.DAL;
 using FlashcardsApp.DAL.Models;
 using FlashcardsApp.Models.DTOs;
 using FlashcardsApp.Models.DTOs.Subscriptions.Responses;
+using FlashcardsApp.Models.DTOs.Tags;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -192,7 +193,9 @@ public class SubscriptionBL : ISubscriptionBL
 
             var subscription = new UserGroupSubscription
             {
-                SubscriberUserId = subscriberUserId, GroupId = groupId, SubscribedAt = DateTime.UtcNow
+                SubscriberUserId = subscriberUserId, 
+                GroupId = groupId, 
+                SubscribedAt = DateTime.UtcNow
             };
 
             _context.UserGroupSubscriptions.Add(subscription);
