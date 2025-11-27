@@ -27,20 +27,20 @@ interface GroupHeaderProps {
 }
 
 export function GroupHeader({
-    group,
-    icon: Icon,
-    progress,
-    isSubscriptionView,
-    isSubscribed,
-    isPublishing,
-    submittingSubscription,
-    publishError,
-    canPublish,
-    onTogglePublish,
-    onToggleSubscription,
-    onStart,
-    hasCards = false
-}: GroupHeaderProps) {
+                                group,
+                                icon: Icon,
+                                progress,
+                                isSubscriptionView,
+                                isSubscribed,
+                                isPublishing,
+                                submittingSubscription,
+                                publishError,
+                                canPublish,
+                                onTogglePublish,
+                                onToggleSubscription,
+                                onStart,
+                                hasCards = false
+                            }: GroupHeaderProps) {
 
     // Логика отображения кнопки старта
     const showStartButton = hasCards && (!isSubscriptionView || isSubscribed);
@@ -51,7 +51,7 @@ export function GroupHeader({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             className={`relative bg-gradient-to-br ${group.GroupColor || "from-blue-500 to-blue-700"
-                } w-full px-4 sm:px-6 lg:px-8 pt-8 pb-6 overflow-hidden rounded-2xl shadow-xl flex flex-col items-center`}
+            } w-full px-4 sm:px-6 lg:px-8 pt-8 pb-6 overflow-hidden rounded-2xl shadow-xl flex flex-col items-center`}
         >
             {/* Паттерн фона */}
             <div
@@ -126,7 +126,8 @@ export function GroupHeader({
                                             ${isPublishing ? 'opacity-50 cursor-wait' : ''}
                                         `}>
                                             <span className="text-white text-sm font-medium">
-                                                {group.IsPublished ? "Опубликовано" : "Приватная"}
+                                                {/* ИЗМЕНЕНИЕ: Текст теперь Публичная, если не опубликовано */}
+                                                {group.IsPublished ? "Опубликовано" : "Публичная"}
                                             </span>
                                             <input
                                                 type="checkbox"

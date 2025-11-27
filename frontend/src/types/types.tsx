@@ -193,6 +193,7 @@ type ConfrimModalState = {
   target: string;
   handleCancel: () => void;
   handleConfirm: () => void;
+  isAlert?: boolean;
 };
 
 type MotivationType = {

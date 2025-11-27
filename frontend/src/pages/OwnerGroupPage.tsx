@@ -12,7 +12,7 @@ import { errorFormater } from "@/utils/errorFormater";
 import { useGroupData } from "@/features/groups/model/useGroupData";
 import { GroupHeader } from "@/features/groups/ui/GroupHeader";
 import { CardsList } from "@/features/groups/ui/CardsList";
-import LessonPlayer from "@/pages/LessonPlayer"; 
+import LessonPlayer from "@/pages/LessonPlayer";
 
 export default function OwnerGroupPage() {
     const {
@@ -26,11 +26,12 @@ export default function OwnerGroupPage() {
 
     const {
         handleSelectLesson,
-        currentLesson,      // Достаем состояние урока
-        handleCompliteLesson, // Достаем функцию выхода
-        deleteCard,
+        currentLesson,
+        handleCompliteLesson,
         handleOpenConfrimModal,
         handleCloseConfrimModal,
+        // 👇 Достаем наш новый метод для красивых ошибок
+        handleAlert,
         setGroups,
     } = useData();
 
@@ -54,7 +55,6 @@ export default function OwnerGroupPage() {
 
     useTitle(group?.GroupName || "");
 
-    // ЛОГИКА ОТОБРАЖЕНИЯ ПЛЕЕРА
     if (currentLesson) {
         return (
             <LessonPlayer
@@ -106,6 +106,7 @@ export default function OwnerGroupPage() {
                 const res = await apiFetch.post(`/groups/${groupId}/cards`, data);
                 setCards((prev) => [res.data, ...prev]);
                 setGroups((prev) => prev.map((g) => (g.Id === groupId ? { ...g, CardCount: g.CardCount + 1 } : g)));
+                setGroup((prev) => prev ? { ...prev, CardCount: (prev.CardCount || 0) + 1 } : null);
             }
             setIsOpenAddModal(false);
             return true;
@@ -117,14 +118,30 @@ export default function OwnerGroupPage() {
         }
     };
 
+    // ИСПРАВЛЕННАЯ ЛОГИКА УДАЛЕНИЯ
     const handleDeleteCard = (card: GroupCardType) => {
         const modal: ConfrimModalState = {
             title: "Удалить карточку?",
             target: card.Question,
-            handleConfirm: () => {
-                setCards((prev) => prev.filter((c) => c.CardId !== card.CardId));
-                deleteCard(card.CardId);
-                handleCloseConfrimModal();
+            handleConfirm: async () => {
+                try {
+                    await apiFetch.delete(`/Cards/${card.CardId}`);
+                    setCards((prev) => prev.filter((c) => c.CardId !== card.CardId));
+                    setGroup((prev) => prev ? { ...prev, CardCount: Math.max(0, (prev.CardCount || 0) - 1) } : null);
+                    setGroups((prev) => prev.map((g) => (g.Id === groupId ? { ...g, CardCount: g.CardCount - 1 } : g)));
+
+                    handleCloseConfrimModal();
+                } catch (err: any) {
+                    const errorMsg = errorFormater(err) || "Не удалось удалить карточку";
+
+                    // 👇 СНАЧАЛА ЗАКРЫВАЕМ ОКНО "УДАЛИТЬ?"
+                    handleCloseConfrimModal();
+
+                    // 👇 ЗАТЕМ ОТКРЫВАЕМ КРАСИВОЕ ОКНО ОШИБКИ
+                    // Небольшая задержка (setTimeout) нужна, чтобы модалки не конфликтовали анимациями, 
+                    // но часто работает и без неё. Попробуем без.
+                    handleAlert("Ошибка", errorMsg);
+                }
             },
             handleCancel: () => handleCloseConfrimModal(),
         };
@@ -187,10 +204,6 @@ export default function OwnerGroupPage() {
                 cards={cards}
                 group={group}
                 isSubscriptionView={false}
-                // ВАЖНО: Убрали onCardClick.
-                // Теперь карточки в режиме владельца тоже разворачиваются вниз при клике.
-                // Редактирование доступно через иконки (которые CardsList отрисует сам, т.к. переданы onEditCard).
-
                 onDeleteCard={handleDeleteCard}
                 onEditCard={handleEditCard}
                 addCardFormProps={{
