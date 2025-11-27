@@ -4,8 +4,6 @@ import { Trophy, Medal, ChevronDown, ChevronUp, GripHorizontal } from 'lucide-re
 import { useData } from '@/context/DataContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// --- Вспомогательные компоненты ---
-
 const RankIcon = ({ pos }: { pos: number }) => {
     if (pos === 1) return <Trophy className="w-4 h-4 text-yellow-400" />;
     if (pos === 2) return <Medal className="w-4 h-4 text-gray-300" />;
@@ -14,7 +12,6 @@ const RankIcon = ({ pos }: { pos: number }) => {
 };
 
 const UserRow = ({ entry, isMe = false, simple = false }: { entry: any, isMe?: boolean, simple?: boolean }) => {
-    // Защита: если запись пустая, не рендерим ничего, чтобы не упасть
     if (!entry) return null;
 
     return (
@@ -43,21 +40,15 @@ const UserRow = ({ entry, isMe = false, simple = false }: { entry: any, isMe?: b
     );
 };
 
-// --- Основной компонент ---
-
 export const LeaderboardWidget = () => {
     const { data, loading } = useLeaderboard();
     const { user } = useData();
-
-    // Храним локальную копию данных, чтобы интерфейс не мигал при обновлении
     const [cachedTopList, setCachedTopList] = useState<any[]>([]);
-
     const currentUserId = user?.Id;
     const [isCollapsed, setIsCollapsed] = useState(true);
     const constraintsRef = useRef(null);
     const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
 
-    // Обновляем кэш только если пришли реальные данные (не null и не undefined)
     useEffect(() => {
         if (data && data.TopList && Array.isArray(data.TopList)) {
             setCachedTopList(data.TopList);
@@ -70,22 +61,15 @@ export const LeaderboardWidget = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // ОПРЕДЕЛЯЕМ СПИСОК ДЛЯ ОТОБРАЖЕНИЯ
-    // Берем либо свежие данные, либо кэш, либо пустой массив
     const activeList = (data && data.TopList) ? data.TopList : cachedTopList;
-
-    // Если у нас совсем нет данных (первый запуск) и мы грузимся - можно вернуть null (или спиннер)
-    // Но если данные уже были (cachedTopList не пуст), мы продолжаем показывать их!
     const hasData = activeList && activeList.length > 0;
 
-    if (loading && !hasData) return null; // Скрываем только при самой первой загрузке
-    if (!hasData) return null; // Если данных нет вообще - скрываем
+    if (loading && !hasData) return null; 
+    if (!hasData) return null; 
 
-    // Подготовка срезов данных
     const topList = activeList.slice(0, 10);
     const currentUserEntry = activeList.length > 10 ? activeList[10] : null;
 
-    // Безопасный поиск себя в списке
     const myEntry = topList.find((u: any) => u.UserId === currentUserId) ||
         (currentUserEntry && currentUserEntry.UserId === currentUserId ? currentUserEntry : null);
 

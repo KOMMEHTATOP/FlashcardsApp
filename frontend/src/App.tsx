@@ -1,5 +1,5 @@
 import "./App.css";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom"; 
 import AppLayout from "@/layout/AppLayout";
 import { HomePage } from "@/pages/Home";
 import { ProfilePage } from "@/pages/Profile";
@@ -12,6 +12,7 @@ import { GuestRoute } from "@/layout/GuestRoute";
 import { lazy } from "react";
 import ScrollToTop from "@/utils/scrollToTop";
 import { DataProvider } from "@/context/DataContext";
+import { useAuth } from "@/context/AuthContext"; 
 
 const LandingPage = lazy(() => import("@/pages/LandingPage"));
 const PublicStorePage = lazy(() => import("@/pages/PublicStore"));
@@ -21,6 +22,8 @@ const SubscriberGroupPage = lazy(() => import("@/pages/SubscriberGroupPage"));
 export const DEV = false;
 
 function App() {
+    const { isAuthenticated } = useAuth();
+
     return (
         <Routes>
             <Route path="/about" element={
@@ -54,11 +57,16 @@ function App() {
                 <Route
                     path="/"
                     element={
-                        <PrivateRoute>
-                            <HomePage />
-                        </PrivateRoute>
+                        isAuthenticated ? (
+                            <PrivateRoute>
+                                <HomePage />
+                            </PrivateRoute>
+                        ) : (
+                            <Navigate to="/about" replace />
+                        )
                     }
                 />
+
                 <Route
                     path="/profile"
                     element={
@@ -80,7 +88,6 @@ function App() {
                     }
                 />
 
-                {/* Админка */}
                 <Route
                     path="/admin"
                     element={

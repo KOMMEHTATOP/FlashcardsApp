@@ -23,12 +23,10 @@ export const Seo = ({
 
     return (
         <Helmet>
-            {/* Standard metadata */}
             <title>{title}</title>
             <meta name='description' content={description} />
             <link rel="canonical" href={canonicalUrl} />
 
-            {/* Open Graph */}
             <meta property="og:type" content={type} />
             <meta property="og:title" content={title} />
             <meta property="og:description" content={description} />
@@ -36,13 +34,11 @@ export const Seo = ({
             <meta property="og:site_name" content={name} />
             {img && <meta property="og:image" content={img} />}
 
-            {/* Twitter */}
             <meta name="twitter:card" content="summary_large_image" />
             <meta name="twitter:title" content={title} />
             <meta name="twitter:description" content={description} />
             {img && <meta name="twitter:image" content={img} />}
 
-            {/* <--- Вставляем JSON-LD в head, если он передан */}
             {jsonLd && (
                 <script type="application/ld+json">
                     {jsonLd}

@@ -25,7 +25,6 @@ const themeData = [
 ];
 
 export default function ThemeSwitcher() {
-  // Инициализируем тему из localStorage или берем дефолтную
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "dark");
 
   useEffect(() => {
@@ -33,12 +32,9 @@ export default function ThemeSwitcher() {
     localStorage.setItem("theme", theme);
   }, [theme]);
 
-  // Находим иконку текущей темы
   const currentThemeIcon = themeData.find((item) => item.name === theme)?.icon || <Palette className="w-4 h-4" />;
 
   return (
-      // dropdown-end выравнивает меню по правому краю, чтобы оно не уходило за экран
-      // dropdown-bottom (по умолчанию) заставляет меню выпадать вниз
       <div className="dropdown dropdown-end">
         <div
             tabIndex={0}
@@ -46,7 +42,6 @@ export default function ThemeSwitcher() {
             className="btn btn-ghost btn-circle btn-sm md:btn-md"
             aria-label="Сменить тему"
         >
-          {/* Текущая иконка */}
           {currentThemeIcon}
         </div>
 

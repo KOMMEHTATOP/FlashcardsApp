@@ -16,7 +16,6 @@ export function ProfilePage() {
     const currentXP = user?.Statistics?.XPProgressInCurrentLevel ?? 0;
     const xpForNextLevel = user?.Statistics?.XPRequiredForCurrentLevel ?? 0;
 
-    // Защита от деления на ноль
     const progressPercent = xpForNextLevel > 0
         ? Math.round((currentXP / xpForNextLevel) * 100)
         : 0;
@@ -35,15 +34,12 @@ export function ProfilePage() {
                 transition={{ duration: 0.4 }}
                 className="space-y-6"
             >
-                {/* I. ХЕДЕР - Профиль и Уровень */}
                 <ProfileHeader
-                    // Передаем null вместо undefined, чтобы TS не ругался
                     user={user ?? null}
                     level={level}
                     progressPercent={progressPercent}
                 />
 
-                {/* КНОПКА АДМИНКИ (Видна только Админу) */}
                 {user?.Role === 'Admin' && (
                     <motion.div
                         initial={{ opacity: 0 }} animate={{ opacity: 1 }}
@@ -59,25 +55,19 @@ export function ProfilePage() {
                     </motion.div>
                 )}
 
-                {/* II. ЦЕНТРАЛЬНЫЙ БЛОК - Статистика */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Левая часть - Плитки статистики */}
                     <ProfileStats
                         user={user ?? null}
                         groupsCount={groups?.length || 0}
                     />
-
-                    {/* Правая часть - Streak и Достижения */}
                     <div className="space-y-6">
                         <ProfileStreak user={user ?? null} />
                         <ProfileAchievements achievements={achivment ?? []} />
                     </div>
                 </div>
 
-                {/* III. НИЖНИЙ БЛОК - Колоды и Активность */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <ProfileDecks
-                        // Защита: если groups еще грузятся (undefined), передаем пустой массив
                         groups={groups ?? []}
                     />
                     <ProfileHistory />

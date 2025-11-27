@@ -61,7 +61,6 @@ export default function PublicGroupCard({
             return;
         }
 
-        // Клик по карточке = просмотр
         const dx = Math.abs(e.clientX - pointerStart.x);
         const dy = Math.abs(e.clientY - pointerStart.y);
         if (dx < 5 && dy < 5) onView?.();
@@ -84,13 +83,11 @@ export default function PublicGroupCard({
                 transition={{ duration: 0.2 }}
                 className="cursor-pointer relative group"
             >
-                {/* Контент */}
                 <div
                     className={`bg-card text-card-foreground flex flex-col rounded-xl p-4 bg-gradient-to-br 
                     ${gradient} shadow-lg min-h-[240px]`}
                 >
                     <div className="flex items-start justify-between mb-4">
-                        {/* Иконка */}
                         <motion.div
                             className="bg-white/20 backdrop-blur-sm p-3 rounded-2xl flex items-center justify-center"
                         >
@@ -101,7 +98,6 @@ export default function PublicGroupCard({
                             )}
                         </motion.div>
 
-                        {/* Количество карточек */}
                         <motion.div
                             animate={{ rotate: [0, 10, -10, 0] }}
                             transition={{ duration: 1, repeat: Infinity, repeatDelay: 2 }}
@@ -112,10 +108,8 @@ export default function PublicGroupCard({
                         </motion.div>
                     </div>
 
-                    {/* Заголовок */}
                     <h3 className="text-white text-xl mb-2 select-none">{title}</h3>
 
-                    {/* Информация об авторе и подписчиках */}
                     <div className="space-y-1 mb-3 flex-1">
                         <p className="text-white/80 text-sm">
                             👤 {authorName}
@@ -129,7 +123,6 @@ export default function PublicGroupCard({
                         </p>
                     </div>
 
-                    {/* Кнопки действий */}
                     <div className="flex gap-2 mt-auto">
                         <Button
                             data-action="view"

@@ -38,7 +38,6 @@ interface DataContextType {
     confrimModal: ConfrimModalState | undefined;
     handleOpenConfrimModal: (modal: ConfrimModalState) => void;
     handleCloseConfrimModal: () => void;
-    // Новый метод для вызова Алерта
     handleAlert: (title: string, message: string) => void;
     loading: boolean;
 }
@@ -118,13 +117,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         setModalConfrimDetail(undefined);
     }, []);
 
-    // --- НОВАЯ ФУНКЦИЯ ДЛЯ АЛЕРТОВ ---
     const handleAlert = useCallback((title: string, message: string) => {
         setModalConfrimDetail({
             title: title,
             target: message,
             isAlert: true,
-            // Для алерта Confirm и Cancel делают одно и то же - закрывают окно
             handleConfirm: () => setModalConfrimDetail(undefined),
             handleCancel: () => setModalConfrimDetail(undefined),
         });
@@ -215,7 +212,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         confrimModal,
         handleOpenConfrimModal,
         handleCloseConfrimModal,
-        handleAlert, // Экспортируем новую функцию
+        handleAlert, 
         loading,
     };
 

@@ -1,9 +1,8 @@
 import { Brain, LogOut, UserRound } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
-import type { UserData } from "../../../../types/types";
+import type { UserData } from "@/types/types";
 import { TITLE_APP } from "@/shared/data";
-// Импортируем компонент переключателя
 import ThemeSwithcer from "@/shared/ui/ThemeSwitcher";
 
 interface HeaderProps {
@@ -22,7 +21,6 @@ export function Header({ user, onLogout, className }: HeaderProps) {
             aria-label="Верхняя панель"
         >
             <div className="flex items-center justify-between max-w-6xl mx-auto px-4 sm:px-6 md:px-10">
-                {/* Левая часть */}
                 <motion.div
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -45,19 +43,16 @@ export function Header({ user, onLogout, className }: HeaderProps) {
                     </div>
                 </motion.div>
 
-                {/* Правая часть */}
                 <motion.div
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.3 }}
                     className="flex items-center gap-3 sm:gap-4"
                 >
-                    {/* Вставляем переключатель темы сюда */}
                     <ThemeSwithcer />
 
                     {user ? (
                         <>
-                            {/* Аватар и имя - кликабельные */}
                             <Link to="/profile">
                                 <motion.div
                                     whileHover={{ scale: 1.05 }}
@@ -72,7 +67,6 @@ export function Header({ user, onLogout, className }: HeaderProps) {
                                 </motion.div>
                             </Link>
 
-                            {/* Кнопка выхода */}
                             <motion.button
                                 onClick={onLogout}
                                 whileHover={{ scale: 1.05 }}

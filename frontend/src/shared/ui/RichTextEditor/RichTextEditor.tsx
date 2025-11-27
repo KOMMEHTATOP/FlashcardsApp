@@ -74,7 +74,6 @@ export default function RichTextEditor({
 
     return (
         <div className="border-2 border-purple-200 rounded-md focus-within:border-purple-500 focus-within:ring-2 focus-within:ring-purple-600 focus-within:ring-offset-2 bg-white/50">
-            {/* Toolbar */}
             <div className="flex flex-wrap gap-1 p-2 border-b border-purple-200 bg-gray-50 rounded-t-md">
                 <button
                     type="button"
@@ -226,13 +225,11 @@ export default function RichTextEditor({
                 </button>
             </div>
 
-            {/* Editor */}
             <EditorContent
                 editor={editor}
                 className="min-h-[100px] p-3 prose prose-sm max-w-none focus:outline-none [&_.tiptap]:outline-none text-gray-900"
             />
 
-            {/* Character count */}
             <div className="px-3 py-1 text-xs text-gray-500 border-t border-purple-200">
                 {textLength} / {maxLength} символов
             </div>

@@ -7,7 +7,6 @@ interface ConfirmModalProps {
   target?: string;
   handleCancel: () => void;
   handleConfirm: () => void;
-  // Добавляем новый пропс
   isAlert?: boolean;
 }
 
@@ -24,7 +23,6 @@ export default function ConfirmModal({
           animate={{ opacity: 1 }}
           transition={{ duration: 0.1 }}
           className="fixed bg-black/60 inset-0 items-center justify-center flex z-50"
-          // По клику на фон тоже можно закрывать, если это Алерт
           onClick={(e) => {
             if (e.target === e.currentTarget && isAlert) handleCancel();
           }}
@@ -42,7 +40,6 @@ export default function ConfirmModal({
           </div>
 
           <div className="flex gap-3 w-full">
-            {/* Кнопку "Нет" показываем ТОЛЬКО если это не Алерт */}
             {!isAlert && (
                 <Button
                     className="flex-1 text-gray-600 bg-gray-100 hover:bg-gray-200 border-none rounded-xl h-12"
@@ -53,12 +50,11 @@ export default function ConfirmModal({
                 </Button>
             )}
 
-            {/* Кнопка действия */}
             <Button
                 className={`flex-1 rounded-xl h-12 text-white font-medium shadow-lg transition-transform active:scale-95 ${
                     isAlert
-                        ? "bg-gray-900 hover:bg-black" // Стиль для "ОК"
-                        : "bg-red-500 hover:bg-red-600" // Стиль для "Да" (удаление)
+                        ? "bg-gray-900 hover:bg-black" 
+                        : "bg-red-500 hover:bg-red-600" 
                 }`}
                 onClick={handleConfirm}
             >

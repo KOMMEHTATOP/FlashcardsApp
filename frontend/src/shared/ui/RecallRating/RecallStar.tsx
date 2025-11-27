@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import type { RatingValue } from "../../../types/types";
+import type { RatingValue } from "@/types/types";
 import { colorRatingCard } from "@/shared/data";
 
 interface RecallStarProps {

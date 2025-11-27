@@ -71,7 +71,6 @@ export function LandingHero({ isMobile, stats }: LandingHeroProps) {
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                        {/* Кнопка 1: Начать */}
                         <Button
                             className="flex hover:scale-105 transition-all duration-300 shadow-2xl hover:shadow-pink-500/50 group text-xl w-full md:w-fit"
                             onClick={() => navigate("/login")}
@@ -82,7 +81,6 @@ export function LandingHero({ isMobile, stats }: LandingHeroProps) {
                             <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform duration-300" />
                         </Button>
 
-                        {/* Кнопка 2: Библиотека */}
                         <Button
                             size="lg"
                             variant="ghost"

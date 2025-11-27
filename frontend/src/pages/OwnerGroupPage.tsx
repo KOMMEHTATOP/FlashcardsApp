@@ -30,7 +30,6 @@ export default function OwnerGroupPage() {
         handleCompliteLesson,
         handleOpenConfrimModal,
         handleCloseConfrimModal,
-        // 👇 Достаем наш новый метод для красивых ошибок
         handleAlert,
         setGroups,
     } = useData();
@@ -118,7 +117,6 @@ export default function OwnerGroupPage() {
         }
     };
 
-    // ИСПРАВЛЕННАЯ ЛОГИКА УДАЛЕНИЯ
     const handleDeleteCard = (card: GroupCardType) => {
         const modal: ConfrimModalState = {
             title: "Удалить карточку?",
@@ -134,12 +132,7 @@ export default function OwnerGroupPage() {
                 } catch (err: any) {
                     const errorMsg = errorFormater(err) || "Не удалось удалить карточку";
 
-                    // 👇 СНАЧАЛА ЗАКРЫВАЕМ ОКНО "УДАЛИТЬ?"
                     handleCloseConfrimModal();
-
-                    // 👇 ЗАТЕМ ОТКРЫВАЕМ КРАСИВОЕ ОКНО ОШИБКИ
-                    // Небольшая задержка (setTimeout) нужна, чтобы модалки не конфликтовали анимациями, 
-                    // но часто работает и без неё. Попробуем без.
                     handleAlert("Ошибка", errorMsg);
                 }
             },

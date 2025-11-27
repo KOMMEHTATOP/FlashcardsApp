@@ -11,17 +11,14 @@ interface GroupHeaderProps {
     group: GroupType;
     icon: LucideIcon;
     progress: number;
-    // Режим отображения
     isSubscriptionView: boolean;
     isSubscribed: boolean;
-    // Публикация
     isPublishing: boolean;
     submittingSubscription: boolean;
     publishError: string | null;
     canPublish: boolean;
     onTogglePublish: () => void;
     onToggleSubscription: () => void;
-    // Новые пропсы для старта обучения
     onStart?: () => void;
     hasCards?: boolean;
 }
@@ -42,7 +39,6 @@ export function GroupHeader({
                                 hasCards = false
                             }: GroupHeaderProps) {
 
-    // Логика отображения кнопки старта
     const showStartButton = hasCards && (!isSubscriptionView || isSubscribed);
 
     return (
@@ -53,7 +49,6 @@ export function GroupHeader({
             className={`relative bg-gradient-to-br ${group.GroupColor || "from-blue-500 to-blue-700"
             } w-full px-4 sm:px-6 lg:px-8 pt-8 pb-6 overflow-hidden rounded-2xl shadow-xl flex flex-col items-center`}
         >
-            {/* Паттерн фона */}
             <div
                 className="absolute inset-0 bg-white/10"
                 style={{
@@ -66,7 +61,6 @@ export function GroupHeader({
             <div className="relative z-10 w-full">
                 <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-6 mb-0 w-full">
 
-                    {/* Иконка группы */}
                     <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
@@ -78,12 +72,10 @@ export function GroupHeader({
 
                     <div className="flex-1 text-center sm:text-left w-full">
 
-                        {/* Верхняя строка: Заголовок + Тогглы */}
                         <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-4 mb-4">
                             <div className="flex flex-col items-center md:items-start">
                                 <h1 className="text-3xl text-white font-bold mb-2">{group.GroupName}</h1>
 
-                                {/* Бейджи */}
                                 <div className="flex flex-wrap justify-center md:justify-start gap-2">
                                     {Number(group.CardCount) > 0 && (
                                         <div className="bg-white/20 text-white px-3 py-1 rounded-full flex items-center gap-1 text-sm backdrop-blur-md">
@@ -100,7 +92,6 @@ export function GroupHeader({
                                 </div>
                             </div>
 
-                            {/* Переключатель: Публикация или Подписка */}
                             <div className="flex flex-col items-center md:items-end">
                                 {isSubscriptionView ? (
                                     <label className={`
@@ -126,7 +117,6 @@ export function GroupHeader({
                                             ${isPublishing ? 'opacity-50 cursor-wait' : ''}
                                         `}>
                                             <span className="text-white text-sm font-medium">
-                                                {/* ИЗМЕНЕНИЕ: Текст теперь Публичная, если не опубликовано */}
                                                 {group.IsPublished ? "Опубликовано" : "Публичная"}
                                             </span>
                                             <input
@@ -145,10 +135,8 @@ export function GroupHeader({
                             </div>
                         </div>
 
-                        {/* Кнопка НАЧАТЬ ОБУЧЕНИЕ + Прогресс */}
                         <div className="mt-6 flex flex-col md:flex-row items-center gap-4">
 
-                            {/* Кнопка Старт */}
                             {showStartButton && (
                                 <motion.button
                                     whileHover={{ scale: 1.05 }}
@@ -161,7 +149,6 @@ export function GroupHeader({
                                 </motion.button>
                             )}
 
-                            {/* Прогресс бар */}
                             <div className="flex-1 w-full min-w-[200px]">
                                 <div className="flex justify-between text-white/80 text-xs mb-1">
                                     <span>Прогресс изучения</span>
@@ -178,7 +165,6 @@ export function GroupHeader({
                             </div>
                         </div>
 
-                        {/* Ошибка публикации */}
                         {publishError && !isSubscriptionView && (
                             <div className="mt-4 bg-red-500/80 text-white px-3 py-2 rounded-lg text-sm text-center md:text-left">
                                 {publishError}

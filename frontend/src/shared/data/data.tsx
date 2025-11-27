@@ -98,7 +98,7 @@ const colorRatingCard = {
   5: "bg-yellow-300",
 };
 
-// Расширенная палитра градиентов (совпадает с C# генератором)
+// Расширенная палитра градиентов 
 const availableColors = [
   { id: 1, gradient: "from-blue-500 to-cyan-500", name: "Синий океан" },
   { id: 2, gradient: "from-emerald-500 to-teal-500", name: "Изумрудный" },
@@ -117,7 +117,7 @@ const availableColors = [
   { id: 15, gradient: "from-cyan-500 to-blue-500", name: "Лазурь" },
 ];
 
-// Расширенный список иконок (English keys для совпадения с БД)
+// Расширенный список иконок 
 const availableIcons = [
   { icon: BookOpen, name: "BookOpen" }, // Книга
   { icon: Code, name: "Code" }, // Код

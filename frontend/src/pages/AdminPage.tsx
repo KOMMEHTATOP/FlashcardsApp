@@ -13,7 +13,6 @@ export default function AdminPage() {
     const [error, setError] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState("");
 
-    // Функция загрузки данных
     const fetchUsers = async () => {
         setLoading(true);
         setError(null);
@@ -22,7 +21,6 @@ export default function AdminPage() {
             setUsers(res.data);
         } catch (err: any) {
             console.error("Ошибка загрузки пользователей:", err);
-            // Если 403 Forbidden - значит не админ
             if (err.response?.status === 403) {
                 setError("У вас нет прав администратора.");
             } else {
@@ -34,17 +32,14 @@ export default function AdminPage() {
     };
 
     useEffect(() => {
-        // Загружаем данные при монтировании или смене пользователя
         fetchUsers();
     }, [user]);
 
-    // Фильтрация на клиенте
     const filteredUsers = users.filter(u =>
         u.Login.toLowerCase().includes(searchTerm.toLowerCase()) ||
         u.Email.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    // Форматирование даты
     const formatDate = (dateString: string) => {
         if (!dateString || dateString.startsWith("0001")) return "-";
         return new Date(dateString).toLocaleDateString("ru-RU", {
@@ -60,7 +55,6 @@ export default function AdminPage() {
             </Helmet>
 
             <div className="max-w-7xl mx-auto">
-                {/* Заголовок */}
                 <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
                     <h1 className="text-3xl font-bold flex items-center gap-3">
                         <ShieldAlert className="w-8 h-8 text-primary" />
@@ -104,7 +98,6 @@ export default function AdminPage() {
                             </thead>
                             <tbody>
                                 {loading ? (
-                                    // Скелетон загрузки
                                     [...Array(5)].map((_, i) => (
                                         <tr key={i} className="animate-pulse">
                                             <td colSpan={6} className="h-16 bg-base-200/50"></td>

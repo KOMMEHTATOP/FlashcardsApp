@@ -23,7 +23,6 @@ export default function StatCard({
 }: Props) {
   const numberRef = useRef<HTMLDivElement>(null);
   const hasAnimated = useRef(false);
-  // костомное анимация чисел
   useEffect(() => {
     const num = parseInt(value.replace(/[^0-9]/g, ""), 10);
     if (isNaN(num) || !numberRef.current || hasAnimated.current) return;

@@ -7,13 +7,11 @@ export default function FeaturesGrid({ features }: { features: Feature[] }) {
 
   return (
     <div className="relative">
-      {/* затемнение экрана */}
       <div
         className={`fixed inset-0 bg-black/50 transition-all duration-300 z-10 pointer-events-none ${hovered ? "opacity-50" : "opacity-0"
           }`}
       />
 
-      {/* сетка карточек */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-20">
         {features.map((feature, index) => (
           <div

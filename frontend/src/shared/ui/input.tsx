@@ -22,11 +22,7 @@ export function Input({
                         onChange,
                         value,
                       }: InputProps) {
-  // Состояние для переключения видимости пароля
   const [showPassword, setShowPassword] = useState(false);
-
-  // Если тип поля "password", то реальный тип зависит от состояния showPassword
-  // Если не "password" (например "email"), то оставляем как есть
   const isPasswordType = type === "password";
   const inputType = isPasswordType ? (showPassword ? "text" : "password") : type;
 
@@ -40,7 +36,6 @@ export function Input({
           {name}
         </label>
         <div className="relative">
-          {/* Левая иконка (Mail, Lock и т.д.) */}
           <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 z-10" />
 
           <input
@@ -54,10 +49,9 @@ export function Input({
               required={required}
           />
 
-          {/* Кнопка "Глазик" только для полей типа password */}
           {isPasswordType && (
               <button
-                  type="button" // Важно: type="button", чтобы не отправлять форму
+                  type="button" 
                   onClick={togglePasswordVisibility}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors z-10 focus:outline-none"
               >
