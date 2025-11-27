@@ -54,7 +54,6 @@ export function CardsList({
                 transition={{ duration: 0.5 }}
                 className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4"
             >
-                {/* ... (Верхняя часть без изменений: Заголовок, Кнопка добавления, Трофей) ... */}
                 <h2 className="text-lg md:text-2xl text-base-content/80">
                     Путь обучения
                 </h2>
@@ -118,13 +117,9 @@ export function CardsList({
                                 <div className={isBlur ? "blur-sm opacity-40 pointer-events-none select-none" : ""}>
                                     <CardQuestion
                                         item={item}
-                                        // Передаем onClick если передан родителем
                                         onClick={onCardClick ? () => onCardClick(cards, group, index) : undefined}
-
                                         onDelete={!isSubscriptionView && onDeleteCard ? () => onDeleteCard(item) : undefined}
                                         onEdit={!isSubscriptionView && onEditCard ? () => onEditCard(item) : undefined}
-
-                                        // Показываем кнопку обзор, если пользователь авторизован
                                         showOverviewButton={isAuthenticated}
                                     />
                                 </div>

@@ -169,7 +169,7 @@ export default function SortableList({
     }
 
     const handleStartLesson = async (group: GroupType) => {
-        if (isEditMode) return; // Не начинать урок в режиме редактирования
+        if (isEditMode) return; 
 
         let res: GroupCardType[] = await apiFetch
             .get(`/groups/${group.Id}/cards`)
@@ -212,7 +212,7 @@ export default function SortableList({
     const handleClose = () => setIsOpen(false);
 
     const handleCardClick = (groupId: string) => {
-        if (isEditMode) return; // Не переходить в режиме редактирования
+        if (isEditMode) return; 
         navigate(`/study/${groupId}`);
     };
 
@@ -292,7 +292,6 @@ export default function SortableList({
                 </SortableContext>
             </DndContext>
 
-            {/* Кнопка выхода из режима редактирования */}
             <AnimatePresence>
                 {isEditMode && (
                     <motion.button

@@ -62,7 +62,6 @@ apiFetch.interceptors.response.use(
                     failedQueue.push({ resolve, reject });
                 })
                     .then((token) => {
-                        // Защитный механизм для заголовков
                         if (!originalRequest.headers) {
                             originalRequest.headers = {};
                         }
@@ -82,7 +81,6 @@ apiFetch.interceptors.response.use(
                     { withCredentials: true }
                 );
 
-                // ИСПРАВЛЕНИЕ КЛЮЧА
                 const newToken = response?.data.accessToken;
 
                 if (!newToken) {

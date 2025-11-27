@@ -7,11 +7,6 @@ using Microsoft.Extensions.Logging;
 
 namespace FlashcardsApp.BLL.Implementations.Achievements;
 
-/// <summary>
-/// Сервис для генерации рекомендаций достижений
-/// Отвечает ТОЛЬКО за создание списка рекомендаций на основе прогресса
-/// Оркестрирует работу других сервисов: Progress + Motivation + Estimation
-/// </summary>
 public class AchievementRecommendationBL : IAchievementRecommendationBL
 {
     private readonly IAchievementProgressBL _progressBl;
@@ -34,9 +29,6 @@ public class AchievementRecommendationBL : IAchievementRecommendationBL
         _logger = logger;
     }
 
-    /// <summary>
-    /// Получить рекомендации: какие достижения пользователь скоро получит
-    /// </summary>
     public async Task<ServiceResult<IEnumerable<AchievementRecommendationDto>>> GetAchievementRecommendationsAsync(
         Guid userId, 
         int count = 3)
@@ -49,7 +41,6 @@ public class AchievementRecommendationBL : IAchievementRecommendationBL
                     "Количество рекомендаций должно быть от 1 до 10");
             }
 
-            // 1. Получаем прогресс всех достижений
             var allProgressResult = await _progressBl.GetAllAchievementsProgressAsync(userId);
             
             if (!allProgressResult.IsSuccess || allProgressResult.Data == null)
@@ -58,7 +49,6 @@ public class AchievementRecommendationBL : IAchievementRecommendationBL
                     allProgressResult.Errors.FirstOrDefault() ?? "Не удалось получить прогресс достижений");
             }
 
-            // 2. Получаем статистику пользователя для оценки времени
             var userStats = await _context.UserStatistics
                 .AsNoTracking()
                 .FirstOrDefaultAsync(s => s.UserId == userId);
@@ -69,23 +59,20 @@ public class AchievementRecommendationBL : IAchievementRecommendationBL
                     "Статистика пользователя не найдена");
             }
 
-            // 3. Фильтруем и сортируем достижения
             var recommendations = allProgressResult.Data
-                .Where(p => p is { IsUnlocked: false, ProgressPercentage: > 0 }) // Только неразблокированные с прогрессом
-                .OrderByDescending(p => p.ProgressPercentage)          // Сначала ближайшие к завершению
-                .ThenBy(p => p.Rarity)                                 // При равном прогрессе - более простые
-                .Take(count)                                              // Берем топ-N
+                .Where(p => p is { IsUnlocked: false, ProgressPercentage: > 0 }) 
+                .OrderByDescending(p => p.ProgressPercentage)       
+                .ThenBy(p => p.Rarity)                                 
+                .Take(count)             
                 .Select(p =>
                 {
                     var remainingValue = p.ConditionValue - p.CurrentValue;
                     
-                    // 4. Генерируем мотивационное сообщение
                     var motivationalMessage = _motivationBl.GenerateMotivationalMessage(
                         p.ConditionType,
                         remainingValue,
                         p.Name);
                     
-                    // 5. Оцениваем время до получения
                     var estimatedDays = _estimationBl.EstimateDaysToComplete(
                         p.ConditionType,
                         remainingValue,

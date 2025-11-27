@@ -142,14 +142,12 @@ export function LessonsTab({ groups, onOpenSettings, onCreateGroup, onSwitchToSt
                 onSortChange={setSortBy}
             />
 
-            {/* --- СЕКЦИЯ: МОИ КАРТОЧКИ --- */}
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
                     <h2 className="text-2xl text-base-content flex items-center gap-2">
                         Мои карточки <span className="text-sm opacity-50">({filteredData.allGroups.length})</span>
                     </h2>
 
-                    {/* УДАЛИЛИ КНОПКУ "СОЗДАТЬ", ОСТАВИЛИ ТОЛЬКО НАСТРОЙКИ */}
                     <div onClick={onOpenSettings} className="btn btn-sm btn-square btn-ghost opacity-70 hover:opacity-100">
                         <Settings2Icon className="w-5 h-5" />
                     </div>
@@ -189,7 +187,6 @@ export function LessonsTab({ groups, onOpenSettings, onCreateGroup, onSwitchToSt
                         {groups && groups.length > 0 ? (
                             "Ничего не найдено по выбранным фильтрам"
                         ) : (
-                            // ПУСТОЙ СТЕЙТ С ПРИЗЫВОМ К ДЕЙСТВИЮ
                             <div className="flex flex-col items-center gap-3">
                                 <p className="text-lg">У вас пока нет созданных колод</p>
                                 <button
@@ -205,7 +202,6 @@ export function LessonsTab({ groups, onOpenSettings, onCreateGroup, onSwitchToSt
                 )}
             </div>
 
-            {/* --- СЕКЦИЯ: МОИ ПОДПИСКИ --- */}
             <div className="space-y-6 mt-12 pt-8 border-t border-base-content/5">
                 <div className="flex items-center gap-3">
                     <Users className="w-6 h-6 text-base-content/70" />
@@ -248,7 +244,6 @@ export function LessonsTab({ groups, onOpenSettings, onCreateGroup, onSwitchToSt
                                 <h3 className="text-xl text-base-content/70 font-semibold">
                                     У вас пока нет подписок.
                                 </h3>
-                                {/* ССЫЛКА НА БИБЛИОТЕКУ */}
                                 <p className="text-base-content/50 mt-2">
                                     Перейдите на вкладку{" "}
                                     <button

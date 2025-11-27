@@ -8,10 +8,6 @@ using Microsoft.Extensions.Logging;
 
 namespace FlashcardsApp.BLL.Implementations.Achievements;
 
-/// <summary>
-/// Сервис для вычисления прогресса выполнения достижений
-/// Отвечает ТОЛЬКО за расчет прогресса (текущее значение, требуемое значение, процент)
-/// </summary>
 public class AchievementProgressBL : IAchievementProgressBL
 {
     private readonly ApplicationDbContext _context;
@@ -25,16 +21,12 @@ public class AchievementProgressBL : IAchievementProgressBL
         _logger = logger;
     }
 
-    /// <summary>
-    /// Вычислить процент выполнения достижения
-    /// </summary>
     public async Task<ServiceResult<AchievementProgressDto>> CalculateAchievementProgressAsync(
         Guid userId, 
         Guid achievementId)
     {
         try
         {
-            // Получаем достижение
             var achievement = await _context.Achievements
                 .AsNoTracking()
                 .FirstOrDefaultAsync(a => a.Id == achievementId && a.IsActive);
@@ -44,7 +36,6 @@ public class AchievementProgressBL : IAchievementProgressBL
                 return ServiceResult<AchievementProgressDto>.Failure("Достижение не найдено");
             }
 
-            // Получаем статистику пользователя
             var userStats = await _context.UserStatistics
                 .AsNoTracking()
                 .FirstOrDefaultAsync(s => s.UserId == userId);
@@ -54,12 +45,10 @@ public class AchievementProgressBL : IAchievementProgressBL
                 return ServiceResult<AchievementProgressDto>.Failure("Статистика пользователя не найдена");
             }
 
-            // Проверяем, разблокировано ли достижение
             var userAchievement = await _context.UserAchievements
                 .AsNoTracking()
                 .FirstOrDefaultAsync(ua => ua.UserId == userId && ua.AchievementId == achievementId);
 
-            // Вычисляем текущее значение и прогресс
             var currentValue = GetCurrentValueForCondition(achievement.ConditionType, userStats);
             var progressPercentage = CalculateProgressPercentage(currentValue, achievement.ConditionValue);
 
@@ -90,15 +79,11 @@ public class AchievementProgressBL : IAchievementProgressBL
         }
     }
 
-    /// <summary>
-    /// Получить прогресс по всем достижениям
-    /// </summary>
     public async Task<ServiceResult<IEnumerable<AchievementProgressDto>>> GetAllAchievementsProgressAsync(
         Guid userId)
     {
         try
         {
-            // Получаем статистику пользователя
             var userStats = await _context.UserStatistics
                 .AsNoTracking()
                 .FirstOrDefaultAsync(s => s.UserId == userId);
@@ -109,7 +94,6 @@ public class AchievementProgressBL : IAchievementProgressBL
                     "Статистика пользователя не найдена");
             }
 
-            // Получаем активные достижения и разблокированные пользователем
             var achievements = await _context.Achievements
                 .AsNoTracking()
                 .Where(a => a.IsActive)
@@ -121,7 +105,6 @@ public class AchievementProgressBL : IAchievementProgressBL
                 .Where(ua => ua.UserId == userId)
                 .ToDictionaryAsync(ua => ua.AchievementId, ua => ua.UnlockedAt);
 
-            // Вычисляем прогресс для каждого достижения (в памяти, без доп. запросов)
             var progressList = achievements.Select(achievement =>
             {
                 var currentValue = GetCurrentValueForCondition(achievement.ConditionType, userStats);
@@ -156,11 +139,6 @@ public class AchievementProgressBL : IAchievementProgressBL
         }
     }
 
-    #region Private Helper Methods
-
-    /// <summary>
-    /// Получить текущее значение пользователя для условия достижения
-    /// </summary>
     private static int GetCurrentValueForCondition(
         AchievementConditionType conditionType, 
         UserStatistics stats)
@@ -179,18 +157,12 @@ public class AchievementProgressBL : IAchievementProgressBL
         };
     }
 
-    /// <summary>
-    /// Вычислить процент выполнения (0-100)
-    /// </summary>
     private static int CalculateProgressPercentage(int currentValue, int targetValue)
     {
         if (targetValue <= 0)
             return 0;
 
-        // Ограничиваем максимум 100%
         var percentage = (int)Math.Round((double)currentValue / targetValue * 100);
         return Math.Min(100, Math.Max(0, percentage));
     }
-
-    #endregion
 }

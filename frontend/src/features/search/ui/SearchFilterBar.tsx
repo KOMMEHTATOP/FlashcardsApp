@@ -2,7 +2,6 @@ import { Search, Calendar, TrendingUp, SortAsc } from "lucide-react";
 import { useState, useEffect } from "react"; 
 import type { TagDto } from "@/types/types";
 
-// Стили тегов
 const tagStyles: Record<string, string> = {
     blue: "bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200",
     green: "bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-200",
@@ -33,7 +32,6 @@ interface SearchFilterBarProps {
     sortBy: SortOption;
     onSortChange: (sort: SortOption) => void;
 
-    // Состояние загрузки
     loading?: boolean;
 }
 
@@ -49,18 +47,14 @@ export function SearchFilterBar({
                                     loading = false
                                 }: SearchFilterBarProps) {
 
-    // 1. Локальный стейт для инпута, чтобы ввод был плавным
     const [localSearch, setLocalSearch] = useState(search);
 
-    // 2. Синхронизация: если URL изменился извне (например, кнопка "Назад"), обновляем инпут
     useEffect(() => {
         setLocalSearch(search);
     }, [search]);
 
-    // 3. Debounce: обновляем родительский стейт (и URL) только через 600мс после окончания ввода
     useEffect(() => {
         const handler = setTimeout(() => {
-            // Вызываем onSearchChange только если значение реально отличается
             if (localSearch !== search) {
                 onSearchChange(localSearch);
             }
@@ -71,7 +65,6 @@ export function SearchFilterBar({
         };
     }, [localSearch, search, onSearchChange]);
 
-    // Обработчик клика по тегу
     const handleTagClick = (tagId: string | null) => {
         if (selectedTagId === tagId) {
             onTagSelect(null);
@@ -86,7 +79,6 @@ export function SearchFilterBar({
             <form
                 onSubmit={(e) => {
                     e.preventDefault();
-                    // При нажатии Enter форсируем поиск мгновенно, без задержки
                     onSearchChange(localSearch);
                     onSearchSubmit?.(e);
                 }}
@@ -97,12 +89,9 @@ export function SearchFilterBar({
                     <input
                         type="text"
                         placeholder="Поиск..."
-                        // Связываем с локальным стейтом
                         value={localSearch}
                         onChange={(e) => setLocalSearch(e.target.value)}
                         className="input input-bordered w-full pl-10 bg-base-100"
-                        // ВАЖНО: Убрали disabled={loading}, чтобы фокус не слетал
-                        // Можно оставить disabled только при сабмите, если критично
                     />
                 </div>
                 {onSearchSubmit && (

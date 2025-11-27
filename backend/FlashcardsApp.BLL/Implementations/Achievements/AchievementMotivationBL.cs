@@ -3,15 +3,8 @@ using FlashcardsApp.Models.Enums;
 
 namespace FlashcardsApp.BLL.Implementations.Achievements;
 
-/// <summary>
-/// Сервис для генерации мотивационных сообщений
-/// Отвечает за текстовую мотивацию и локализацию (склонения слов)
-/// </summary>
 public class AchievementMotivationBL : IAchievementMotivationBL
 {
-    /// <summary>
-    /// Сгенерировать мотивационное сообщение для достижения
-    /// </summary>
     public string GenerateMotivationalMessage(
         AchievementConditionType conditionType, 
         int remainingValue, 
@@ -46,19 +39,12 @@ public class AchievementMotivationBL : IAchievementMotivationBL
             _ => $"Выполните условие для получения «{achievementName}»!"
         };
     }
-
-    #region Private Helper Methods - Склонения русских слов
-
-    /// <summary>
-    /// Склонение слова "карточка"
-    /// Примеры: 1 карточку, 2 карточки, 5 карточек, 21 карточку
-    /// </summary>
+    
     private static string GetCardWord(int count)
     {
         var lastDigit = count % 10;
         var lastTwoDigits = count % 100;
 
-        // Исключение для чисел 11-14 (они всегда "карточек")
         if (lastTwoDigits >= 11 && lastTwoDigits <= 14)
             return "карточек";
 
@@ -69,17 +55,12 @@ public class AchievementMotivationBL : IAchievementMotivationBL
             _ => "карточек"
         };
     }
-
-    /// <summary>
-    /// Склонение слова "день"
-    /// Примеры: 1 день, 2 дня, 5 дней, 21 день
-    /// </summary>
+    
     private static string GetDayWord(int count)
     {
         var lastDigit = count % 10;
         var lastTwoDigits = count % 100;
 
-        // Исключение для чисел 11-14
         if (lastTwoDigits >= 11 && lastTwoDigits <= 14)
             return "дней";
 
@@ -90,17 +71,12 @@ public class AchievementMotivationBL : IAchievementMotivationBL
             _ => "дней"
         };
     }
-
-    /// <summary>
-    /// Склонение слова "час"
-    /// Примеры: 1 час, 2 часа, 5 часов, 21 час
-    /// </summary>
+    
     private static string GetHourWord(int count)
     {
         var lastDigit = count % 10;
         var lastTwoDigits = count % 100;
 
-        // Исключение для чисел 11-14
         if (lastTwoDigits >= 11 && lastTwoDigits <= 14)
             return "часов";
 
@@ -111,17 +87,12 @@ public class AchievementMotivationBL : IAchievementMotivationBL
             _ => "часов"
         };
     }
-
-    /// <summary>
-    /// Склонение фразы "идеальная оценка"
-    /// Примеры: 1 идеальную оценку, 2 идеальные оценки, 5 идеальных оценок
-    /// </summary>
+    
     private static string GetPerfectRatingWord(int count)
     {
         var lastDigit = count % 10;
         var lastTwoDigits = count % 100;
 
-        // Исключение для чисел 11-14
         if (lastTwoDigits >= 11 && lastTwoDigits <= 14)
             return "идеальных оценок";
 
@@ -132,6 +103,4 @@ public class AchievementMotivationBL : IAchievementMotivationBL
             _ => "идеальных оценок"
         };
     }
-
-    #endregion
 }

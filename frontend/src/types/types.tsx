@@ -134,8 +134,8 @@ export interface AdminUserDto {
   Email: string;
   Role: string;
   TotalRating: number;
-  CreatedAt: string; // ISO date string
-  LastLogin: string; // ISO date string
+  CreatedAt: string;
+  LastLogin: string; 
   GroupsCount: number;
   CardsCount: number;
 }
@@ -193,6 +193,7 @@ type ConfrimModalState = {
   target: string;
   handleCancel: () => void;
   handleConfirm: () => void;
+  isAlert?: boolean;
 };
 
 type MotivationType = {

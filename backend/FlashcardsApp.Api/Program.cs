@@ -7,13 +7,15 @@ using NLog.Web;
 var logger = LogManager.Setup()
     .LoadConfigurationFromFile(Path.Combine(AppContext.BaseDirectory, "nlog.config.xml"))
     .GetCurrentClassLogger();
+
 try
 {
     var builder = WebApplication.CreateBuilder(args);
     var services = builder.Services;
 
-    builder.Logging.ClearProviders();
-    builder.Host.UseNLog();
+    builder.Logging.ClearProviders(); 
+    builder.Logging.AddConsole();    
+    builder.Host.UseNLog();          
 
     services.AddControllers()
         .AddJsonOptions(options =>

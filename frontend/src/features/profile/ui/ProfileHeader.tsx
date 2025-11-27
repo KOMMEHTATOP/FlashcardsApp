@@ -12,7 +12,6 @@ export function ProfileHeader({ user, level, progressPercent }: ProfileHeaderPro
     return (
         <div className="neon-bg rounded-2xl p-6">
             <div className="flex items-center gap-6">
-                {/* Аватар с уровнем */}
                 <div className="relative" title={`Уровень ${level}`}>
                     <div className="w-32 h-32 rounded-full bg-white/20 backdrop-blur-sm p-1">
                         <div className="w-full h-full rounded-full bg-base-100 flex items-center justify-center relative overflow-hidden">
@@ -51,7 +50,6 @@ export function ProfileHeader({ user, level, progressPercent }: ProfileHeaderPro
                     </div>
                 </div>
 
-                {/* Информация о пользователе */}
                 <div className="flex-1">
                     <div className="flex items-center justify-between mb-2">
                         <h1 className="text-3xl font-bold text-white">{user?.Login}</h1>
@@ -67,7 +65,6 @@ export function ProfileHeader({ user, level, progressPercent }: ProfileHeaderPro
                     </div>
                     <div className="text-white/90 mb-4 text-lg">{user?.Email}</div>
 
-                    {/* XP прогресс */}
                     <div className="relative bg-transparent rounded-full h-4 w-full overflow-hidden border-2 border-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.5)]">
                         <motion.div
                             initial={{ width: 0 }}

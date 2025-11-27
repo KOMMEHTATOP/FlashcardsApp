@@ -73,7 +73,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 password,
             });
 
-            // Поддержка и camelCase (обычный json) и PascalCase (C# defaults)
             const token = response.data.accessToken || response.data.AccessToken;
 
             if (!token) {
@@ -86,22 +85,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         []
     );
 
-    // ИСПРАВЛЕННАЯ ЛОГИКА РЕГИСТРАЦИИ
     const register = useCallback(
         async (loginName: string, email: string, password: string) => {
-            // 1. Сначала регистрируем пользователя
-            // Мы не ждем токен от этого запроса, так как вы подтвердили, что его там нет
             await apiFetch.post("/Auth/register", {
                 Login: loginName,
                 Email: email,
                 Password: password,
             });
 
-            // 2. Сразу же выполняем автоматический вход с теми же данными
-            // Это получит токен и установит isAuthenticated = true
             await login(email, password);
         },
-        [login] // Важно: register зависит от login
+        [login] 
     );
 
     const logout = useCallback(async () => {

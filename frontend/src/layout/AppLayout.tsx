@@ -42,6 +42,7 @@ function AppLayoutContent() {
                         target={confrimModal.target}
                         handleCancel={confrimModal.handleCancel}
                         handleConfirm={confrimModal.handleConfirm}
+                        isAlert={confrimModal.isAlert}
                     />
                 )}
                 <Outlet />

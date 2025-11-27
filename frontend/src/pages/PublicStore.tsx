@@ -12,7 +12,7 @@ function PublicStoreContent() {
 
     return (
         <div className="min-h-screen bg-base-300 flex flex-col">
-            {/* <--- Вставляем SEO для каталога */}
+            {/* SEO для каталога */}
             <Seo
                 title="Библиотека знаний и каталог колод | FlashcardsLoop"
                 description="Изучайте открытые наборы флеш-карточек от сообщества FlashcardsLoop. 
@@ -49,7 +49,6 @@ function PublicStoreContent() {
     );
 }
 
-// Экспортируемый компонент-обертка
 export default function PublicStorePage() {
     return (
         <DataProvider>

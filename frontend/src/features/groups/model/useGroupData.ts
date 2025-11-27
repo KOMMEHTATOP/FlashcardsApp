@@ -41,20 +41,14 @@ export function useGroupData(): UseGroupDataResult {
                 setLoading(true);
 
                 if (isSubscriptionView) {
-                    // === ЗАГРУЗКА ПОДПИСКИ: ПОСЛЕДОВАТЕЛЬНО (Устранение гонки) ===
-
-                    // 1. Запрос данных группы. Добавляем { signal }
                     const groupRes = await apiFetch.get<GroupDetailDto>(`/Subscriptions/${id}`, { signal });
                     const groupData = groupRes.data;
-
-                    // 2. Запрос карточек. Добавляем { signal }
                     const cardsRes = await apiFetch.get(`/Subscriptions/public/${id}/cards`, { signal });
                     const cardsData = cardsRes.data;
 
                     setGroup(groupData);
                     setIsSubscribed(groupData.IsSubscribed ?? false);
 
-                    // Маппим карточки подписки
                     const mappedCards: GroupCardType[] = cardsData.map((card: any) => ({
                         CardId: card.CardId,
                         GroupId: id,
@@ -68,13 +62,8 @@ export function useGroupData(): UseGroupDataResult {
                     setCards(mappedCards.reverse());
 
                 } else {
-                    // === ЗАГРУЗКА СВОЕЙ ГРУППЫ ===
-
-                    // 1. Запрос данных группы. Добавляем { signal }
                     const groupRes = await apiFetch.get<GroupType>(`/Group/${id}`, { signal });
                     const groupData = groupRes.data;
-
-                    // 2. Запрос карточек. Добавляем { signal }
                     const cardsRes = await apiFetch.get(`/groups/${id}/cards`, { signal });
                     const cardsData = cardsRes.data;
 
@@ -82,7 +71,6 @@ export function useGroupData(): UseGroupDataResult {
                     setCards(cardsData.reverse());
                 }
             } catch (err: any) {
-                // Игнорируем ошибку отмены (запрос AbortController)
                 if (err.name === 'CanceledError' || (err.response && err.response.data && err.response.data.message === 'Request aborted')) {
                     console.log('Request aborted by cleanup.');
                     return;
@@ -95,7 +83,6 @@ export function useGroupData(): UseGroupDataResult {
 
         fetchData();
 
-        // Функция очистки: вызывается, чтобы отменить запросы при следующем вызове useEffect
         return () => {
             controller.abort();
         };

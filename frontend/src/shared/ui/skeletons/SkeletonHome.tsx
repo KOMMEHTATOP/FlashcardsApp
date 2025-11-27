@@ -2,7 +2,6 @@ export default function SkeletonHome() {
   return (
     <div className="w-full h-full flex flex-col items-center justify-center gap-6">
       <div className="w-full space-y-8 animate-pulse">
-        {/* Заголовок */}
         <div className="w-full bg-base-200 rounded-2xl skeleton p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
@@ -53,7 +52,6 @@ export default function SkeletonHome() {
 
         <div className="space-y-6 mb-12">
           <div className="space-y-6">
-            {/* Заголовок и настройки */}
             <div className="flex items-center justify-between ">
               <div className="bg-base-200 rounded h-8 w-40 skeleton"></div>
               <div className="flex items-center gap-2 opacity-70">
@@ -62,7 +60,6 @@ export default function SkeletonHome() {
               </div>
             </div>
 
-            {/* Список груп */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {[...Array(4)].map((_, index) => (
                 <div

@@ -252,6 +252,17 @@ public class CardBL : ICardBL
             return ServiceResult<bool>.Failure("Card not found or access denied");
         }
 
+        if (card.Group.IsPublished)
+        {
+            var currentCount = await _context.Cards.CountAsync(c => c.GroupId == card.GroupId);
+
+            if (currentCount <= 10)
+            {
+                return ServiceResult<bool>.Failure("Нельзя удалить карточку из опубликованной группы. " +
+                                                   "Минимальное количество: 10. Сначала снимите публикацию.");
+            }
+        }
+        
         _context.Cards.Remove(card);
 
         try
@@ -267,7 +278,7 @@ public class CardBL : ICardBL
             _logger.LogError(ex,
                 "Error deleting card {CardId} for user {UserId}",
                 cardId, userId);
-            return ServiceResult<bool>.Failure("Failed to delete card");
+            return ServiceResult<bool>.Failure("Ошибка при удалении карточки");
         }
 
         return ServiceResult<bool>.Success(true);

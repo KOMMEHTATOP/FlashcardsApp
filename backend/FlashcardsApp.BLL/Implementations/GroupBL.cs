@@ -278,7 +278,6 @@ public class GroupBL : IGroupBL
     
     private async Task<Group?> GetUserGroupAsync(Guid groupId, Guid userId)
     {
-        // Include(Tags) нужен, чтобы при обновлении группы мы могли корректно обновить список тегов
         return await _context.Groups
             .Include(g => g.Tags)
             .FirstOrDefaultAsync(g => g.Id == groupId && g.UserId == userId);

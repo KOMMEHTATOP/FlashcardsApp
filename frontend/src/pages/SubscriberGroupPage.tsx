@@ -95,20 +95,16 @@ export default function SubscriberGroupPage() {
         availableIcons.find((icon) => icon.name === group.GroupIcon)?.icon ||
         BookHeartIcon;
 
-    // 1. Берем первые 3-5 вопросов из карточек для формирования "превью" контента
     const previewTerms = cards
-        .slice(0, 5)                                // Берем первые 5 карточек
-        .map((c) => c.Question)         // Достаем текст вопроса
-        .filter((q) => q && q.length < 50)  // (Опционально) Игнорируем слишком длинные вопросы, чтобы не забить всё место
-        .join(", ");                                // Соединяем через запятую
+        .slice(0, 5)                                
+        .map((c) => c.Question)        
+        .filter((q) => q && q.length < 50)  
+        .join(", ");                                
 
-    // 2. Генерируем динамическое описание
-    // Шаблон: "Колода [Название]. [Кол-во] терминов: [Термин1], [Термин2]..."
     const generatedDescription =
         `Изучайте набор "${group.GroupName}" (${cards.length} шт). ` +
         (previewTerms ? `Содержит вопросы: ${previewTerms}...` : `Бесплатные карточки для запоминания.`);
     
-    // --- ГЕНЕРАЦИЯ JSON-LD ---
     const jsonLdData = {
         "@context": "https://schema.org",
         "@type": "FAQPage",

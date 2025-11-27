@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { TITLE_APP } from "../shared/data";
+import { TITLE_APP } from "@/shared/data";
 
 export default function useTitle(title: string) {
   useEffect(() => {

@@ -76,17 +76,12 @@ export function StoreTab() {
 
                 setGroups(response.data);
 
-                // --- ИСПРАВЛЕНИЕ ЛОГИКИ ПАГИНАЦИИ ---
-                // Axios всегда приводит заголовки к нижнему регистру
                 const serverTotal = response.headers['x-total-count'];
 
                 if (serverTotal) {
                     setTotalCount(parseInt(serverTotal, 10));
                 } else {
-                    // Если заголовка нет, мы не угадываем, а ставим текущую длину,
-                    // но выводим предупреждение для разработчика.
                     console.warn("⚠️ Пагинация: Отсутствует заголовок 'x-total-count'. Проверьте CORS на бэкенде (WithExposedHeaders).");
-                    // Временный фоллбек, чтобы интерфейс не падал, но он не даст переключить страницу дальше
                     setTotalCount(response.data.length > 0 ? (page * ITEMS_PER_PAGE) : 0);
                 }
 

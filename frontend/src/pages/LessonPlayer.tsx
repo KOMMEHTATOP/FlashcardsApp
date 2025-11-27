@@ -63,7 +63,6 @@ export default function LessonPlayer({
     };
 
     const handleAnswer = async (ratting: RatingValue) => {
-        // Если ответ верный добавляем его в правильные для статистикии
         const XpEarned = await questionAnswered(currentCard.CardId, ratting);
         setEarnetXp((prev) => prev + XpEarned);
         setRating((prev) => ({
@@ -91,7 +90,6 @@ export default function LessonPlayer({
             );
         }
 
-        // Функция для перехода к следующему вопросу или для показа конца с
         if (nextIndex !== -1) {
             setTimeout(() => {
                 setIsFlipped(false);
@@ -131,7 +129,6 @@ export default function LessonPlayer({
         onComplete(earnetXp);
     };
 
-    // модуль статистики
     if (showCelebration) {
         return (
             <Celebration
@@ -146,7 +143,6 @@ export default function LessonPlayer({
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-base-300 via-base-200 to-base-300 ">
-            {/* заголовок */}
             <HeaderLessons
                 lessonTitle={lessonTitle}
                 onBack={onBack}
@@ -156,7 +152,6 @@ export default function LessonPlayer({
                 to={currentLesson?.length || 0}
             />
 
-            {/* Главная карточка */}
             <div className="max-w-4xl mx-auto px-4 py-12">
                 <div className="mb-8 text-center">
                     <motion.div
@@ -174,7 +169,6 @@ export default function LessonPlayer({
                     </motion.div>
                 </div>
 
-                {/* сама карточка */}
                 <AnimatePresence mode="wait">
                     <motion.div
                         key={currentCardIndex}
@@ -194,7 +188,6 @@ export default function LessonPlayer({
                     </motion.div>
                 </AnimatePresence>
 
-                {/* кнопки */}
                 <AnimatePresence mode="wait">
                     <div
                         className={`${isFlipped ? "h-30" : "h-10"
@@ -220,7 +213,6 @@ export default function LessonPlayer({
                     </div>
                 </AnimatePresence>
 
-                {/* навигация */}
                 <NavigationLessons
                     flashcards={currentLesson?.cards || []}
                     currentCardIndex={currentCardIndex}

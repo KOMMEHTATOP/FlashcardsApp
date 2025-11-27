@@ -17,14 +17,10 @@ import StateCard from "@/features/profile/ui/StateСard";
 import MotivationCard from "@/features/dashboard/ui/MotivationCard";
 import SettingModal from "@/shared/ui/modals/SettingModal";
 import GroupForm from "@/features/groups/ui/GroupForm";
-
 import { LessonsTab } from "@/features/dashboard/ui/LessonsTab";
 import { StoreTab } from "@/features/dashboard/ui/StoreTab";
 import { AchievementsTab } from "@/features/dashboard/ui/AchievementsTab";
-
-// Виджет теперь плавающий
 import { LeaderboardWidget } from "@/features/leaderboard/ui/LeaderboardWidget";
-
 import { useData } from "@/context/DataContext";
 import formatTotalHour from "@/utils/formatTotalHour";
 
@@ -57,7 +53,6 @@ export function HomePage() {
         [groups]
     );
 
-    // --- Handlers ---
     const selectModul = (name: string) => {
         const index = modul.findIndex((item) => item.name === name);
         setCurrentModul(index);
@@ -102,12 +97,8 @@ export function HomePage() {
             <Helmet>
                 <title>Моё обучение | FlashcardsLoop</title>
             </Helmet>
-
-            {/* Вставляем плавающий виджет. Он fixed, поэтому неважно где он в DOM */}
             <LeaderboardWidget />
-
             <div className="space-y-8">
-                {/* Блок статистики */}
                 <div>
                     <LevelCard
                         level={level}
@@ -117,7 +108,6 @@ export function HomePage() {
                     />
                 </div>
 
-                {/* Карточки статов */}
                 <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <StateCard
                         icon={Clock}
@@ -172,7 +162,6 @@ export function HomePage() {
                     ))}
                 </div>
 
-                {/* Модалки */}
                 {isOpenSetting && (
                     <SettingModal handleCancel={handleCloseSetting} handleSave={() => { }} />
                 )}
@@ -180,14 +169,12 @@ export function HomePage() {
                     <GroupForm isOpen={isCreateModalOpen} handleCancle={handleCloseCreateModal} />
                 )}
 
-                {/* Контент */}
                 <div className="space-y-6 mb-12">
                     <AnimatePresence mode="wait">
                         {renderCurrentTab()}
                     </AnimatePresence>
                 </div>
 
-                {/* Мотивация */}
                 <MotivationCard
                     animated="rotate"
                     animatedDelay={20}

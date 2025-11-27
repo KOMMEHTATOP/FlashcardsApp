@@ -46,11 +46,10 @@ export default function MotivationCard({
       <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          // Добавляем анимацию нажатия, только если передан onClick
           whileHover={onClick ? { scale: 1.02 } : undefined}
           whileTap={onClick ? { scale: 0.98 } : undefined}
           transition={{ delay: delay }}
-          onClick={onClick} // <--- Вешаем обработчик
+          onClick={onClick} 
           className={`bg-gradient-to-r ${gradient} p-8 rounded-3xl shadow-xl text-center relative overflow-hidden 
         ${onClick ? "cursor-pointer hover:shadow-2xl transition-shadow" : ""} 
         ${className || ""}`}

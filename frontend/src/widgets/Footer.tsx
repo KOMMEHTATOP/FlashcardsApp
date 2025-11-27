@@ -6,7 +6,6 @@ import { TITLE_APP } from "@/shared/data";
 export default function Footer() {
   return (
     <footer className="relative bg-base-300/70 backdrop-blur-md border-t border-base-200 py-10 px-5 mt-10">
-      {/* ==== Верхняя подсветка-градиент (декор) ==== */}
       <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 blur-[1px]" />
 
       <motion.div
@@ -16,7 +15,6 @@ export default function Footer() {
         transition={{ duration: 0.6 }}
         className="max-w-6xl mx-auto text-center flex flex-col items-center justify-center gap-6"
       >
-        {/* лого и название  */}
         <motion.div
           whileHover={{ scale: 1.05 }}
           transition={{ type: "spring", stiffness: 200 }}
@@ -33,7 +31,6 @@ export default function Footer() {
           </Link>
         </motion.div>
 
-        {/* контакты */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -44,7 +41,7 @@ export default function Footer() {
 
           <div className="flex items-center gap-2">
             <img
-              src="/tg_icon.svg" // <--- ИСПРАВЛЕНО (добавлен слэш)
+              src="/tg_icon.svg" 
               alt="Telegram"
               className="w-5 h-5"
               loading="lazy"

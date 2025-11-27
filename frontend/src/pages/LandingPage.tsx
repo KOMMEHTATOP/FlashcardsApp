@@ -69,7 +69,7 @@ export default function LandingPage() {
 
     return (
         <div className="min-h-screen bg-base-300">
-            {/* <--- 3. Вставляем мощное SEO описание */}
+            {/* SEO описание */}
             <Seo
                 title="FlashcardsLoop — Интервальное повторение и умные карточки"
                 description="Бесплатный сервис для эффективного запоминания информации. 
@@ -105,10 +105,8 @@ export default function LandingPage() {
                 )}
             </AnimatePresence>
 
-            {/* --- HERO SECTION --- */}
             <LandingHero isMobile={isMobile} stats={stats} />
 
-            {/* --- FEATURES SECTION --- */}
             <section id="features" className="py-24 px-4 bg-base-200">
                 <div className="max-w-6xl mx-auto">
                     <motion.div
@@ -128,16 +126,9 @@ export default function LandingPage() {
                 </div>
             </section>
 
-            {/* --- GAMIFICATION SECTION --- */}
             <LandingGamification features={gamificationFeatures} isMobile={isMobile} />
-
-            {/* --- HOW IT WORKS SECTION --- */}
             <LandingHowItWorks steps={steps} />
-
-            {/* --- BENEFITS SECTION --- */}
             <LandingBenefits benefits={benefits} />
-
-            {/* --- CTA SECTION --- */}
             <LandingCTA />
 
             <Footer />

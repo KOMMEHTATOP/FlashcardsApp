@@ -83,7 +83,6 @@ export default function SettingModal({
             className="fixed top-0 left-0 w-full h-full bg-black/50 flex items-center justify-center z-50"
         >
             <div className="w-[90dvw] md:w-[80dvw] lg:w-[35dvw] max-h-[90dvh] overflow-y-auto bg-white p-6 rounded-2xl">
-                {/* {Заголовок} */}
                 <div>
                     <div className="flex justify-between">
                         <span className="text-2xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent flex items-center gap-1">
@@ -107,7 +106,6 @@ export default function SettingModal({
                                 Показывать только карты в пределах этого диапазона рейтингов
                             </p>
 
-                            {/* Мин рейтинг */}
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between">
                                     <label className="text-sm text-gray-700 ">От</label>
@@ -129,7 +127,6 @@ export default function SettingModal({
                                 />
                             </div>
 
-                            {/* Макс рейтинг */}
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between">
                                     <label className="text-sm text-gray-700">До</label>
@@ -153,7 +150,6 @@ export default function SettingModal({
                         </div>
                     </div>
 
-                    {/* кнопка случайного режима */}
                     <div className="bg-gradient-to-r from-blue-50 to-pink-50  p-4 rounded-xl">
                         <div className="flex items-center justify-between">
                             <div className="space-y-1">
@@ -166,7 +162,6 @@ export default function SettingModal({
                         </div>
                     </div>
 
-                    {/* Порог завершения */}
                     <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-xl space-y-3">
                         <div className="space-y-1">
                             <label className="text-gray-900 ">Порог завершения</label>

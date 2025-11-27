@@ -44,7 +44,6 @@ const GridMotion: FC<GridMotionProps> = ({
       mouseXRef.current = e.clientX;
       lastMouseMove = Date.now();
 
-      // Убиваем все автотвины
       autoTweens.forEach((tween) => tween.kill());
       autoTweens = [];
     };

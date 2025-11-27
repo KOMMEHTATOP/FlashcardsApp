@@ -117,7 +117,6 @@ export default function LoginPage() {
 
     const hasError = Boolean(error);
 
-    // Логика динамического заголовка для SEO
     const seoTitle = selectedBlock === "login"
         ? "Вход в личный кабинет | FlashcardsLoop"
         : "Регистрация аккаунта | Создать профиль FlashcardsLoop";
@@ -129,8 +128,6 @@ export default function LoginPage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-base-300 via-base-100 to-base-300 flex items-center justify-center p-4 relative overflow-hidden">
-
-            {/* Вставляем наш компонент. Тип страницы - website, так как это не статья */}
             <Seo
                 title={seoTitle}
                 description={seoDescription}

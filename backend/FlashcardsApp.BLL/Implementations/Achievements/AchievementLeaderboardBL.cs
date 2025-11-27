@@ -6,9 +6,6 @@ using Microsoft.Extensions.Logging;
 
 namespace FlashcardsApp.BLL.Implementations.Achievements;
 
-/// <summary>
-/// Сервис для работы с таблицей лидеров по достижениям
-/// </summary>
 public class AchievementLeaderboardBL : IAchievementLeaderboardBL
 {
     private readonly ApplicationDbContext _context;
@@ -48,7 +45,7 @@ public class AchievementLeaderboardBL : IAchievementLeaderboardBL
                 {
                     UserId = x.User.Id,
                     Username = x.User.UserName ?? "Unknown",
-                    AvatarUrl = null, // Добавить, когда будет поле Avatar в User
+                    AvatarUrl = null,
                     AchievementCount = x.AchievementCount,
                     TotalXP = x.TotalXP,
                     Position = index + 1,
@@ -72,11 +69,8 @@ public class AchievementLeaderboardBL : IAchievementLeaderboardBL
 
         try
         {
-            // Получаем количество достижений пользователя
             var userAchievementCount = await _context.UserAchievements
                 .CountAsync(ua => ua.UserId == userId);
-
-            // Считаем, сколько пользователей имеют больше достижений
             var usersAbove = await _context.Users
                 .Select(u => new
                 {
@@ -109,7 +103,6 @@ public class AchievementLeaderboardBL : IAchievementLeaderboardBL
 
         try
         {
-            // Получаем топ пользователей
             var topUsers = await _context.Users
                 .Select(u => new
                 {
@@ -122,7 +115,6 @@ public class AchievementLeaderboardBL : IAchievementLeaderboardBL
                 .Take(topCount)
                 .ToListAsync();
 
-            // Проверяем, есть ли текущий пользователь в топе
             var currentUserInTop = topUsers.Any(x => x.User.Id == userId);
 
             var leaderboard = topUsers
@@ -138,7 +130,6 @@ public class AchievementLeaderboardBL : IAchievementLeaderboardBL
                 })
                 .ToList();
 
-            // Если пользователя нет в топе, добавляем его отдельно
             if (!currentUserInTop)
             {
                 var currentUser = await _context.Users
@@ -153,7 +144,6 @@ public class AchievementLeaderboardBL : IAchievementLeaderboardBL
 
                 if (currentUser != null)
                 {
-                    // Вычисляем позицию пользователя
                     var usersAbove = await _context.Users
                         .Select(u => new
                         {
@@ -187,6 +177,4 @@ public class AchievementLeaderboardBL : IAchievementLeaderboardBL
             return ServiceResult<IEnumerable<LeaderboardEntryDto>>.Failure("Failed to fetch leaderboard");
         }
     }
-
-
 }

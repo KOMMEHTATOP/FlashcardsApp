@@ -19,11 +19,7 @@ export function BadgeCard({
                           }: BadgeCardProps) {
     return (
         <motion.div
-            // Увеличиваем масштаб
             whileHover={{ scale: 1.10, y: -5 }}
-
-            // duration: 0.1 делает реакцию мгновенной.
-            // ease: "easeOut" делает движение резким в начале и плавным в конце.
             transition={{ duration: 0.1, ease: "easeOut" }}
 
             className={`relative p-6 rounded-2xl shadow-lg transition-all h-full flex flex-col justify-between cursor-default ${
