@@ -113,7 +113,7 @@ public class AuthBL : IAuthBL
             return ServiceResult<User>.Failure("Неверный логин или пароль");
         }
 
-        user.LastLogin = model.LastLogin;
+        user.LastLogin = DateTime.UtcNow;
         _context.Users.Update(user);
         _logger.LogInformation("User {UserId} successfully logged in", user.Id);
 

@@ -4,16 +4,21 @@ using System.Text.Json.Serialization;
 using NLog;
 using NLog.Web;
 
+// Настройка NLog перед стартом билдера
 var logger = LogManager.Setup()
     .LoadConfigurationFromFile(Path.Combine(AppContext.BaseDirectory, "nlog.config.xml"))
     .GetCurrentClassLogger();
+
 try
 {
     var builder = WebApplication.CreateBuilder(args);
     var services = builder.Services;
 
-    builder.Logging.ClearProviders();
-    builder.Host.UseNLog();
+    // --- ИСПРАВЛЕНИЕ ЛОГИРОВАНИЯ ---
+    builder.Logging.ClearProviders(); // Удаляем дефолтные провайдеры (Debug, EventSource и т.д.)
+    builder.Logging.AddConsole();     // <--- ВЕРНУЛИ КОНСОЛЬ! Теперь мы увидим "Now listening on..."
+    builder.Host.UseNLog();           // Подключаем NLog для всего остального
+    // -------------------------------
 
     services.AddControllers()
         .AddJsonOptions(options =>
@@ -86,11 +91,13 @@ try
 }
 catch (Exception exception)
 {
+    // NLog перехватит критическую ошибку старта (если будет)
     logger.Error(exception, "Приложение остановлено из-за исключения");
     throw;
 }
 finally
 {
+    // Обязательно сбрасываем логгер при выходе
     LogManager.Shutdown();
 }
 
