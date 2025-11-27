@@ -10,9 +10,6 @@ using Microsoft.Extensions.Logging;
 
 namespace FlashcardsApp.BLL.Implementations.Achievements;
 
-/// <summary>
-/// Сервис для начисления наград за достижения
-/// </summary>
 public class AchievementRewardBL : IAchievementRewardBL
 {
     private readonly ApplicationDbContext _context;
@@ -32,14 +29,10 @@ public class AchievementRewardBL : IAchievementRewardBL
         _settings = settingsOptions.Value;
     }
 
-    /// <summary>
-    /// Начислить награду за разблокированное достижение
-    /// </summary>
     public async Task<ServiceResult<AchievementRewardDto>> AwardBonusForAchievementAsync(Guid userId, Guid achievementId)
     {
         try
         {
-            // Получаем информацию о достижении
             var achievement = await _context.Achievements
                 .AsNoTracking()
                 .FirstOrDefaultAsync(a => a.Id == achievementId);
@@ -49,11 +42,9 @@ public class AchievementRewardBL : IAchievementRewardBL
                 return ServiceResult<AchievementRewardDto>.Failure("Achievement not found");
             }
 
-            // Базовая награда из конфига
             var baseXP = _settings.Base.XPPerAchievement;
             var coins = _settings.Base.CoinsPerAchievement;
 
-            // Начисляем XP через GamificationService
             var addResult = await _gamificationBl.AddXPToUserAsync(userId, baseXP);
 
             if (!addResult.IsSuccess)

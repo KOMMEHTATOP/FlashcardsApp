@@ -7,7 +7,6 @@ namespace FlashcardsApp.Api.Infrastructure.Notifications;
 
 /// <summary>
 /// Реализация сервиса уведомлений через SignalR
-/// Инкапсулирует логику работы с IHubContext
 /// </summary>
 public class SignalRNotificationService : INotificationService
 { 
@@ -29,8 +28,6 @@ public class SignalRNotificationService : INotificationService
     {
         try
         {
-            // Отправляем уведомление в группу пользователя
-            // Все подключения этого пользователя получат уведомление
             await _hubContext.Clients
                 .Group($"user_{userId}")
                 .SendAsync("AchievementUnlocked", notification);
@@ -43,10 +40,6 @@ public class SignalRNotificationService : INotificationService
         {
             _logger.LogError(ex, 
                 "Failed to send achievement notification to user {UserId}", userId);
-            
-            // НЕ пробрасываем исключение дальше
-            // Уведомление - это не критичная операция
-            // Если пользователь офлайн, просто логируем ошибку
         }
     }
 
@@ -59,7 +52,6 @@ public class SignalRNotificationService : INotificationService
     {
         try
         {
-            // Отправляем массовое уведомление
             await _hubContext.Clients
                 .Group($"user_{userId}")
                 .SendAsync("MultipleAchievementsUnlocked", notifications);

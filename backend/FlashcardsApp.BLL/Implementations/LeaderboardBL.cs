@@ -1,6 +1,5 @@
 using FlashcardsApp.BLL.Interfaces;
 using FlashcardsApp.DAL;
-using FlashcardsApp.DAL.Models;
 using FlashcardsApp.Models.DTOs.Leaderboard;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;

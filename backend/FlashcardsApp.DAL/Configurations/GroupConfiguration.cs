@@ -16,7 +16,6 @@ public class GroupConfiguration : IEntityTypeConfiguration<Group>
         builder.Property(g => g.GroupColor)
             .HasMaxLength(100);
 
-        // ДЕНОРМАЛИЗАЦИЯ - счетчик подписчиков
         builder.Property(g => g.SubscriberCount)
             .IsRequired()
             .HasDefaultValue(0)

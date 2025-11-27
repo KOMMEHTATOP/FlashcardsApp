@@ -42,11 +42,8 @@ public static class JwtExtensions
                 {
                     OnMessageReceived = context =>
                     {
-                        // SignalR отправляет токен в Query String
                         var accessToken = context.Request.Query["access_token"];
 
-                        // Если токен есть в URL — берем его.
-                        // Валидация подписи токена произойдет автоматически дальше.
                         if (!string.IsNullOrEmpty(accessToken))
                         {
                             context.Token = accessToken;

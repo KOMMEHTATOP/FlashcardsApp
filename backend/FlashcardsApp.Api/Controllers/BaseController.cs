@@ -82,7 +82,6 @@ namespace FlashcardsApp.Api.Controllers
 
         /// <summary>
         /// Возвращает NoContent (204) если операция успешна, иначе BadRequest
-        /// Используется для DELETE операций
         /// </summary>
         protected IActionResult NoContentOrBadRequest<T>(ServiceResult<T> result)
         {
@@ -99,10 +98,7 @@ namespace FlashcardsApp.Api.Controllers
         
         /// <summary>
         /// Возвращает Created (201) если операция успешна, иначе NotFound если ресурс не найден, иначе BadRequest
-        /// Используется для POST операций, где может быть ошибка "не найдено" (например, родительский ресурс)
         /// </summary>
-        /// <param name="result">Результат операции</param>
-        /// <param name="locationUri">URI созданного ресурса (для заголовка Location)</param>
         protected IActionResult CreatedOrNotFound<T>(ServiceResult<T> result, string locationUri)
         {
             if (!result.IsSuccess)

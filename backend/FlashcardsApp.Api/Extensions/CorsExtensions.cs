@@ -11,7 +11,6 @@ public static class CorsExtensions
             .GetSection("Cors:AllowedOrigins")
             .Get<string[]>() ?? [];
 
-        // Если ничего не задано в конфиге — используем дефолтные адреса для разработки
         if (allowedOrigins.Length == 0 && environment.IsDevelopment())
         {
             allowedOrigins = new[]
