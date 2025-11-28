@@ -95,7 +95,7 @@ export const LeaderboardWidget = () => {
                 >
                     <div className="flex items-center gap-2 text-xs font-bold uppercase opacity-70 pl-1">
                         {!isMobile && <GripHorizontal className="w-4 h-4 cursor-move" onPointerDown={(e) => e.stopPropagation()} />}
-                        Лидерборд
+                        ТОП Авторов
                     </div>
                     <div className="btn btn-circle btn-ghost btn-xs hover:bg-base-300">
                         {isCollapsed ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
