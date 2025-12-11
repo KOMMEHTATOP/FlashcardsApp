@@ -14,7 +14,7 @@ services:
       POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
     
     ports:
-      - "5400:5432" #внешний порт/внутренний
+      - "5400:5432"
     
     volumes:
       - pgdata-dev:/var/lib/postgresql/data
@@ -48,7 +48,7 @@ services:
       - AutoMigrate=true
     
     ports:
-      - "8090:8080"
+      - "5200:8080"
     
     depends_on:
       db:
@@ -70,10 +70,11 @@ services:
       - ./frontend/public:/app/public
     
     environment:
-      - VITE_API_URL=http://localhost:8090/api
+      - VITE_API_URL=http://localhost:5200/api
       - VITE_APP_TITLE=FlashcardsLoop (Docker Dev)
+    
     ports:
-      - "3000:3000"
+      - "3005:3000"
     
     depends_on:
       - api
