@@ -13,7 +13,7 @@ public class User : IdentityUser<Guid>
     [Range(0, int.MaxValue, ErrorMessage = "Рейтинг не может быть отрицательным")]
     public int TotalRating { get; set; }
     public DateTime RatingLastUpdatedAt { get; set; }
-    public DateTime CreatedAt { get; set; } 
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime LastLogin { get; set; }
     public List<StudyHistory>? StudyHistory { get; set; }
     public List<Group>? Groups { get; set; }

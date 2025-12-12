@@ -14,7 +14,6 @@ try
     var services = builder.Services;
 
     builder.Logging.ClearProviders(); 
-    builder.Logging.AddConsole();    
     builder.Host.UseNLog();          
 
     services.AddControllers()
@@ -48,7 +47,7 @@ try
             connectionString: builder.Configuration.GetConnectionString("DefaultConnection")!,
             name: "PostgreSQL Database",
             timeout: TimeSpan.FromSeconds(3),
-            tags: new[] { "db", "sql", "postgres" })
+            tags: ["db", "sql", "postgres"])
         .Services  
         .AddConfigures(builder)
         .AddServices();
@@ -95,6 +94,8 @@ finally
 {
     LogManager.Shutdown();
 }
+
+return;
 
 static bool IsRunningInDocker()
 {

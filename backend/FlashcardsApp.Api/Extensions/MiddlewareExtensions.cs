@@ -3,6 +3,8 @@ using FlashcardsApp.BLL.Interfaces.Achievements;
 using FlashcardsApp.DAL;
 using FlashcardsApp.DAL.Models;
 using FlashcardsApp.DAL.Seeds;
+using Microsoft.AspNetCore.Hosting.Server; 
+using Microsoft.AspNetCore.Hosting.Server.Features; 
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 
@@ -50,6 +52,21 @@ public static class MiddlewareExtensions
 
         logger.LogInformation("Application started in {Environment} mode",
             environment.EnvironmentName);
+        
+        var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
+        lifetime.ApplicationStarted.Register(() =>
+        {
+            var server = app.Services.GetRequiredService<IServer>();
+            var addressFeature = server.Features.Get<IServerAddressesFeature>();
+
+            if (addressFeature != null)
+            {
+                foreach (var address in addressFeature.Addresses)
+                {
+                    logger.LogInformation("Now listening on: {Address}", address);
+                }
+            }
+        });
 
         app.MapControllers();
 
@@ -81,20 +98,20 @@ public static class MiddlewareExtensions
 
     private static void ApplySeedData(this WebApplication app, ILogger logger)
     {
-        logger.LogInformation("=== AUTO SEED ENABLED ===");
+        logger.LogDebug("=== AUTO SEED ENABLED ===");
 
         using var scope = app.Services.CreateScope();
 
         try
         {
-            logger.LogInformation("Starting database seeding...");
+            logger.LogDebug("Starting database seeding...");
 
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
 
-            SeedManager.SeedAsync(db, userManager).GetAwaiter().GetResult();
+            SeedManager.SeedAsync(db, userManager, logger).GetAwaiter().GetResult();
 
-            logger.LogInformation("✓ Database seeding completed!");
+            logger.LogDebug("✓ Database seeding completed!");
 
             var achievementBL = scope.ServiceProvider.GetRequiredService<IAchievementBL>();
             var testUserId = SeedManager.GetTestUserId();
@@ -102,13 +119,13 @@ public static class MiddlewareExtensions
             var result = achievementBL.CheckAndUnlockAchievementsAsync(testUserId)
                 .GetAwaiter().GetResult();
 
-            if (result.IsSuccess && result.Data.Any())
+            if (result is { IsSuccess: true, Data.Count: > 0 })
             {
-                logger.LogInformation("✓ {Count} achievements unlocked for test user", result.Data.Count);
+                logger.LogDebug("✓ {Count} achievements unlocked for test user", result.Data.Count);
             }
             else
             {
-                logger.LogInformation("✓ No new achievements to unlock");
+                logger.LogDebug("✓ No new achievements to unlock");
             }
 
             logger.LogInformation("✓ Seed process completed successfully!");

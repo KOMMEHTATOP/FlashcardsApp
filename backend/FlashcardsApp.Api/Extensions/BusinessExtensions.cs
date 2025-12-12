@@ -45,6 +45,9 @@ public static class BusinessExtensions
         // Лидерборд
         services.AddScoped<ILeaderboardBL, LeaderboardBL>();
 
+        //Админка
+        services.AddScoped<IAdminBL, AdminBL>();
+        
         return services;
     }
 }

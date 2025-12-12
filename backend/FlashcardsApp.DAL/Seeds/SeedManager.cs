@@ -3,6 +3,7 @@ using FlashcardsApp.Models.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 
 namespace FlashcardsApp.DAL.Seeds;
 
@@ -10,17 +11,16 @@ public static class SeedManager
 {
     public static async Task SeedAsync(
         ApplicationDbContext context,
-        UserManager<User> userManager)
+        UserManager<User> userManager, 
+        ILogger logger)
     {
         var userId = Guid.Parse("11111111-1111-1111-1111-111111111111");
 
-        // 1. Reference Data — справочники
         if (!await context.Achievements.AnyAsync())
         {
-            await SeedAchievementsFromJsonAsync(context);
+            await SeedAchievementsFromJsonAsync(context, logger);
         }
 
-        // 2. Test User
         var testUser = await userManager.FindByEmailAsync("test@test.com");
         if (testUser == null)
         {
@@ -37,15 +37,17 @@ public static class SeedManager
             var result = await userManager.CreateAsync(testUser, "Test123!");
             if (!result.Succeeded)
             {
-                Console.WriteLine("Failed to create test user:");
+                logger.LogWarning("Failed to create test user:");
+
                 foreach (var error in result.Errors)
-                    Console.WriteLine($"  - {error.Description}");
+                {
+                    logger.LogWarning("  - {ErrorDescription}", error.Description);
+                }
                 return;
             }
-            Console.WriteLine("✅ Test user created!");
+            logger.LogInformation("Test user created!");
         }
 
-        // 3. User Statistics — инициализация
         if (!await context.UserStatistics.AnyAsync(s => s.UserId == userId))
         {
             var statistics = new UserStatistics
@@ -63,48 +65,45 @@ public static class SeedManager
             };
             context.UserStatistics.Add(statistics);
             await context.SaveChangesAsync();
-            Console.WriteLine("✅ User statistics initialized!");
+            logger.LogInformation("User statistics initialized!");
         }
 
-        // 4. Test Content — группы и карточки
         if (!await context.Groups.AnyAsync(g => g.UserId == userId))
         {
-            var cardsCreated = await SeedGroupsAndCardsFromJsonAsync(context, userId);
+            var cardsCreated = await SeedGroupsAndCardsFromJsonAsync(context, userId, logger);
 
-            // Обновляем TotalCardsCreated
             var stats = await context.UserStatistics.FirstAsync(s => s.UserId == userId);
             stats.TotalCardsCreated = cardsCreated;
             await context.SaveChangesAsync();
-            Console.WriteLine($"✅ TotalCardsCreated updated to {cardsCreated}");
+            logger.LogInformation("TotalCardsCreated updated to {CardsCreated}", cardsCreated);
         }
 
-        Console.WriteLine("=== SEED COMPLETED ===");
+        logger.LogInformation("=== SEED COMPLETED ===");
     }
 
-    /// <summary>
-    /// Проверка достижений после seed — вызывается из MiddlewareExtensions
-    /// </summary>
     public static Guid GetTestUserId() => Guid.Parse("11111111-1111-1111-1111-111111111111");
 
-    private static async Task<int> SeedGroupsAndCardsFromJsonAsync(ApplicationDbContext context, Guid userId)
+    private static async Task<int> SeedGroupsAndCardsFromJsonAsync(ApplicationDbContext context, Guid userId, ILogger logger)
     {
         var assembly = typeof(SeedManager).Assembly;
-
-        // Загружаем JSON с группами
         var groupsJson = await LoadEmbeddedJsonAsync(assembly, "FlashcardsApp.DAL.Seeds.groups.json");
         var groupsData = JsonSerializer.Deserialize<GroupsJsonData>(groupsJson,
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-        if (groupsData?.Groups == null) return 0;
+        if (groupsData?.Groups == null)
+        {
+            return 0;
+        }
 
-        // Загружаем JSON с карточками
         var cardsJson = await LoadEmbeddedJsonAsync(assembly, "FlashcardsApp.DAL.Seeds.cards.json");
         var cardsData = JsonSerializer.Deserialize<CardsJsonData>(cardsJson,
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-        if (cardsData?.Cards == null) return 0;
+        if (cardsData?.Cards == null)
+        {
+            return 0;
+        };
 
-        // Создаём группы
         var groups = groupsData.Groups.Select((g, index) => new Group
         {
             Id = Guid.Parse(g.Id),
@@ -119,10 +118,9 @@ public static class SeedManager
 
         context.Groups.AddRange(groups);
         await context.SaveChangesAsync();
-        Console.WriteLine($"✅ {groups.Count} groups created!");
+        logger.LogInformation($"{groups.Count} groups created!");
 
-        // Создаём карточки
-        int totalCards = 0;
+        var totalCards = 0;
         foreach (var group in groups)
         {
             if (cardsData.Cards.TryGetValue(group.Id.ToString(), out var groupCards))
@@ -143,7 +141,7 @@ public static class SeedManager
         }
 
         await context.SaveChangesAsync();
-        Console.WriteLine($"✅ {totalCards} cards created!");
+        logger.LogInformation("{TotalCards} cards created!", totalCards);
 
         return totalCards;
     }
@@ -158,7 +156,7 @@ public static class SeedManager
         return await reader.ReadToEndAsync();
     }
 
-    private static async Task SeedAchievementsFromJsonAsync(ApplicationDbContext context)
+    private static async Task SeedAchievementsFromJsonAsync(ApplicationDbContext context, ILogger logger)
     {
         try
         {
@@ -168,9 +166,9 @@ public static class SeedManager
             var data = JsonSerializer.Deserialize<AchievementsJsonData>(json,
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-            if (data?.Achievements == null || !data.Achievements.Any())
+            if (data?.Achievements == null || data.Achievements.Count == 0)
             {
-                Console.WriteLine("⚠️ No achievements found in JSON file");
+                logger.LogInformation("No achievements found in JSON file");
                 return;
             }
 
@@ -191,11 +189,11 @@ public static class SeedManager
             context.Achievements.AddRange(achievements);
             await context.SaveChangesAsync();
 
-            Console.WriteLine($"✅ {achievements.Count} achievements loaded!");
+            logger.LogInformation("{AchievementsCount} achievements loaded!", achievements.Count);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ Error loading achievements: {ex.Message}");
+            logger.LogError(ex, "Error loading achievements");
             throw;
         }
     }

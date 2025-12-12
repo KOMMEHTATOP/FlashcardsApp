@@ -1,22 +1,21 @@
-using FlashcardsApp.DAL;
+using FlashcardsApp.BLL.Interfaces;
 using FlashcardsApp.Models.DTOs.Admin;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace FlashcardsApp.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "Admin")] 
+[Authorize(Roles = "Admin")]
 public class AdminController : ControllerBase
 {
-    private readonly ApplicationDbContext _context;
+    private readonly IAdminBL _adminService;
     private readonly ILogger<AdminController> _logger;
 
-    public AdminController(ApplicationDbContext context, ILogger<AdminController> logger)
+    public AdminController(IAdminBL adminService, ILogger<AdminController> logger)
     {
-        _context = context;
+        _adminService = adminService;
         _logger = logger;
     }
 
@@ -28,30 +27,12 @@ public class AdminController : ControllerBase
     {
         try
         {
-            var users = await _context.Users
-                .AsNoTracking() 
-                .Select(u => new AdminUserDto
-                {
-                    Id = u.Id,
-                    Login = u.Login,
-                    Email = u.Email ?? "No Email",
-                    Role = u.Role, 
-                    TotalRating = u.TotalRating,
-                    CreatedAt = u.CreatedAt,
-                    LastLogin = u.LastLogin,
-                    GroupsCount = u.Groups != null ? u.Groups.Count : 0,
-                    CardsCount = u.Groups != null 
-                        ? u.Groups.SelectMany(g => g.Cards).Count() 
-                        : 0
-                })
-                .OrderByDescending(u => u.CreatedAt) 
-                .ToListAsync();
-
+            var users = await _adminService.GetAllUsersAsync();
             return Ok(users);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error fetching users list for admin panel");
+            _logger.LogError(ex, "Failed to retrieve users.");
             return StatusCode(500, "Internal server error");
         }
     }

@@ -8,9 +8,9 @@ public static class SignalRExtensions
     {
         services.AddSignalR(options =>
         {
-            options.EnableDetailedErrors = true; // Включи на проде временно
+            options.EnableDetailedErrors = environment.IsDevelopment(); 
             options.KeepAliveInterval = TimeSpan.FromSeconds(15);
-            options.ClientTimeoutInterval = TimeSpan.FromSeconds(120); // БЫЛО 30, СТАЛО 120
+            options.ClientTimeoutInterval = TimeSpan.FromSeconds(120); 
             options.HandshakeTimeout = TimeSpan.FromSeconds(30);
             options.MaximumReceiveMessageSize = 128 * 1024;
         });
