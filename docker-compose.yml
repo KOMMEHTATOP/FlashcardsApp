@@ -1,20 +1,20 @@
 ﻿version: '3.8'
 
 services:
+  # ==============================
+  # DATABASE (Local)
+  # ==============================
   db:
     image: postgres:16-alpine
     container_name: flashcards-db-dev
     restart: unless-stopped
     
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dev_password_123}
-      POSTGRES_DB: ${POSTGRES_DB:-FlashcardsDb}
-      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
-      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
+    # Читаем переменные из файла .env
+    env_file:
+      - .env
     
     ports:
-      - "5400:5432"
+      - "5432:5432"  # Стандартный порт (было 5400)
     
     volumes:
       - pgdata-dev:/var/lib/postgresql/data
@@ -23,12 +23,15 @@ services:
       - flashcards-net
     
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}" ]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
       timeout: 5s
       retries: 10
       start_period: 30s
 
+  # ==============================
+  # API (Local)
+  # ==============================
   api:
     build:
       context: .
@@ -39,16 +42,11 @@ services:
     container_name: flashcards-api-dev
     restart: unless-stopped
     
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=FlashcardsDb;Username=postgres;Password=dev_password_123
-      - Jwt__Key=SuperSecretJwtKeyHere12345_ChangeThisToLongKey98765
-      - Jwt__Issuer=FlashcardsApp
-      - Jwt__Audience=FlashcardsAppUsers
-      - AutoMigrate=true
+    env_file:
+      - .env
     
     ports:
-      - "5200:8080"
+      - "5200:8080" # API будет доступно по localhost:5200
     
     depends_on:
       db:
@@ -57,6 +55,9 @@ services:
     networks:
       - flashcards-net
 
+  # ==============================
+  # FRONTEND (Local)
+  # ==============================
   frontend:
     build:
       context: ./frontend
@@ -74,7 +75,7 @@ services:
       - VITE_APP_TITLE=FlashcardsLoop (Docker Dev)
     
     ports:
-      - "3005:3000"
+      - "3005:3000" # Frontend на localhost:3005
     
     depends_on:
       - api

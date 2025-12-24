@@ -6,7 +6,7 @@ namespace FlashcardsApp.Api.Extensions;
 
 public static class DatabaseExtensions
 {
-    private readonly static Logger Logger = LogManager.GetCurrentClassLogger();
+    private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     
     public static IServiceCollection AddDatabaseConfiguration(
         this IServiceCollection services,

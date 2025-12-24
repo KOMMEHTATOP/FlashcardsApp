@@ -4,6 +4,9 @@ using System.Text.Json.Serialization;
 using NLog;
 using NLog.Web;
 
+
+Console.OutputEncoding = System.Text.Encoding.UTF8;
+
 var logger = LogManager.Setup()
     .LoadConfigurationFromFile(Path.Combine(AppContext.BaseDirectory, "nlog.config.xml"))
     .GetCurrentClassLogger();

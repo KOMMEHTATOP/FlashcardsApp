@@ -11,19 +11,6 @@ public static class CorsExtensions
             .GetSection("Cors:AllowedOrigins")
             .Get<string[]>() ?? [];
 
-        if (allowedOrigins.Length == 0 && environment.IsDevelopment())
-        {
-            allowedOrigins =
-            [
-                "http://localhost:3000",
-                "http://localhost:3005",
-                "http://localhost:5173",
-                "http://localhost:5174",
-                "http://localhost:7255",
-                "https://localhost:7255"
-            ];
-        }
-
         services.AddCors(options =>
         {
             options.AddDefaultPolicy(policyBuilder =>

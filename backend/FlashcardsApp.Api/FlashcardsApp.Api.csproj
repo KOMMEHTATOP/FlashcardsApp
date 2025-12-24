@@ -4,6 +4,7 @@
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 	<RootNamespace>FlashcardsApp.Api</RootNamespace>
 	<AssemblyName>FlashcardsApp.Api</AssemblyName>
+	<UserSecretsId>eb2cd13d-ea6a-4c51-a084-decf6cf63dee</UserSecretsId>
     </PropertyGroup>
 
     <ItemGroup>
